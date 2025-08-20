@@ -16,10 +16,7 @@ class ShopListScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: Text(
-          'Shop Management',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: Text('Shop Management', style: AppTextStyles.appBarTitle),
         elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -216,48 +213,57 @@ class ShopListScreen extends StatelessWidget {
                                 ),
                                 elevation: 8,
                                 shadowColor: AppColors.shadowBlueMedium,
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(
-                                    value: 'edit',
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(vertical: 4.h),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.edit_outlined,
-                                            size: 20,
-                                            color: AppColors.primaryBlue,
+                                itemBuilder:
+                                    (context) => [
+                                      PopupMenuItem(
+                                        value: 'edit',
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 4.h,
                                           ),
-                                          SizedBox(width: 12),
-                                          Text(
-                                            'Edit',
-                                            style: AppTextStyles.menuItemPrimary,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.edit_outlined,
+                                                size: 20,
+                                                color: AppColors.primaryBlue,
+                                              ),
+                                              SizedBox(width: 12),
+                                              Text(
+                                                'Edit',
+                                                style:
+                                                    AppTextStyles
+                                                        .menuItemPrimary,
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  PopupMenuItem(
-                                    value: 'delete',
-                                    child: Container(
-                                      padding: EdgeInsets.symmetric(vertical: 4.h),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.delete_outline,
-                                            size: 20,
-                                            color: AppColors.error,
+                                      PopupMenuItem(
+                                        value: 'delete',
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 4.h,
                                           ),
-                                          SizedBox(width: 12),
-                                          Text(
-                                            'Delete',
-                                            style: AppTextStyles.menuItemDanger,
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.delete_outline,
+                                                size: 20,
+                                                color: AppColors.error,
+                                              ),
+                                              SizedBox(width: 12),
+                                              Text(
+                                                'Delete',
+                                                style:
+                                                    AppTextStyles
+                                                        .menuItemDanger,
+                                              ),
+                                            ],
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                ],
+                                    ],
                                 onSelected: (value) {
                                   if (value == 'edit') {
                                     _navigateToEditShop(context, shop);
@@ -307,93 +313,86 @@ class ShopListScreen extends StatelessWidget {
   void _navigateToAddShop(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const AddEditShopScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const AddEditShopScreen()),
     );
   }
 
   void _navigateToEditShop(BuildContext context, Shop shop) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => AddEditShopScreen(shop: shop),
-      ),
+      MaterialPageRoute(builder: (context) => AddEditShopScreen(shop: shop)),
     );
   }
 
   void _showDeleteDialog(BuildContext context, Shop shop) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(8.r),
-              decoration: BoxDecoration(
-                color: AppColors.errorLight,
-                borderRadius: BorderRadius.circular(8.r),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.r),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: AppColors.errorLight,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: const Icon(
+                    Icons.warning_outlined,
+                    color: AppColors.error,
+                    size: 24,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Text('Delete Shop', style: AppTextStyles.dialogTitle),
+              ],
+            ),
+            content: Text(
+              'Are you sure you want to delete "${shop.name}"? This action cannot be undone.',
+              style: AppTextStyles.dialogContent,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 12.h,
+                  ),
+                ),
+                child: Text('Cancel', style: AppTextStyles.dialogButton),
               ),
-              child: const Icon(
-                Icons.warning_outlined,
-                color: AppColors.error,
-                size: 24,
-              ),
-            ),
-            SizedBox(width: 12.w),
-            Text(
-              'Delete Shop',
-              style: AppTextStyles.dialogTitle,
-            ),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to delete "${shop.name}"? This action cannot be undone.',
-          style: AppTextStyles.dialogContent,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(
-                horizontal: 20.w,
-                vertical: 12.h,
-              ),
-            ),
-            child: Text(
-              'Cancel',
-              style: AppTextStyles.dialogButton,
-            ),
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.error,
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: TextButton(
-              onPressed: () {
-                Provider.of<ShopProvider>(context, listen: false)
-                    .deleteShop(shop.id);
-                Navigator.pop(context);
-              },
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20.w,
-                  vertical: 12.h,
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.error,
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: TextButton(
+                  onPressed: () {
+                    Provider.of<ShopProvider>(
+                      context,
+                      listen: false,
+                    ).deleteShop(shop.id);
+                    Navigator.pop(context);
+                  },
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 12.h,
+                    ),
+                  ),
+                  child: Text(
+                    'Delete',
+                    style: AppTextStyles.dialogButtonPrimary,
+                  ),
                 ),
               ),
-              child: Text(
-                'Delete',
-                style: AppTextStyles.dialogButtonPrimary,
-              ),
-            ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }

@@ -29,7 +29,8 @@ class MultiItemSaleScreen extends StatefulWidget {
 class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
   List<SaleItem> selectedItems = [];
   final TextEditingController _customerNameController = TextEditingController();
-  final TextEditingController _customerPhoneController = TextEditingController();
+  final TextEditingController _customerPhoneController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -62,26 +63,22 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
           if (selectedItems.isNotEmpty)
             Padding(
               padding: EdgeInsets.only(right: 16.w),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.textOnPrimary.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12.r),
+              child: IconButton(
+                icon: Icon(
+                  Icons.shopping_cart,
+                  color: AppColors.textOnPrimary,
+                  size: 24.sp,
                 ),
-                child: IconButton(
-                  icon: Icon(
-                    Icons.shopping_cart,
-                    color: AppColors.textOnPrimary,
-                    size: 24.sp,
-                  ),
-                  onPressed: () => _showSelectedItemsBottomSheet(),
-                ),
+                onPressed: () => _showSelectedItemsBottomSheet(),
               ),
             ),
         ],
       ),
       body: Consumer<ShopProvider>(
         builder: (context, shopProvider, child) {
-          final currentShop = shopProvider.shops.firstWhere((s) => s.id == widget.shop.id);
+          final currentShop = shopProvider.shops.firstWhere(
+            (s) => s.id == widget.shop.id,
+          );
 
           if (currentShop.inventory.isEmpty) {
             return _buildEmptyInventoryState();
@@ -96,38 +93,40 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
               if (selectedItems.isNotEmpty) _buildSelectedItemsSummary(),
 
               // Available Items List
-              Expanded(
-                child: _buildInventoryList(currentShop),
-              ),
+              Expanded(child: _buildInventoryList(currentShop)),
             ],
           );
         },
       ),
-      floatingActionButton: selectedItems.isNotEmpty
-          ? Container(
-        decoration: BoxDecoration(
-          gradient: AppColors.accentGradient,
-          borderRadius: BorderRadius.circular(16.r),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowBlueFAB,
-              blurRadius: 15.r,
-              offset: Offset(0, 6.h),
-            ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: _proceedToSale,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          icon: Icon(Icons.point_of_sale, color: AppColors.textOnPrimary),
-          label: Text(
-            'Proceed to Sale',
-            style: AppTextStyles.buttonLarge.copyWith(fontSize: 14.sp),
-          ),
-        ),
-      )
-          : null,
+      floatingActionButton:
+          selectedItems.isNotEmpty
+              ? Container(
+                decoration: BoxDecoration(
+                  gradient: AppColors.accentGradient,
+                  borderRadius: BorderRadius.circular(16.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.shadowBlueFAB,
+                      blurRadius: 15.r,
+                      offset: Offset(0, 6.h),
+                    ),
+                  ],
+                ),
+                child: FloatingActionButton.extended(
+                  onPressed: _proceedToSale,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  icon: Icon(
+                    Icons.point_of_sale,
+                    color: AppColors.textOnPrimary,
+                  ),
+                  label: Text(
+                    'Proceed to Sale',
+                    style: AppTextStyles.buttonLarge.copyWith(fontSize: 14.sp),
+                  ),
+                ),
+              )
+              : null,
     );
   }
 
@@ -227,10 +226,19 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
             style: AppTextStyles.bodyMedium,
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.textHint),
-              prefixIcon: Icon(icon, color: AppColors.textSecondary, size: 18.sp),
+              hintStyle: AppTextStyles.bodySmall.copyWith(
+                color: AppColors.textHint,
+              ),
+              prefixIcon: Icon(
+                icon,
+                color: AppColors.textSecondary,
+                size: 18.sp,
+              ),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 12.w,
+                vertical: 12.h,
+              ),
             ),
           ),
         ),
@@ -239,8 +247,14 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
   }
 
   Widget _buildSelectedItemsSummary() {
-    final totalAmount = selectedItems.fold(0.0, (sum, item) => sum + item.totalPrice);
-    final totalItems = selectedItems.fold(0, (sum, item) => sum + item.quantity);
+    final totalAmount = selectedItems.fold(
+      0.0,
+      (sum, item) => sum + item.totalPrice,
+    );
+    final totalItems = selectedItems.fold(
+      0,
+      (sum, item) => sum + item.quantity,
+    );
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
@@ -297,10 +311,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
         children: [
           Padding(
             padding: EdgeInsets.symmetric(vertical: 12.h),
-            child: Text(
-              'Available Items',
-              style: AppTextStyles.headingMedium,
-            ),
+            child: Text('Available Items', style: AppTextStyles.headingMedium),
           ),
           Expanded(
             child: ListView.separated(
@@ -309,7 +320,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
               itemBuilder: (context, index) {
                 final item = shop.inventory[index];
                 final selectedItem = selectedItems.firstWhere(
-                      (sItem) => sItem.item.id == item.id,
+                  (sItem) => sItem.item.id == item.id,
                   orElse: () => SaleItem(item: item, quantity: 0),
                 );
                 final isSelected = selectedItem.quantity > 0;
@@ -323,20 +334,26 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
     );
   }
 
-  Widget _buildInventoryItemCard(InventoryItem item, SaleItem selectedItem, bool isSelected) {
+  Widget _buildInventoryItemCard(
+    InventoryItem item,
+    SaleItem selectedItem,
+    bool isSelected,
+  ) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(12.r),
-        border: isSelected
-            ? Border.all(color: AppColors.primaryBlue, width: 2.w)
-            : null,
+        border:
+            isSelected
+                ? Border.all(color: AppColors.primaryBlue, width: 2.w)
+                : null,
         boxShadow: [
           BoxShadow(
-            color: isSelected
-                ? AppColors.primaryBlue.withOpacity(0.1)
-                : AppColors.shadowBlue,
+            color:
+                isSelected
+                    ? AppColors.primaryBlue.withOpacity(0.1)
+                    : AppColors.shadowBlue,
             blurRadius: isSelected ? 8.r : 6.r,
             offset: Offset(0, 2.h),
           ),
@@ -354,7 +371,10 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                   item.name,
                   style: AppTextStyles.bodyLarge.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: isSelected ? AppColors.primaryBlue : AppColors.textPrimary,
+                    color:
+                        isSelected
+                            ? AppColors.primaryBlue
+                            : AppColors.textPrimary,
                   ),
                 ),
                 SizedBox(height: 4.h),
@@ -385,11 +405,18 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                     children: [
                       _buildQuantityButton(
                         icon: Icons.remove,
-                        onPressed: () => _updateQuantity(item, selectedItem.quantity - 1),
+                        onPressed:
+                            () => _updateQuantity(
+                              item,
+                              selectedItem.quantity - 1,
+                            ),
                         color: AppColors.error,
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 8.h,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.blueTinted,
                           borderRadius: BorderRadius.circular(8.r),
@@ -404,9 +431,13 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                       ),
                       _buildQuantityButton(
                         icon: Icons.add,
-                        onPressed: selectedItem.quantity < item.quantity
-                            ? () => _updateQuantity(item, selectedItem.quantity + 1)
-                            : null,
+                        onPressed:
+                            selectedItem.quantity < item.quantity
+                                ? () => _updateQuantity(
+                                  item,
+                                  selectedItem.quantity + 1,
+                                )
+                                : null,
                         color: AppColors.success,
                       ),
                     ],
@@ -430,9 +461,8 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: IconButton(
-                onPressed: item.quantity > 0
-                    ? () => _updateQuantity(item, 1)
-                    : null,
+                onPressed:
+                    item.quantity > 0 ? () => _updateQuantity(item, 1) : null,
                 icon: Icon(
                   Icons.add_shopping_cart,
                   color: AppColors.textOnPrimary,
@@ -484,10 +514,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
             color: AppColors.textSecondary.withOpacity(0.5),
           ),
           SizedBox(height: 16.h),
-          Text(
-            'No Items Available',
-            style: AppTextStyles.emptyStateTitle,
-          ),
+          Text('No Items Available', style: AppTextStyles.emptyStateTitle),
           SizedBox(height: 8.h),
           Text(
             'Add items to inventory to start selling',
@@ -503,7 +530,9 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
       if (newQuantity <= 0) {
         selectedItems.removeWhere((sItem) => sItem.item.id == item.id);
       } else if (newQuantity <= item.quantity) {
-        final existingIndex = selectedItems.indexWhere((sItem) => sItem.item.id == item.id);
+        final existingIndex = selectedItems.indexWhere(
+          (sItem) => sItem.item.id == item.id,
+        );
         if (existingIndex >= 0) {
           selectedItems[existingIndex].quantity = newQuantity;
         } else {
@@ -520,21 +549,30 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
       ),
-      builder: (context) => Container(
-        padding: EdgeInsets.all(20.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Selected Items', style: AppTextStyles.headingMedium),
-            SizedBox(height: 16.h),
-            ...selectedItems.map((sItem) => ListTile(
-              title: Text(sItem.item.name),
-              subtitle: Text('₹${sItem.item.price} × ${sItem.quantity}'),
-              trailing: Text('₹${sItem.totalPrice.toStringAsFixed(2)}'),
-            )).toList(),
-          ],
-        ),
-      ),
+      builder:
+          (context) => Container(
+            padding: EdgeInsets.all(20.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Selected Items', style: AppTextStyles.headingMedium),
+                SizedBox(height: 16.h),
+                ...selectedItems
+                    .map(
+                      (sItem) => ListTile(
+                        title: Text(sItem.item.name),
+                        subtitle: Text(
+                          '₹${sItem.item.price} × ${sItem.quantity}',
+                        ),
+                        trailing: Text(
+                          '₹${sItem.totalPrice.toStringAsFixed(2)}',
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ],
+            ),
+          ),
     );
   }
 
@@ -544,12 +582,13 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SaleSummaryScreen(
-          shop: widget.shop,
-          saleItems: List.from(selectedItems),
-          customerName: _customerNameController.text.trim(),
-          customerPhone: _customerPhoneController.text.trim(),
-        ),
+        builder:
+            (context) => SaleSummaryScreen(
+              shop: widget.shop,
+              saleItems: List.from(selectedItems),
+              customerName: _customerNameController.text.trim(),
+              customerPhone: _customerPhoneController.text.trim(),
+            ),
       ),
     );
   }

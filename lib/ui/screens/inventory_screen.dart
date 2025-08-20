@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:inventory_manager/ui/screens/multi_item_sale_screen.dart';
+import 'package:inventory_manager/ui/screens/sale_summary_screen.dart';
 import 'package:provider/provider.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shop.dart';
@@ -43,6 +45,23 @@ class InventoryScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 10.w),
+            child: IconButton(
+              icon: Icon(
+                Icons.point_of_sale,
+                color: AppColors.textOnPrimary,
+                size: 24.sp,
+              ),
+              onPressed:
+                  () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MultiItemSaleScreen(shop: shop),
+                    ),
+                  ),
+            ),
+          ),
           Padding(
             padding: EdgeInsets.only(right: 10.w),
             child: IconButton(
@@ -402,28 +421,211 @@ class InventoryScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
+              Column(
                 children: [
-                  _buildActionButton(
-                    icon: Icons.remove_shopping_cart,
-                    color: AppColors.error,
-                    onPressed: () => _showSellDialog(context, shop, item),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildActionButton(
+                        icon: Icons.point_of_sale,
+                        color: AppColors.primaryBlue,
+                        onPressed:
+                            () => _showQuickSaleDialog(context, shop, item),
+                      ),
+                      SizedBox(width: 8.w),
+                      _buildActionButton(
+                        icon: Icons.remove_shopping_cart,
+                        color: AppColors.error,
+                        onPressed: () => _showSellDialog(context, shop, item),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 8.w),
-                  _buildActionButton(
-                    icon: Icons.add_shopping_cart,
-                    color: AppColors.success,
-                    onPressed: () => _showAddStockDialog(context, shop, item),
+                  SizedBox(height: 8.h),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildActionButton(
+                        icon: Icons.add_shopping_cart,
+                        color: AppColors.success,
+                        onPressed:
+                            () => _showAddStockDialog(context, shop, item),
+                      ),
+                      SizedBox(width: 8.w),
+                      _buildMenuButton(context, shop, item),
+                    ],
                   ),
-                  SizedBox(width: 8.w),
-                  _buildMenuButton(context, shop, item),
                 ],
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  void _showQuickSaleDialog(
+    BuildContext context,
+    Shop shop,
+    InventoryItem item,
+  ) {
+    final quantityController = TextEditingController();
+    final customerNameController = TextEditingController();
+    final customerPhoneController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: AppColors.backgroundLight,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            title: Text(
+              'Quick Sale - ${item.name}',
+              style: AppTextStyles.dialogTitle,
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.blueTinted,
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.inventory,
+                          color: AppColors.primaryBlue,
+                          size: 20.sp,
+                        ),
+                        SizedBox(width: 12.w),
+                        Column(
+                          children: [
+                            Text(
+                              'Available: ${item.quantity}',
+                              style: AppTextStyles.dialogContent,
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              'Price: ₹${item.price.toStringAsFixed(2)}',
+                              style: AppTextStyles.dialogContent,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  TextField(
+                    controller: quantityController,
+                    keyboardType: TextInputType.number,
+                    style: AppTextStyles.bodyLarge,
+                    decoration: InputDecoration(
+                      labelText: 'Quantity to sell',
+                      labelStyle: AppTextStyles.bodyMedium,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide(color: AppColors.primaryBlue),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  TextField(
+                    controller: customerNameController,
+                    style: AppTextStyles.bodyLarge,
+                    decoration: InputDecoration(
+                      labelText: 'Customer Name (Optional)',
+                      labelStyle: AppTextStyles.bodyMedium,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide(color: AppColors.primaryBlue),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  TextField(
+                    controller: customerPhoneController,
+                    keyboardType: TextInputType.phone,
+                    style: AppTextStyles.bodyLarge,
+                    decoration: InputDecoration(
+                      labelText: 'Customer Phone (Optional)',
+                      labelStyle: AppTextStyles.bodyMedium,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: BorderSide(color: AppColors.primaryBlue),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel', style: AppTextStyles.dialogButton),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: AppColors.accentGradient,
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: TextButton(
+                  onPressed: () {
+                    final quantity = int.tryParse(quantityController.text) ?? 0;
+                    if (quantity > 0 && quantity <= item.quantity) {
+                      Navigator.pop(context);
+
+                      // Create sale item and navigate to summary
+                      final saleItems = [
+                        SaleItem(item: item, quantity: quantity),
+                      ];
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => SaleSummaryScreen(
+                                shop: shop,
+                                saleItems: saleItems,
+                                customerName:
+                                    customerNameController.text.trim(),
+                                customerPhone:
+                                    customerPhoneController.text.trim(),
+                              ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Invalid quantity'),
+                          backgroundColor: AppColors.error,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: Text(
+                    'Proceed to Bill',
+                    style: AppTextStyles.dialogButtonPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
     );
   }
 
