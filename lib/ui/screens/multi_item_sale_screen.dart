@@ -221,6 +221,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
             border: Border.all(color: AppColors.surfaceLight),
           ),
           child: TextField(
+            onTapOutside: (_) => FocusScope.of(context).unfocus(),
             controller: controller,
             keyboardType: keyboardType,
             style: AppTextStyles.bodyMedium,

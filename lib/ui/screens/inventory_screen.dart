@@ -767,7 +767,10 @@ class InventoryScreen extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20.r),
             ),
-            title: Text('Sell ${item.name}', style: AppTextStyles.dialogTitle),
+            title: Text(
+              'Remove Stock - ${item.name}',
+              style: AppTextStyles.dialogTitle,
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [

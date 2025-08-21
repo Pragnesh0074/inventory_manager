@@ -39,10 +39,67 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
   }
 
   void _generateBillNumber() {
-    final now = DateTime.now();
+    final now = saleDateTime ?? DateTime.now();
     billNumber =
         'BILL${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}${now.millisecondsSinceEpoch.toString().substring(8)}';
-    saleDateTime = now;
+    saleDateTime ??= now;
+  }
+
+  // Add this method to _SaleSummaryScreenState class
+  Future<void> _selectDateTime() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: saleDateTime!,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: AppColors.primaryBlue,
+              onPrimary: AppColors.textOnPrimary,
+              surface: AppColors.cardBackground,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedDate != null) {
+      final TimeOfDay? pickedTime = await showTimePicker(
+        context: context,
+        initialTime: TimeOfDay.fromDateTime(saleDateTime!),
+        builder: (context, child) {
+          return Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: Theme.of(context).colorScheme.copyWith(
+                primary: AppColors.primaryBlue,
+                onPrimary: AppColors.textOnPrimary,
+                surface: AppColors.cardBackground,
+              ),
+            ),
+            child: child!,
+          );
+        },
+      );
+
+      if (pickedTime != null) {
+        final newDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        setState(() {
+          saleDateTime = newDateTime;
+          // Regenerate bill number with new date
+          _generateBillNumber();
+        });
+      }
+    }
   }
 
   @override
@@ -172,10 +229,31 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             ),
           ),
           SizedBox(height: 8.h),
-          Text(
-            _formatDateTime(saleDateTime!),
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
+          GestureDetector(
+            onTap: _selectDateTime,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: AppColors.primaryBlue.withOpacity(0.3),
+                  width: 1.w,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    _formatDateTime(saleDateTime!),
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Icon(Icons.edit, size: 16.sp, color: AppColors.primaryBlue),
+                ],
+              ),
             ),
           ),
         ],
