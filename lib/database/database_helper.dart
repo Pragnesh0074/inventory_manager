@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'dart:convert';
 import '../models/inventory_item.dart';
 import '../models/shop.dart';
 import '../models/stock_entry.dart';
 import '../models/transaction.dart' as trans;
+import '../models/sale.dart';
+import '../models/sale_item.dart';
+import '../models/additional_cost.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -23,8 +27,9 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'inventory_management.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -81,6 +86,42 @@ class DatabaseHelper {
         FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
       )
     ''');
+
+    // Create sales table for multi-item sales
+    await db.execute('''
+      CREATE TABLE sales(
+        id TEXT PRIMARY KEY,
+        shop_id TEXT NOT NULL,
+        items TEXT NOT NULL,
+        additional_costs TEXT NOT NULL,
+        subtotal REAL NOT NULL,
+        additional_costs_total REAL NOT NULL,
+        grand_total REAL NOT NULL,
+        date_time TEXT NOT NULL,
+        notes TEXT,
+        FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add sales table for version 2
+      await db.execute('''
+        CREATE TABLE sales(
+          id TEXT PRIMARY KEY,
+          shop_id TEXT NOT NULL,
+          items TEXT NOT NULL,
+          additional_costs TEXT NOT NULL,
+          subtotal REAL NOT NULL,
+          additional_costs_total REAL NOT NULL,
+          grand_total REAL NOT NULL,
+          date_time TEXT NOT NULL,
+          notes TEXT,
+          FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
+        )
+      ''');
+    }
   }
 
   // Shop operations
@@ -294,6 +335,120 @@ class DatabaseHelper {
         type: maps[i]['type'],
       );
     });
+  }
+
+  // Sale operations
+  Future<int> insertSale(Sale sale) async {
+    final db = await database;
+    return await db.insert('sales', {
+      'id': sale.id,
+      'shop_id': sale.shopId,
+      'items': jsonEncode(sale.items.map((item) => item.toMap()).toList()),
+      'additional_costs': jsonEncode(sale.additionalCosts.map((cost) => cost.toMap()).toList()),
+      'subtotal': sale.subtotal,
+      'additional_costs_total': sale.additionalCostsTotal,
+      'grand_total': sale.grandTotal,
+      'date_time': sale.dateTime.toIso8601String(),
+      'notes': sale.notes,
+    });
+  }
+
+  Future<List<Sale>> getSales(String shopId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'sales',
+      where: 'shop_id = ?',
+      whereArgs: [shopId],
+      orderBy: 'date_time DESC',
+    );
+
+    return List.generate(maps.length, (i) {
+      final itemsJson = jsonDecode(maps[i]['items']) as List;
+      final additionalCostsJson = jsonDecode(maps[i]['additional_costs']) as List;
+      
+      return Sale(
+        id: maps[i]['id'],
+        shopId: maps[i]['shop_id'],
+        items: itemsJson.map((item) => SaleItem.fromMap(item)).toList(),
+        additionalCosts: additionalCostsJson.map((cost) => AdditionalCost.fromMap(cost)).toList(),
+        subtotal: maps[i]['subtotal'],
+        additionalCostsTotal: maps[i]['additional_costs_total'],
+        grandTotal: maps[i]['grand_total'],
+        dateTime: DateTime.parse(maps[i]['date_time']),
+        notes: maps[i]['notes'],
+      );
+    });
+  }
+
+  Future<Sale?> getSale(String saleId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'sales',
+      where: 'id = ?',
+      whereArgs: [saleId],
+      limit: 1,
+    );
+
+    if (maps.isEmpty) return null;
+
+    final map = maps.first;
+    final itemsJson = jsonDecode(map['items']) as List;
+    final additionalCostsJson = jsonDecode(map['additional_costs']) as List;
+    
+    return Sale(
+      id: map['id'],
+      shopId: map['shop_id'],
+      items: itemsJson.map((item) => SaleItem.fromMap(item)).toList(),
+      additionalCosts: additionalCostsJson.map((cost) => AdditionalCost.fromMap(cost)).toList(),
+      subtotal: map['subtotal'],
+      additionalCostsTotal: map['additional_costs_total'],
+      grandTotal: map['grand_total'],
+      dateTime: DateTime.parse(map['date_time']),
+      notes: map['notes'],
+    );
+  }
+
+  Future<List<Sale>> getMonthlySales(String shopId, DateTime month) async {
+    final db = await database;
+    final startDate = DateTime(month.year, month.month, 1);
+    final endDate = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
+
+    final List<Map<String, dynamic>> maps = await db.query(
+      'sales',
+      where: 'shop_id = ? AND date_time >= ? AND date_time <= ?',
+      whereArgs: [
+        shopId,
+        startDate.toIso8601String(),
+        endDate.toIso8601String(),
+      ],
+      orderBy: 'date_time DESC',
+    );
+
+    return List.generate(maps.length, (i) {
+      final itemsJson = jsonDecode(maps[i]['items']) as List;
+      final additionalCostsJson = jsonDecode(maps[i]['additional_costs']) as List;
+      
+      return Sale(
+        id: maps[i]['id'],
+        shopId: maps[i]['shop_id'],
+        items: itemsJson.map((item) => SaleItem.fromMap(item)).toList(),
+        additionalCosts: additionalCostsJson.map((cost) => AdditionalCost.fromMap(cost)).toList(),
+        subtotal: maps[i]['subtotal'],
+        additionalCostsTotal: maps[i]['additional_costs_total'],
+        grandTotal: maps[i]['grand_total'],
+        dateTime: DateTime.parse(maps[i]['date_time']),
+        notes: maps[i]['notes'],
+      );
+    });
+  }
+
+  Future<int> deleteSale(String saleId) async {
+    final db = await database;
+    return await db.delete(
+      'sales',
+      where: 'id = ?',
+      whereArgs: [saleId],
+    );
   }
 
   // Close database
