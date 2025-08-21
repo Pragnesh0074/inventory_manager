@@ -4,10 +4,13 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/material.dart';
 import '../../models/shop.dart';
+import 'permission_service.dart';
 
 class PDFService {
+  final PermissionService _permissionService = PermissionService();
+
   Future<String> generateBill({
     required Shop shop,
     required String billNumber,
@@ -18,7 +21,17 @@ class PDFService {
     required double subtotal,
     required double tax,
     required double total,
+    required BuildContext context,
   }) async {
+    // Check and request permissions first
+    if (!await _permissionService.areAllPermissionsGranted()) {
+      // Request all permissions at once
+      final granted = await _permissionService.requestAllPermissions(context);
+      if (!granted) {
+        throw Exception('Storage permission not granted');
+      }
+    }
+
     final pdf = pw.Document();
 
     // Add page to PDF
@@ -82,7 +95,10 @@ class PDFService {
                   pw.SizedBox(height: 5),
                   pw.Text(
                     shop.address,
-                    style: pw.TextStyle(fontSize: 12, color: PdfColor.fromHex('#666666')),
+                    style: pw.TextStyle(
+                      fontSize: 12,
+                      color: PdfColor.fromHex('#666666'),
+                    ),
                   ),
                 ],
               ),
@@ -100,7 +116,10 @@ class PDFService {
                   pw.SizedBox(height: 5),
                   pw.Text(
                     'Bill #$billNumber',
-                    style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+                    style: pw.TextStyle(
+                      fontSize: 12,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -115,7 +134,10 @@ class PDFService {
             ),
             child: pw.Text(
               _formatDateTime(dateTime),
-              style: pw.TextStyle(fontSize: 11, color: PdfColor.fromHex('#333333')),
+              style: pw.TextStyle(
+                fontSize: 11,
+                color: PdfColor.fromHex('#333333'),
+              ),
             ),
           ),
         ],
@@ -150,7 +172,10 @@ class PDFService {
             pw.SizedBox(height: 3),
             pw.Text(
               'Phone: $customerPhone',
-              style: pw.TextStyle(fontSize: 11, color: PdfColor.fromHex('#666666')),
+              style: pw.TextStyle(
+                fontSize: 11,
+                color: PdfColor.fromHex('#666666'),
+              ),
             ),
           ],
         ],
@@ -173,14 +198,18 @@ class PDFService {
           ],
         ),
         // Data Rows
-        ...saleItems.map((saleItem) => pw.TableRow(
-          children: [
-            _buildTableCell(saleItem.item.name),
-            _buildTableCell('₹${saleItem.item.price.toStringAsFixed(2)}'),
-            _buildTableCell('${saleItem.quantity}'),
-            _buildTableCell('₹${saleItem.totalPrice.toStringAsFixed(2)}'),
-          ],
-        )).toList(),
+        ...saleItems
+            .map(
+              (saleItem) => pw.TableRow(
+                children: [
+                  _buildTableCell(saleItem.item.name),
+                  _buildTableCell('₹${saleItem.item.price.toStringAsFixed(2)}'),
+                  _buildTableCell('${saleItem.quantity}'),
+                  _buildTableCell('₹${saleItem.totalPrice.toStringAsFixed(2)}'),
+                ],
+              ),
+            )
+            .toList(),
       ],
     );
   }
@@ -193,7 +222,10 @@ class PDFService {
         style: pw.TextStyle(
           fontSize: isHeader ? 12 : 11,
           fontWeight: isHeader ? pw.FontWeight.bold : pw.FontWeight.normal,
-          color: isHeader ? PdfColor.fromHex('#333333') : PdfColor.fromHex('#666666'),
+          color:
+              isHeader
+                  ? PdfColor.fromHex('#333333')
+                  : PdfColor.fromHex('#666666'),
         ),
         textAlign: isHeader ? pw.TextAlign.center : pw.TextAlign.left,
       ),
@@ -211,16 +243,25 @@ class PDFService {
           ),
           child: pw.Column(
             children: [
-              _buildSummaryRow('Subtotal:', '₹${subtotal.toStringAsFixed(2)}', false),
+              _buildSummaryRow(
+                'Subtotal:',
+                '₹${subtotal.toStringAsFixed(2)}',
+                false,
+              ),
               pw.SizedBox(height: 8),
-              _buildSummaryRow('GST (18%):', '₹${tax.toStringAsFixed(2)}', false),
-              pw.SizedBox(height: 15),
-              pw.Container(
-                height: 1,
-                color: PdfColor.fromHex('#DDD'),
+              _buildSummaryRow(
+                'GST (18%):',
+                '₹${tax.toStringAsFixed(2)}',
+                false,
               ),
               pw.SizedBox(height: 15),
-              _buildSummaryRow('Total Amount:', '₹${total.toStringAsFixed(2)}', true),
+              pw.Container(height: 1, color: PdfColor.fromHex('#DDD')),
+              pw.SizedBox(height: 15),
+              _buildSummaryRow(
+                'Total Amount:',
+                '₹${total.toStringAsFixed(2)}',
+                true,
+              ),
             ],
           ),
         ),
@@ -237,7 +278,10 @@ class PDFService {
           style: pw.TextStyle(
             fontSize: isTotal ? 14 : 12,
             fontWeight: isTotal ? pw.FontWeight.bold : pw.FontWeight.normal,
-            color: isTotal ? PdfColor.fromHex('#1976D2') : PdfColor.fromHex('#666666'),
+            color:
+                isTotal
+                    ? PdfColor.fromHex('#1976D2')
+                    : PdfColor.fromHex('#666666'),
           ),
         ),
         pw.Text(
@@ -245,7 +289,10 @@ class PDFService {
           style: pw.TextStyle(
             fontSize: isTotal ? 16 : 12,
             fontWeight: pw.FontWeight.bold,
-            color: isTotal ? PdfColor.fromHex('#4CAF50') : PdfColor.fromHex('#333333'),
+            color:
+                isTotal
+                    ? PdfColor.fromHex('#4CAF50')
+                    : PdfColor.fromHex('#333333'),
           ),
         ),
       ],
@@ -273,10 +320,7 @@ class PDFService {
         pw.SizedBox(height: 10),
         pw.Text(
           'This is a computer-generated invoice.',
-          style: pw.TextStyle(
-            fontSize: 10,
-            color: PdfColor.fromHex('#999999'),
-          ),
+          style: pw.TextStyle(fontSize: 10, color: PdfColor.fromHex('#999999')),
           textAlign: pw.TextAlign.center,
         ),
         pw.SizedBox(height: 20),
@@ -299,10 +343,13 @@ class PDFService {
               pw.SizedBox(height: 8),
               pw.Text(
                 '• All payments should be made within 30 days of invoice date\n'
-                    '• Late payments may be subject to a 1.5% monthly service charge\n'
-                    '• Please include invoice number with payment\n'
-                    '• For questions about this invoice, please contact us',
-                style: pw.TextStyle(fontSize: 9, color: PdfColor.fromHex('#666666')),
+                '• Late payments may be subject to a 1.5% monthly service charge\n'
+                '• Please include invoice number with payment\n'
+                '• For questions about this invoice, please contact us',
+                style: pw.TextStyle(
+                  fontSize: 9,
+                  color: PdfColor.fromHex('#666666'),
+                ),
               ),
             ],
           ),
@@ -313,26 +360,29 @@ class PDFService {
 
   String _formatDateTime(DateTime dateTime) {
     const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
-    final hour = dateTime.hour == 0 ? 12 : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
+    final hour =
+        dateTime.hour == 0
+            ? 12
+            : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
     final period = dateTime.hour >= 12 ? 'PM' : 'AM';
     return '${dateTime.day} ${months[dateTime.month]} ${dateTime.year} at $hour:${dateTime.minute.toString().padLeft(2, '0')} $period';
   }
 
   Future<String> _savePDF(pw.Document pdf, String billNumber) async {
-    // Request storage permission
-    if (Platform.isAndroid) {
-      var status = await Permission.storage.status;
-      if (!status.isGranted) {
-        status = await Permission.storage.request();
-        if (!status.isGranted) {
-          throw Exception('Storage permission not granted');
-        }
-      }
-    }
-
     // Get the directory for saving PDF
     Directory? directory;
     if (Platform.isAndroid) {
@@ -348,7 +398,8 @@ class PDFService {
     }
 
     // Create file path
-    final fileName = 'Bill_${billNumber}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+    final fileName =
+        'Bill_${billNumber}_${DateTime.now().millisecondsSinceEpoch}.pdf';
     final filePath = '${directory.path}/$fileName';
     final file = File(filePath);
 

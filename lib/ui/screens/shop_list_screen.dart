@@ -197,6 +197,7 @@ class ShopListScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
+                            SizedBox(width: 16.w),
                             Container(
                               decoration: BoxDecoration(
                                 color: AppColors.surfaceLight,

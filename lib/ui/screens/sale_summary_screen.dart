@@ -39,24 +39,28 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
 
   void _generateBillNumber() {
     final now = DateTime.now();
-    billNumber = 'BILL${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}${now.millisecondsSinceEpoch.toString().substring(8)}';
+    billNumber =
+        'BILL${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}${now.millisecondsSinceEpoch.toString().substring(8)}';
     saleDateTime = now;
   }
 
   @override
   Widget build(BuildContext context) {
-    final subtotal = widget.saleItems.fold(0.0, (sum, item) => sum + item.totalPrice);
+    final subtotal = widget.saleItems.fold(
+      0.0,
+      (sum, item) => sum + item.totalPrice,
+    );
     final tax = subtotal * 0.18; // 18% GST
     final total = subtotal + tax;
-    final totalItems = widget.saleItems.fold(0, (sum, item) => sum + item.quantity);
+    final totalItems = widget.saleItems.fold(
+      0,
+      (sum, item) => sum + item.quantity,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: Text(
-          'Sale Summary',
-          style: AppTextStyles.appBarTitle,
-        ),
+        title: Text('Sale Summary', style: AppTextStyles.appBarTitle),
         elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -189,7 +193,11 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
         ),
         child: Row(
           children: [
-            Icon(Icons.person_outline, color: AppColors.textSecondary, size: 20.sp),
+            Icon(
+              Icons.person_outline,
+              color: AppColors.textSecondary,
+              size: 20.sp,
+            ),
             SizedBox(width: 12.w),
             Text(
               'Walk-in Customer',
@@ -223,16 +231,24 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             children: [
               Icon(Icons.person, color: AppColors.primaryBlue, size: 20.sp),
               SizedBox(width: 8.w),
-              Text('Customer Information', style: AppTextStyles.bodyMedium.copyWith(
-                fontWeight: FontWeight.w600,
-              )),
+              Text(
+                'Customer Information',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 12.h),
           if (widget.customerName.isNotEmpty) ...[
             Row(
               children: [
-                Text('Name: ', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+                Text(
+                  'Name: ',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 Text(widget.customerName, style: AppTextStyles.bodyMedium),
               ],
             ),
@@ -241,7 +257,12 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
           if (widget.customerPhone.isNotEmpty) ...[
             Row(
               children: [
-                Text('Phone: ', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
+                Text(
+                  'Phone: ',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
                 Text(widget.customerPhone, style: AppTextStyles.bodyMedium),
               ],
             ),
@@ -295,11 +316,12 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
             itemCount: widget.saleItems.length,
-            separatorBuilder: (context, index) => Container(
-              margin: EdgeInsets.symmetric(horizontal: 20.w),
-              height: 1.h,
-              color: AppColors.surfaceLight,
-            ),
+            separatorBuilder:
+                (context, index) => Container(
+                  margin: EdgeInsets.symmetric(horizontal: 20.w),
+                  height: 1.h,
+                  color: AppColors.surfaceLight,
+                ),
             itemBuilder: (context, index) {
               final saleItem = widget.saleItems[index];
               return Container(
@@ -330,7 +352,10 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                     Expanded(
                       child: Center(
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 6.h,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.blueTinted,
                             borderRadius: BorderRadius.circular(12.r),
@@ -366,7 +391,12 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
     );
   }
 
-  Widget _buildBillSummaryCard(double subtotal, double tax, double total, int totalItems) {
+  Widget _buildBillSummaryCard(
+    double subtotal,
+    double tax,
+    double total,
+    int totalItems,
+  ) {
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -406,7 +436,11 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
           // Summary Rows
           _buildSummaryRow('Items Count:', '$totalItems items', false),
           SizedBox(height: 8.h),
-          _buildSummaryRow('Subtotal:', '₹${subtotal.toStringAsFixed(2)}', false),
+          _buildSummaryRow(
+            'Subtotal:',
+            '₹${subtotal.toStringAsFixed(2)}',
+            false,
+          ),
           SizedBox(height: 8.h),
           _buildSummaryRow('GST (18%):', '₹${tax.toStringAsFixed(2)}', false),
           SizedBox(height: 12.h),
@@ -415,7 +449,11 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             color: AppColors.surfaceLight,
             margin: EdgeInsets.symmetric(vertical: 8.h),
           ),
-          _buildSummaryRow('Total Amount:', '₹${total.toStringAsFixed(2)}', true),
+          _buildSummaryRow(
+            'Total Amount:',
+            '₹${total.toStringAsFixed(2)}',
+            true,
+          ),
         ],
       ),
     );
@@ -427,18 +465,26 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
       children: [
         Text(
           label,
-          style: isTotal
-              ? AppTextStyles.bodyLarge.copyWith(fontWeight: FontWeight.w700)
-              : AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+          style:
+              isTotal
+                  ? AppTextStyles.bodyLarge.copyWith(
+                    fontWeight: FontWeight.w700,
+                  )
+                  : AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
         ),
         Text(
           value,
-          style: isTotal
-              ? AppTextStyles.headingMedium.copyWith(
-            color: AppColors.success,
-            fontWeight: FontWeight.w700,
-          )
-              : AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+          style:
+              isTotal
+                  ? AppTextStyles.headingMedium.copyWith(
+                    color: AppColors.success,
+                    fontWeight: FontWeight.w700,
+                  )
+                  : AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
         ),
       ],
     );
@@ -471,34 +517,35 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                 borderRadius: BorderRadius.circular(16.r),
               ),
             ),
-            child: isProcessing
-                ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 20.w,
-                  height: 20.h,
-                  child: CircularProgressIndicator(
-                    color: AppColors.textOnPrimary,
-                    strokeWidth: 2.w,
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Text('Processing...', style: AppTextStyles.buttonLarge),
-              ],
-            )
-                : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.check_circle,
-                  color: AppColors.textOnPrimary,
-                  size: 24.sp,
-                ),
-                SizedBox(width: 12.w),
-                Text('Complete Sale', style: AppTextStyles.buttonLarge),
-              ],
-            ),
+            child:
+                isProcessing
+                    ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20.w,
+                          height: 20.h,
+                          child: CircularProgressIndicator(
+                            color: AppColors.textOnPrimary,
+                            strokeWidth: 2.w,
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Text('Processing...', style: AppTextStyles.buttonLarge),
+                      ],
+                    )
+                    : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.check_circle,
+                          color: AppColors.textOnPrimary,
+                          size: 24.sp,
+                        ),
+                        SizedBox(width: 12.w),
+                        Text('Complete Sale', style: AppTextStyles.buttonLarge),
+                      ],
+                    ),
           ),
         ),
         SizedBox(height: 12.h),
@@ -570,10 +617,24 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
 
   String _formatDateTime(DateTime dateTime) {
     const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
-    final hour = dateTime.hour == 0 ? 12 : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
+    final hour =
+        dateTime.hour == 0
+            ? 12
+            : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
     final period = dateTime.hour >= 12 ? 'PM' : 'AM';
     return '${dateTime.day} ${months[dateTime.month]} ${dateTime.year} at $hour:${dateTime.minute.toString().padLeft(2, '0')} $period';
   }
@@ -609,7 +670,9 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
         );
 
         // Navigate back to inventory screen
-        Navigator.of(context).popUntil((route) => route.isFirst || route.settings.name == '/inventory');
+        Navigator.of(context).popUntil(
+          (route) => route.isFirst || route.settings.name == '/inventory',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -639,7 +702,10 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
         isProcessing = true;
       });
 
-      final subtotal = widget.saleItems.fold(0.0, (sum, item) => sum + item.totalPrice);
+      final subtotal = widget.saleItems.fold(
+        0.0,
+        (sum, item) => sum + item.totalPrice,
+      );
       final tax = subtotal * 0.18;
       final total = subtotal + tax;
 
@@ -648,12 +714,16 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
         shop: widget.shop,
         billNumber: billNumber!,
         dateTime: saleDateTime!,
-        customerName: widget.customerName.isEmpty ? 'Walk-in Customer' : widget.customerName,
+        customerName:
+            widget.customerName.isEmpty
+                ? 'Walk-in Customer'
+                : widget.customerName,
         customerPhone: widget.customerPhone,
         saleItems: widget.saleItems,
         subtotal: subtotal,
         tax: tax,
         total: total,
+        context: context,
       );
 
       if (mounted) {
@@ -665,13 +735,9 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.r),
             ),
-            action: SnackBarAction(
-              label: 'View',
-              textColor: AppColors.textOnPrimary,
-              onPressed: () => pdfService.openPDF(filePath),
-            ),
           ),
         );
+        pdfService.openPDF(filePath);
       }
     } catch (e) {
       if (mounted) {

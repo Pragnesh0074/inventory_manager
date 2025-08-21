@@ -496,6 +496,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
         subtotal: subtotal,
         tax: tax,
         total: total,
+        context: context,
       );
 
       if (mounted) {
