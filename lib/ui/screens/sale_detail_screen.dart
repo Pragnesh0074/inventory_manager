@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:inventory_manager/service/pdf_service.dart';
-import 'package:inventory_manager/ui/screens/multi_item_sale_screen.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shop.dart';
-import '../../models/transaction.dart' as trans_model;
+import '../../models/sale_order.dart';
+import '../../ui/screens/multi_item_sale_screen.dart' as multi_sale;
 import '../../theme/color.dart';
 import '../../theme/style.dart';
 
 class SaleDetailScreen extends StatefulWidget {
   final Shop shop;
-  final trans_model.Transaction transaction;
+  final SaleOrder saleOrder;
 
   const SaleDetailScreen({
     super.key,
     required this.shop,
-    required this.transaction,
+    required this.saleOrder,
   });
 
   @override
@@ -24,28 +24,22 @@ class SaleDetailScreen extends StatefulWidget {
 
 class _SaleDetailScreenState extends State<SaleDetailScreen> {
   bool isProcessing = false;
-  late final String billNumber;
-  late final DateTime billDateTime;
 
-  @override
-  void initState() {
-    super.initState();
-    billDateTime = widget.transaction.dateTime;
-    billNumber = _generateBillNumber(widget.transaction);
-  }
-
-  String _generateBillNumber(trans_model.Transaction t) {
-    final dt = t.dateTime;
-    final idSuffix = t.id.length > 6 ? t.id.substring(t.id.length - 6) : t.id;
+  String _generateBillNumber(SaleOrder saleOrder) {
+    final dt = saleOrder.dateTime;
+    final idSuffix =
+        saleOrder.id.length > 6
+            ? saleOrder.id.substring(saleOrder.id.length - 6)
+            : saleOrder.id;
     return 'BILL${dt.year}${dt.month.toString().padLeft(2, '0')}${dt.day.toString().padLeft(2, '0')}$idSuffix';
   }
 
   @override
   Widget build(BuildContext context) {
-    final t = widget.transaction;
-    final subtotal = t.totalAmount;
-    final tax = subtotal * 0.18;
-    final total = subtotal + tax;
+    final saleOrder = widget.saleOrder;
+    final subtotal = saleOrder.subtotal;
+    final tax = saleOrder.tax;
+    final total = saleOrder.total;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -80,7 +74,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
               SizedBox(height: 16.h),
               _buildCustomerInfoCard(),
               SizedBox(height: 16.h),
-              _buildSaleInfoCard(t),
+              _buildSaleItemsCard(),
               SizedBox(height: 16.h),
               _buildBillSummaryCard(subtotal, tax, total),
               SizedBox(height: 24.h),
@@ -144,7 +138,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
               borderRadius: BorderRadius.circular(20.r),
             ),
             child: Text(
-              'Bill #$billNumber',
+              'Bill #${_generateBillNumber(widget.saleOrder)}',
               style: AppTextStyles.bodyMedium.copyWith(
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryBlue,
@@ -153,7 +147,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
           ),
           SizedBox(height: 8.h),
           Text(
-            _formatDateTime(billDateTime),
+            _formatDateTime(widget.saleOrder.dateTime),
             style: AppTextStyles.bodySmall.copyWith(
               color: AppColors.textSecondary,
             ),
@@ -164,6 +158,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
   }
 
   Widget _buildCustomerInfoCard() {
+    final saleOrder = widget.saleOrder;
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -171,27 +166,71 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: AppColors.surfaceLight),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.person_outline,
-            color: AppColors.textSecondary,
-            size: 20.sp,
+          Row(
+            children: [
+              Icon(
+                Icons.person_outline,
+                color: AppColors.textSecondary,
+                size: 20.sp,
+              ),
+              SizedBox(width: 12.w),
+              Text(
+                'Customer Information',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
-          SizedBox(width: 12.w),
-          Text(
-            'Walk-in Customer',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontStyle: FontStyle.italic,
+          SizedBox(height: 12.h),
+          if (saleOrder.customerName.isNotEmpty)
+            Padding(
+              padding: EdgeInsets.only(bottom: 8.h),
+              child: Row(
+                children: [
+                  Text(
+                    'Name: ',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    saleOrder.customerName,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
+          if (saleOrder.customerPhone.isNotEmpty)
+            Row(
+              children: [
+                Text(
+                  'Phone: ',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  saleOrder.customerPhone,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildSaleInfoCard(trans_model.Transaction t) {
+  Widget _buildSaleItemsCard() {
+    final saleOrder = widget.saleOrder;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
@@ -229,61 +268,69 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
               ],
             ),
             SizedBox(height: 16.h),
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        t.itemName,
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w600,
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: saleOrder.items.length,
+              itemBuilder: (context, index) {
+                final item = saleOrder.items[index];
+                return Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.item.name,
+                            style: AppTextStyles.bodyLarge.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            '₹${item.item.price.toStringAsFixed(2)} each',
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.blueTinted,
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: Text(
+                            '×${item.quantity}',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryBlue,
+                            ),
+                          ),
                         ),
                       ),
-                      SizedBox(height: 4.h),
-                      Text(
-                        '₹${t.price.toStringAsFixed(2)} each',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Center(
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 6.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.blueTinted,
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
+                    ),
+                    Expanded(
                       child: Text(
-                        '×${t.quantity}',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primaryBlue,
+                        '₹${item.totalPrice.toStringAsFixed(2)}',
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.success,
                         ),
+                        textAlign: TextAlign.right,
                       ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    '₹${t.totalAmount.toStringAsFixed(2)}',
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.success,
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
           ],
         ),
@@ -329,7 +376,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
           SizedBox(height: 20.h),
           _buildSummaryRow(
             'Items Count:',
-            '${widget.transaction.quantity} items',
+            '${widget.saleOrder.totalQuantity} items',
             false,
           ),
           SizedBox(height: 8.h),
@@ -466,32 +513,40 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
       setState(() => isProcessing = true);
 
       // Try to find the item from the shop inventory; if missing, construct a minimal item
-      final t = widget.transaction;
-      InventoryItem? inventoryItem;
-      try {
-        inventoryItem = widget.shop.inventory.firstWhere(
-          (i) => i.id == t.itemId,
-        );
-      } catch (_) {
-        inventoryItem = InventoryItem(
-          id: t.itemId,
-          name: t.itemName,
-          price: t.price,
-          quantity: 0,
-          createdDate: t.dateTime,
-          lastUpdated: t.dateTime,
-        );
-      }
-
-      final saleItems = [SaleItem(item: inventoryItem, quantity: t.quantity)];
+      final saleOrder = widget.saleOrder;
+      final saleItems =
+          saleOrder.items.map((item) {
+            InventoryItem? inventoryItem;
+            try {
+              inventoryItem = widget.shop.inventory.firstWhere(
+                (i) => i.id == item.item.id,
+              );
+            } catch (_) {
+              inventoryItem = InventoryItem(
+                id: item.item.id,
+                name: item.item.name,
+                price: item.item.price,
+                quantity: 0,
+                createdDate: item.item.createdDate,
+                lastUpdated: item.item.lastUpdated,
+              );
+            }
+            return multi_sale.SaleItem(
+              item: inventoryItem,
+              quantity: item.quantity,
+            );
+          }).toList();
 
       final pdfService = PDFService();
       final filePath = await pdfService.generateBill(
         shop: widget.shop,
-        billNumber: billNumber,
-        dateTime: billDateTime,
-        customerName: 'Walk-in Customer',
-        customerPhone: '',
+        billNumber: _generateBillNumber(saleOrder),
+        dateTime: saleOrder.dateTime,
+        customerName:
+            saleOrder.customerName.isEmpty
+                ? 'Walk-in Customer'
+                : saleOrder.customerName,
+        customerPhone: saleOrder.customerPhone,
         saleItems: saleItems,
         subtotal: subtotal,
         tax: tax,
@@ -508,13 +563,9 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.r),
             ),
-            action: SnackBarAction(
-              label: 'View',
-              textColor: AppColors.textOnPrimary,
-              onPressed: () => pdfService.openPDF(filePath),
-            ),
           ),
         );
+        pdfService.openPDF(filePath);
       }
     } catch (e) {
       if (mounted) {

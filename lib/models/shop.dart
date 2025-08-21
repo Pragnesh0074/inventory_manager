@@ -1,4 +1,5 @@
 import 'package:inventory_manager/models/transaction.dart';
+import 'package:inventory_manager/models/sale_order.dart';
 
 import 'inventory_item.dart';
 
@@ -9,6 +10,7 @@ class Shop {
   final DateTime createdDate;
   List<InventoryItem> inventory;
   List<Transaction> transactions;
+  List<SaleOrder> saleOrders;
 
   Shop({
     required this.id,
@@ -17,8 +19,10 @@ class Shop {
     required this.createdDate,
     List<InventoryItem>? inventory,
     List<Transaction>? transactions,
+    List<SaleOrder>? saleOrders,
   }) : inventory = inventory ?? [],
-        transactions = transactions ?? [];
+       transactions = transactions ?? [],
+       saleOrders = saleOrders ?? [];
 
   Map<String, dynamic> toJson() {
     return {
@@ -28,6 +32,7 @@ class Shop {
       'created_date': createdDate.toIso8601String(),
       'inventory': inventory.map((item) => item.toJson()).toList(),
       'transactions': transactions.map((trans) => trans.toJson()).toList(),
+      'sale_orders': saleOrders.map((order) => order.toJson()).toList(),
     };
   }
 
@@ -37,16 +42,24 @@ class Shop {
       name: json['name'],
       address: json['address'],
       createdDate: DateTime.parse(json['created_date'] ?? json['createdDate']),
-      inventory: json['inventory'] != null
-          ? (json['inventory'] as List)
-          .map((item) => InventoryItem.fromJson(item))
-          .toList()
-          : [],
-      transactions: json['transactions'] != null
-          ? (json['transactions'] as List)
-          .map((trans) => Transaction.fromJson(trans))
-          .toList()
-          : [],
+      inventory:
+          json['inventory'] != null
+              ? (json['inventory'] as List)
+                  .map((item) => InventoryItem.fromJson(item))
+                  .toList()
+              : [],
+      transactions:
+          json['transactions'] != null
+              ? (json['transactions'] as List)
+                  .map((trans) => Transaction.fromJson(trans))
+                  .toList()
+              : [],
+      saleOrders:
+          json['sale_orders'] != null
+              ? (json['sale_orders'] as List)
+                  .map((order) => SaleOrder.fromJson(order))
+                  .toList()
+              : [],
     );
   }
 

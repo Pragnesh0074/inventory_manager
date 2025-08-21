@@ -3,10 +3,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:inventory_manager/service/pdf_service.dart';
 import 'package:provider/provider.dart';
 import '../../models/shop.dart';
+import '../../models/sale_order.dart' as order_models;
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
-import 'multi_item_sale_screen.dart';
+import 'multi_item_sale_screen.dart' show SaleItem;
 
 class SaleSummaryScreen extends StatefulWidget {
   final Shop shop;
@@ -647,14 +648,42 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
     try {
       final shopProvider = Provider.of<ShopProvider>(context, listen: false);
 
-      // Process each sale item
-      for (final saleItem in widget.saleItems) {
-        await shopProvider.sellItem(
-          widget.shop.id,
-          saleItem.item.id,
-          saleItem.quantity,
-        );
-      }
+      // Calculate totals
+      final subtotal = widget.saleItems.fold(
+        0.0,
+        (sum, item) => sum + item.totalPrice,
+      );
+      final tax = subtotal * 0.18;
+      final total = subtotal + tax;
+
+      // Create sale order
+      final saleOrder = order_models.SaleOrder(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        shopId: widget.shop.id,
+        items:
+            widget.saleItems
+                .map(
+                  (item) => order_models.SaleItem(
+                    item: item.item,
+                    quantity: item.quantity,
+                    unitPrice: item.item.price,
+                  ),
+                )
+                .toList(),
+        customerName:
+            widget.customerName.isEmpty
+                ? 'Walk-in Customer'
+                : widget.customerName,
+        customerPhone: widget.customerPhone,
+        dateTime: saleDateTime!,
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
+        billNumber: billNumber!,
+      );
+
+      // Create the sale order (this will also update inventory)
+      await shopProvider.createSaleOrder(widget.shop.id, saleOrder);
 
       // Show success message
       if (mounted) {

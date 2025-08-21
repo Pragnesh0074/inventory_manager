@@ -16,7 +16,7 @@ class ShopListScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: Text('Shop Management', style: AppTextStyles.appBarTitle),
+        title: Text('Inventory Management', style: AppTextStyles.appBarTitle),
         elevation: 0,
         flexibleSpace: Container(
           decoration: BoxDecoration(

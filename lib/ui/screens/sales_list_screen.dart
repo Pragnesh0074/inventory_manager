@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../models/shop.dart';
-import '../../models/transaction.dart' as trans_model;
+import '../../models/sale_order.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
@@ -43,10 +43,11 @@ class SalesListScreen extends StatelessWidget {
           final currentShop = shopProvider.shops.firstWhere(
             (s) => s.id == shop.id,
           );
-          final sales =
-              currentShop.transactions.where((t) => t.isSale).toList();
 
-          if (sales.isEmpty) {
+          // Get sale orders instead of individual transactions
+          final saleOrders = shopProvider.getSaleOrders(shop.id);
+
+          if (saleOrders.isEmpty) {
             return Center(
               child: Padding(
                 padding: EdgeInsets.all(24.w),
@@ -74,11 +75,11 @@ class SalesListScreen extends StatelessWidget {
 
           return ListView.separated(
             padding: EdgeInsets.all(16.w),
-            itemCount: sales.length,
+            itemCount: saleOrders.length,
             separatorBuilder: (context, index) => SizedBox(height: 12.h),
             itemBuilder: (context, index) {
-              final trans = sales[index];
-              return _buildSaleCard(context, currentShop, trans);
+              final saleOrder = saleOrders[index];
+              return _buildSaleOrderCard(context, currentShop, saleOrder);
             },
           );
         },
@@ -86,10 +87,10 @@ class SalesListScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSaleCard(
+  Widget _buildSaleOrderCard(
     BuildContext context,
     Shop shop,
-    trans_model.Transaction trans,
+    SaleOrder saleOrder,
   ) {
     return InkWell(
       onTap: () {
@@ -97,7 +98,7 @@ class SalesListScreen extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder:
-                (context) => SaleDetailScreen(shop: shop, transaction: trans),
+                (context) => SaleDetailScreen(shop: shop, saleOrder: saleOrder),
           ),
         );
       },
@@ -116,59 +117,170 @@ class SalesListScreen extends StatelessWidget {
         ),
         child: Padding(
           padding: EdgeInsets.all(16.w),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header row with bill number and total
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.blueTinted,
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Icon(
+                      Icons.receipt_long,
+                      color: AppColors.primaryBlue,
+                      size: 20.sp,
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Bill #${saleOrder.billNumber}',
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          saleOrder.formattedDateTime,
+                          style: AppTextStyles.cardCaption,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        saleOrder.formattedTotal,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.success,
+                        ),
+                      ),
+                      Text(
+                        '${saleOrder.itemCount} items',
+                        style: AppTextStyles.cardCaption.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 12.h),
+
+              // Customer info
+              if (saleOrder.customerName.isNotEmpty ||
+                  saleOrder.customerPhone.isNotEmpty)
+                Container(
+                  padding: EdgeInsets.all(12.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.blueTinted.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        size: 16.sp,
+                        color: AppColors.primaryBlue,
+                      ),
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (saleOrder.customerName.isNotEmpty)
+                              Text(
+                                saleOrder.customerName,
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            if (saleOrder.customerPhone.isNotEmpty)
+                              Text(
+                                saleOrder.customerPhone,
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              SizedBox(height: 8.h),
+
+              // Items summary
               Container(
                 padding: EdgeInsets.all(12.w),
                 decoration: BoxDecoration(
-                  color: AppColors.blueTinted,
-                  borderRadius: BorderRadius.circular(12.r),
+                  color: AppColors.cardBackground,
+                  border: Border.all(
+                    color: AppColors.shadowBlue.withOpacity(0.2),
+                  ),
+                  borderRadius: BorderRadius.circular(8.r),
                 ),
-                child: Icon(
-                  Icons.point_of_sale,
-                  color: AppColors.primaryBlue,
-                  size: 20.sp,
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      trans.itemName,
-                      style: AppTextStyles.bodyLarge.copyWith(
+                      'Items (${saleOrder.totalQuantity} total)',
+                      style: AppTextStyles.bodyMedium.copyWith(
                         fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      '${_formatDate(trans.dateTime)} • Qty: ${trans.quantity}',
-                      style: AppTextStyles.cardCaption,
-                    ),
+                    SizedBox(height: 8.h),
+                    ...saleOrder.items
+                        .take(3)
+                        .map(
+                          (item) => Padding(
+                            padding: EdgeInsets.only(bottom: 4.h),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    '• ${item.item.name}',
+                                    style: AppTextStyles.bodySmall,
+                                  ),
+                                ),
+                                Text(
+                                  '${item.quantity} × ₹${item.unitPrice.toStringAsFixed(2)}',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    if (saleOrder.items.length > 3)
+                      Text(
+                        '... and ${saleOrder.items.length - 3} more items',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.textSecondary,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '₹${trans.totalAmount.toStringAsFixed(2)}',
-                    style: AppTextStyles.bodyLarge.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.success,
-                    ),
-                  ),
-                ],
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
 }
