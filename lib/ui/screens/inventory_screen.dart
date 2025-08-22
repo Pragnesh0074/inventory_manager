@@ -9,6 +9,8 @@ import '../../theme/style.dart';
 import 'add_edit_item_screen.dart';
 import 'item_detail_screen.dart';
 import 'monthly_summary_screen.dart';
+import 'multi_item_sale_screen.dart';
+import 'sales_list_screen.dart';
 
 class InventoryScreen extends StatelessWidget {
   final Shop shop;
@@ -43,6 +45,35 @@ class InventoryScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 10.w),
+            child: IconButton(
+              icon: Icon(
+                Icons.point_of_sale,
+                color: AppColors.textOnPrimary,
+                size: 24.sp,
+              ),
+              onPressed: () => _navigateToMultiItemSale(context, shop),
+              tooltip: 'New Multi-Item Sale',
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(right: 10.w),
+            child: IconButton(
+              icon: Icon(
+                Icons.receipt_long,
+                color: AppColors.textOnPrimary,
+                size: 24.sp,
+              ),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SalesListScreen(shop: shop),
+                ),
+              ),
+              tooltip: 'Sales History',
+            ),
+          ),
           Padding(
             padding: EdgeInsets.only(right: 10.w),
             child: IconButton(
@@ -535,6 +566,29 @@ class InventoryScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AddEditItemScreen(shop: shop)),
+    );
+  }
+
+  void _navigateToMultiItemSale(BuildContext context, Shop shop) {
+    // Check if there are any items with stock before allowing sale
+    final availableItems = shop.inventory.where((item) => item.quantity > 0).toList();
+    if (availableItems.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No items available for sale. Please add inventory first.'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MultiItemSaleScreen(shop: shop)),
     );
   }
 
