@@ -614,6 +614,8 @@ class InventoryScreen extends StatelessWidget {
                               (context) => SaleSummaryScreen(
                                 shop: shop,
                                 saleItems: saleItems,
+                                additionalCharges:
+                                    [], // No additional charges for quick sale
                                 customerName:
                                     customerNameController.text.trim(),
                                 customerPhone:

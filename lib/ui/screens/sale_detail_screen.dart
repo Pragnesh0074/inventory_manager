@@ -548,6 +548,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 : saleOrder.customerName,
         customerPhone: saleOrder.customerPhone,
         saleItems: saleItems,
+        additionalCharges: [], // No additional charges for existing sale orders
         subtotal: subtotal,
         tax: tax,
         total: total,

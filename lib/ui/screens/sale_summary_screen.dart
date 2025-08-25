@@ -7,11 +7,12 @@ import '../../models/sale_order.dart' as order_models;
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
-import 'multi_item_sale_screen.dart' show SaleItem;
+import 'multi_item_sale_screen.dart' show SaleItem, AdditionalCharge;
 
 class SaleSummaryScreen extends StatefulWidget {
   final Shop shop;
   final List<SaleItem> saleItems;
+  final List<AdditionalCharge> additionalCharges;
   final String customerName;
   final String customerPhone;
 
@@ -19,6 +20,7 @@ class SaleSummaryScreen extends StatefulWidget {
     super.key,
     required this.shop,
     required this.saleItems,
+    required this.additionalCharges,
     required this.customerName,
     required this.customerPhone,
   });
@@ -104,10 +106,15 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final subtotal = widget.saleItems.fold(
+    final itemsSubtotal = widget.saleItems.fold(
       0.0,
       (sum, item) => sum + item.totalPrice,
     );
+    final additionalChargesTotal = widget.additionalCharges.fold(
+      0.0,
+      (sum, charge) => sum + charge.totalAmount,
+    );
+    final subtotal = itemsSubtotal + additionalChargesTotal;
     final tax = subtotal * 0.18; // 18% GST
     final total = subtotal + tax;
     final totalItems = widget.saleItems.fold(
@@ -156,8 +163,21 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
               _buildItemsListCard(),
               SizedBox(height: 16.h),
 
+              // Additional Charges Card (if any)
+              if (widget.additionalCharges.isNotEmpty) ...[
+                _buildAdditionalChargesCard(),
+                SizedBox(height: 16.h),
+              ],
+
               // Bill Summary Card
-              _buildBillSummaryCard(subtotal, tax, total, totalItems),
+              _buildBillSummaryCard(
+                itemsSubtotal,
+                additionalChargesTotal,
+                subtotal,
+                tax,
+                total,
+                totalItems,
+              ),
               SizedBox(height: 24.h),
 
               // Action Buttons
@@ -412,17 +432,24 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            saleItem.item.name,
-                            style: AppTextStyles.bodyLarge.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                saleItem.item.name,
+                                style: AppTextStyles.bodyLarge.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                           SizedBox(height: 4.h),
                           Text(
-                            '₹${saleItem.item.price.toStringAsFixed(2)} each',
+                            '₹${saleItem.unitPrice.toStringAsFixed(2)} each',
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.textSecondary,
+                              color:
+                                  saleItem.isPriceModified
+                                      ? AppColors.warning
+                                      : AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -471,6 +498,8 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
   }
 
   Widget _buildBillSummaryCard(
+    double itemsSubtotal,
+    double additionalChargesTotal,
     double subtotal,
     double tax,
     double total,
@@ -516,6 +545,20 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
           _buildSummaryRow('Items Count:', '$totalItems items', false),
           SizedBox(height: 8.h),
           _buildSummaryRow(
+            'Items Subtotal:',
+            '₹${itemsSubtotal.toStringAsFixed(2)}',
+            false,
+          ),
+          if (additionalChargesTotal > 0) ...[
+            SizedBox(height: 8.h),
+            _buildSummaryRow(
+              'Additional Charges:',
+              '₹${additionalChargesTotal.toStringAsFixed(2)}',
+              false,
+            ),
+          ],
+          SizedBox(height: 8.h),
+          _buildSummaryRow(
             'Subtotal:',
             '₹${subtotal.toStringAsFixed(2)}',
             false,
@@ -533,6 +576,92 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             '₹${total.toStringAsFixed(2)}',
             true,
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAdditionalChargesCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowBlue,
+            blurRadius: 15.r,
+            spreadRadius: 2.r,
+            offset: Offset(0, 4.h),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.all(20.w),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.blueTinted,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(
+                    Icons.add_circle_outline,
+                    color: AppColors.primaryBlue,
+                    size: 20.sp,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Text('Additional Charges', style: AppTextStyles.headingMedium),
+              ],
+            ),
+          ),
+
+          // Charges List
+          ListView.separated(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: widget.additionalCharges.length,
+            separatorBuilder:
+                (context, index) => Container(
+                  margin: EdgeInsets.symmetric(horizontal: 20.w),
+                  height: 1.h,
+                  color: AppColors.surfaceLight,
+                ),
+            itemBuilder: (context, index) {
+              final charge = widget.additionalCharges[index];
+              return Container(
+                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        charge.name,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '₹${charge.amount.toStringAsFixed(2)}',
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.success,
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          SizedBox(height: 16.h),
         ],
       ),
     );
@@ -727,10 +856,15 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
       final shopProvider = Provider.of<ShopProvider>(context, listen: false);
 
       // Calculate totals
-      final subtotal = widget.saleItems.fold(
+      final itemsSubtotal = widget.saleItems.fold(
         0.0,
         (sum, item) => sum + item.totalPrice,
       );
+      final additionalChargesTotal = widget.additionalCharges.fold(
+        0.0,
+        (sum, charge) => sum + charge.totalAmount,
+      );
+      final subtotal = itemsSubtotal + additionalChargesTotal;
       final tax = subtotal * 0.18;
       final total = subtotal + tax;
 
@@ -809,10 +943,15 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
         isProcessing = true;
       });
 
-      final subtotal = widget.saleItems.fold(
+      final itemsSubtotal = widget.saleItems.fold(
         0.0,
         (sum, item) => sum + item.totalPrice,
       );
+      final additionalChargesTotal = widget.additionalCharges.fold(
+        0.0,
+        (sum, charge) => sum + charge.totalAmount,
+      );
+      final subtotal = itemsSubtotal + additionalChargesTotal;
       final tax = subtotal * 0.18;
       final total = subtotal + tax;
 
@@ -827,6 +966,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                 : widget.customerName,
         customerPhone: widget.customerPhone,
         saleItems: widget.saleItems,
+        additionalCharges: widget.additionalCharges,
         subtotal: subtotal,
         tax: tax,
         total: total,

@@ -18,6 +18,7 @@ class PDFService {
     required String customerName,
     required String customerPhone,
     required List<SaleItem> saleItems,
+    required List<AdditionalCharge> additionalCharges,
     required double subtotal,
     required double tax,
     required double total,
@@ -52,6 +53,12 @@ class PDFService {
             // Items Table
             _buildItemsTable(saleItems),
             pw.SizedBox(height: 20),
+
+            // Additional Charges (if any)
+            if (additionalCharges.isNotEmpty) ...[
+              _buildAdditionalChargesTable(additionalCharges),
+              pw.SizedBox(height: 20),
+            ],
 
             // Summary
             _buildSummary(subtotal, tax, total),
@@ -203,9 +210,38 @@ class PDFService {
               (saleItem) => pw.TableRow(
                 children: [
                   _buildTableCell(saleItem.item.name),
-                  _buildTableCell('₹${saleItem.item.price.toStringAsFixed(2)}'),
+                  _buildTableCell('₹${saleItem.unitPrice.toStringAsFixed(2)}'),
                   _buildTableCell('${saleItem.quantity}'),
                   _buildTableCell('₹${saleItem.totalPrice.toStringAsFixed(2)}'),
+                ],
+              ),
+            )
+            .toList(),
+      ],
+    );
+  }
+
+  pw.Widget _buildAdditionalChargesTable(
+    List<AdditionalCharge> additionalCharges,
+  ) {
+    return pw.Table(
+      border: pw.TableBorder.all(color: PdfColor.fromHex('#E0E0E0')),
+      children: [
+        // Header Row
+        pw.TableRow(
+          decoration: pw.BoxDecoration(color: PdfColor.fromHex('#F5F5F5')),
+          children: [
+            _buildTableCell('Additional Charges', isHeader: true),
+            _buildTableCell('Amount', isHeader: true),
+          ],
+        ),
+        // Data Rows
+        ...additionalCharges
+            .map(
+              (charge) => pw.TableRow(
+                children: [
+                  _buildTableCell(charge.name),
+                  _buildTableCell('₹${charge.amount.toStringAsFixed(2)}'),
                 ],
               ),
             )
