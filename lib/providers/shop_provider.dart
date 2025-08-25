@@ -257,28 +257,13 @@ class ShopProvider with ChangeNotifier {
 
       // Process each sale item and update inventory
       for (final saleItem in saleOrder.items) {
-        final item = shop.inventory.firstWhere((i) => i.id == saleItem.item.id);
-
-        if (item.quantity >= saleItem.quantity) {
-          item.quantity -= saleItem.quantity;
-          item.lastUpdated = DateTime.now();
-
-          // Add stock entry
-          final stockEntry = StockEntry(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
-            quantity: saleItem.quantity,
-            type: 'sale',
-            dateTime: DateTime.now(),
-            note: 'Item sold in order ${saleOrder.billNumber}',
-          );
-
-          item.stockEntries.add(stockEntry);
-
-          // Add individual transaction for tracking
+        if (saleItem.isTemporaryItem) {
+          // Handle temporary items - no inventory update needed
+          // Add transaction for tracking
           final transaction = Transaction(
             id: DateTime.now().millisecondsSinceEpoch.toString(),
-            itemId: saleItem.item.id,
-            itemName: saleItem.item.name,
+            itemId: 'temp_${DateTime.now().millisecondsSinceEpoch}',
+            itemName: saleItem.itemName,
             quantity: saleItem.quantity,
             price: saleItem.unitPrice,
             totalAmount: saleItem.totalPrice,
@@ -287,13 +272,49 @@ class ShopProvider with ChangeNotifier {
           );
 
           shop.transactions.add(transaction);
-
-          // Update database
-          await _databaseHelper.updateInventoryItem(item);
-          await _databaseHelper.insertStockEntry(item.id, stockEntry);
           await _databaseHelper.insertTransaction(shopId, transaction);
         } else {
-          throw Exception('Insufficient stock for ${item.name}');
+          // Handle inventory items
+          final item = shop.inventory.firstWhere(
+            (i) => i.id == saleItem.item!.id,
+          );
+
+          if (item.quantity >= saleItem.quantity) {
+            item.quantity -= saleItem.quantity;
+            item.lastUpdated = DateTime.now();
+
+            // Add stock entry
+            final stockEntry = StockEntry(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              quantity: saleItem.quantity,
+              type: 'sale',
+              dateTime: DateTime.now(),
+              note: 'Item sold in order ${saleOrder.billNumber}',
+            );
+
+            item.stockEntries.add(stockEntry);
+
+            // Add individual transaction for tracking
+            final transaction = Transaction(
+              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              itemId: saleItem.item!.id,
+              itemName: saleItem.itemName,
+              quantity: saleItem.quantity,
+              price: saleItem.unitPrice,
+              totalAmount: saleItem.totalPrice,
+              dateTime: saleOrder.dateTime,
+              type: 'sale',
+            );
+
+            shop.transactions.add(transaction);
+
+            // Update database
+            await _databaseHelper.updateInventoryItem(item);
+            await _databaseHelper.insertStockEntry(item.id, stockEntry);
+            await _databaseHelper.insertTransaction(shopId, transaction);
+          } else {
+            throw Exception('Insufficient stock for ${item.name}');
+          }
         }
       }
 

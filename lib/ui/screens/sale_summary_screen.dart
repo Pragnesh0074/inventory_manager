@@ -7,12 +7,12 @@ import '../../models/sale_order.dart' as order_models;
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
-import 'multi_item_sale_screen.dart' show SaleItem, AdditionalCharge;
+import 'multi_item_sale_screen.dart' show SaleItem;
 
 class SaleSummaryScreen extends StatefulWidget {
   final Shop shop;
   final List<SaleItem> saleItems;
-  final List<AdditionalCharge> additionalCharges;
+  final List<order_models.AdditionalCharge> additionalCharges;
   final String customerName;
   final String customerPhone;
 
@@ -112,7 +112,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
     );
     final additionalChargesTotal = widget.additionalCharges.fold(
       0.0,
-      (sum, charge) => sum + charge.totalAmount,
+      (sum, charge) => sum + (charge?.totalAmount ?? 0.0),
     );
     final subtotal = itemsSubtotal + additionalChargesTotal;
     final tax = subtotal * 0.18; // 18% GST
@@ -435,7 +435,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                           Row(
                             children: [
                               Text(
-                                saleItem.item.name,
+                                saleItem.itemName,
                                 style: AppTextStyles.bodyLarge.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
@@ -640,7 +640,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                     Expanded(
                       flex: 3,
                       child: Text(
-                        charge.name,
+                        charge?.name ?? '',
                         style: AppTextStyles.bodyLarge.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
@@ -648,7 +648,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                     ),
                     Expanded(
                       child: Text(
-                        '₹${charge.amount.toStringAsFixed(2)}',
+                        '₹${(charge?.amount ?? 0.0).toStringAsFixed(2)}',
                         style: AppTextStyles.bodyLarge.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.success,
@@ -877,8 +877,19 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                 .map(
                   (item) => order_models.SaleItem(
                     item: item.item,
+                    temporaryItemName: item.temporaryItemName,
+                    temporaryItemPrice: item.temporaryItemPrice,
                     quantity: item.quantity,
-                    unitPrice: item.item.price,
+                    unitPrice: item.unitPrice,
+                  ),
+                )
+                .toList(),
+        additionalCharges:
+            widget.additionalCharges
+                .map(
+                  (charge) => order_models.AdditionalCharge(
+                    name: charge?.name ?? '',
+                    amount: charge?.amount ?? 0.0,
                   ),
                 )
                 .toList(),

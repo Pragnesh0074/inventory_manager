@@ -3,40 +3,51 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shop.dart';
+import '../../models/sale_order.dart' as order_models;
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
 import 'sale_summary_screen.dart';
 
-class AdditionalCharge {
-  final String name;
-  final double amount;
-  final String id;
-
-  AdditionalCharge({required this.name, required this.amount})
-    : id = DateTime.now().millisecondsSinceEpoch.toString();
-
-  double get totalAmount => amount;
-}
-
 class SaleItem {
-  final InventoryItem item;
+  final InventoryItem? item; // Can be null for temporary items
+  final String? temporaryItemName; // Name for temporary items
+  final double? temporaryItemPrice; // Price for temporary items
   int quantity;
   double? temporaryPrice; // Temporary price override for this sale
 
-  SaleItem({required this.item, this.quantity = 1, this.temporaryPrice});
+  SaleItem({
+    this.item,
+    this.temporaryItemName,
+    this.temporaryItemPrice,
+    this.quantity = 1,
+    this.temporaryPrice,
+  }) : assert(
+         (item != null) ||
+             (temporaryItemName != null && temporaryItemPrice != null),
+         'Either item or temporary item details must be provided',
+       );
+
+  // Check if this is a temporary item (not in inventory)
+  bool get isTemporaryItem => item == null;
+
+  // Get the item name
+  String get itemName => item?.name ?? temporaryItemName!;
+
+  // Get the base price (from inventory item or temporary item)
+  double get basePrice => item?.price ?? temporaryItemPrice!;
 
   // Use temporary price if set, otherwise use original item price
-  double get unitPrice => temporaryPrice ?? item.price;
+  double get unitPrice => temporaryPrice ?? basePrice;
 
   double get totalPrice => unitPrice * quantity;
 
   // Check if price has been modified
   bool get isPriceModified =>
-      temporaryPrice != null && temporaryPrice != item.price;
+      temporaryPrice != null && temporaryPrice != basePrice;
 
   // Get the price difference (positive if increased, negative if decreased)
-  double get priceDifference => (temporaryPrice ?? item.price) - item.price;
+  double get priceDifference => (temporaryPrice ?? basePrice) - basePrice;
 }
 
 class MultiItemSaleScreen extends StatefulWidget {
@@ -50,7 +61,7 @@ class MultiItemSaleScreen extends StatefulWidget {
 
 class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
   List<SaleItem> selectedItems = [];
-  List<AdditionalCharge> additionalCharges = [];
+  List<order_models.AdditionalCharge> additionalCharges = [];
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _customerPhoneController =
       TextEditingController();
@@ -128,7 +139,33 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
 
                 // Selected Items Summary (if any)
                 if (selectedItems.isNotEmpty) _buildSelectedItemsSummary(),
-
+                Container(
+                  width: double.maxFinite,
+                  margin: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: TextButton.icon(
+                    onPressed: _addTemporaryItem,
+                    icon: Icon(
+                      Icons.add_shopping_cart,
+                      color: AppColors.textOnPrimary,
+                      size: 18.sp,
+                    ),
+                    label: Text(
+                      'Add Item',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.textOnPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+                // Temporary Items List (if any)
+                if (selectedItems.where((item) => item.isTemporaryItem).isNotEmpty)
+                  _buildTemporaryItemsList(),
+                
                 // Available Items List
                 _buildInventoryList(currentShop),
               ],
@@ -433,6 +470,254 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
     );
   }
 
+  Widget _buildTemporaryItemsList() {
+    final temporaryItems = selectedItems.where((item) => item.isTemporaryItem).toList();
+    
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 12.h),
+            child: Row(
+              children: [
+                Text('Temporary Items', style: AppTextStyles.headingMedium),
+                SizedBox(width: 8.w),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4.r),
+                    border: Border.all(
+                      color: AppColors.warning.withOpacity(0.3),
+                      width: 1.w,
+                    ),
+                  ),
+                  child: Text(
+                    '${temporaryItems.length}',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.warning,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 10.sp,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: temporaryItems.length,
+            separatorBuilder: (context, index) => SizedBox(height: 8.h),
+            itemBuilder: (context, index) {
+              final saleItem = temporaryItems[index];
+              return _buildTemporaryItemCard(saleItem);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTemporaryItemCard(SaleItem saleItem) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: AppColors.warning, width: 2.w),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.warning.withOpacity(0.1),
+            blurRadius: 8.r,
+            offset: Offset(0, 2.h),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Item Info
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      saleItem.itemName,
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.warning,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4.r),
+                        border: Border.all(
+                          color: AppColors.warning.withOpacity(0.3),
+                          width: 1.w,
+                        ),
+                      ),
+                      child: Text(
+                        'Temporary',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.warning,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10.sp,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  '₹${saleItem.unitPrice.toStringAsFixed(2)} each',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.warning,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Quantity Controls
+          Expanded(
+            flex: 2,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildQuantityButton(
+                      icon: Icons.remove,
+                      onPressed: () => _updateTemporaryItemQuantity(saleItem, saleItem.quantity - 1),
+                      color: AppColors.error,
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 8.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.warning.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Text(
+                        '${saleItem.quantity}',
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.warning,
+                        ),
+                      ),
+                    ),
+                    _buildQuantityButton(
+                      icon: Icons.add,
+                      onPressed: () => _updateTemporaryItemQuantity(saleItem, saleItem.quantity + 1),
+                      color: AppColors.success,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  '₹${saleItem.totalPrice.toStringAsFixed(2)}',
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.warning,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    GestureDetector(
+                      onTap: () => _editTemporaryItem(saleItem),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6.w,
+                          vertical: 3.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4.r),
+                          border: Border.all(
+                            color: AppColors.warning.withOpacity(0.3),
+                            width: 1.w,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.edit,
+                              size: 10.sp,
+                              color: AppColors.warning,
+                            ),
+                            SizedBox(width: 2.w),
+                            Text(
+                              'Edit',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.warning,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 4.w),
+                    GestureDetector(
+                      onTap: () => _removeTemporaryItem(saleItem),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6.w,
+                          vertical: 3.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4.r),
+                          border: Border.all(
+                            color: AppColors.error.withOpacity(0.3),
+                            width: 1.w,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.delete,
+                              size: 10.sp,
+                              color: AppColors.error,
+                            ),
+                            SizedBox(width: 2.w),
+                            Text(
+                              'Remove',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.error,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInventoryList(Shop shop) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16.w),
@@ -451,7 +736,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
             itemBuilder: (context, index) {
               final item = shop.inventory[index];
               final selectedItem = selectedItems.firstWhere(
-                (sItem) => sItem.item.id == item.id,
+                (sItem) => sItem.item?.id == item.id,
                 orElse: () => SaleItem(item: item, quantity: 0),
               );
               final isSelected = selectedItem.quantity > 0;
@@ -497,15 +782,44 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  item.name,
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color:
-                        isSelected
-                            ? AppColors.primaryBlue
-                            : AppColors.textPrimary,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      selectedItem.itemName,
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color:
+                            isSelected
+                                ? AppColors.primaryBlue
+                                : AppColors.textPrimary,
+                      ),
+                    ),
+                    if (selectedItem.isTemporaryItem) ...[
+                      SizedBox(width: 8.w),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6.w,
+                          vertical: 2.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.warning.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4.r),
+                          border: Border.all(
+                            color: AppColors.warning.withOpacity(0.3),
+                            width: 1.w,
+                          ),
+                        ),
+                        child: Text(
+                          'Temporary',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.warning,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 10.sp,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 SizedBox(height: 4.h),
                 Row(
@@ -546,8 +860,9 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                     children: [
                       _buildQuantityButton(
                         icon: Icons.remove,
-                        onPressed:
-                            () => _updateQuantity(
+                        onPressed: selectedItem.isTemporaryItem
+                            ? () => _updateTemporaryItemQuantity(selectedItem, selectedItem.quantity - 1)
+                            : () => _updateQuantity(
                               item,
                               selectedItem.quantity - 1,
                             ),
@@ -572,13 +887,14 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                       ),
                       _buildQuantityButton(
                         icon: Icons.add,
-                        onPressed:
-                            selectedItem.quantity < item.quantity
+                        onPressed: selectedItem.isTemporaryItem
+                            ? () => _updateTemporaryItemQuantity(selectedItem, selectedItem.quantity + 1)
+                            : (selectedItem.quantity < item.quantity
                                 ? () => _updateQuantity(
                                   item,
                                   selectedItem.quantity + 1,
                                 )
-                                : null,
+                                : null),
                         color: AppColors.success,
                       ),
                     ],
@@ -592,41 +908,124 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                     ),
                   ),
                   SizedBox(height: 4.h),
-                  GestureDetector(
-                    onTap: () => _editItemPrice(selectedItem),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 4.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryBlue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6.r),
-                        border: Border.all(
-                          color: AppColors.primaryBlue.withOpacity(0.3),
-                          width: 1.w,
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.edit,
-                            size: 12.sp,
-                            color: AppColors.primaryBlue,
-                          ),
-                          SizedBox(width: 4.w),
-                          Text(
-                            'Edit Price',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.primaryBlue,
-                              fontWeight: FontWeight.w600,
+                  if (selectedItem.isTemporaryItem) ...[
+                    // Edit/Remove buttons for temporary items
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GestureDetector(
+                          onTap: () => _editTemporaryItem(selectedItem),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 3.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4.r),
+                              border: Border.all(
+                                color: AppColors.warning.withOpacity(0.3),
+                                width: 1.w,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.edit,
+                                  size: 10.sp,
+                                  color: AppColors.warning,
+                                ),
+                                SizedBox(width: 2.w),
+                                Text(
+                                  'Edit',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.warning,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 10.sp,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
+                        SizedBox(width: 4.w),
+                        GestureDetector(
+                          onTap: () => _removeTemporaryItem(selectedItem),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 6.w,
+                              vertical: 3.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4.r),
+                              border: Border.all(
+                                color: AppColors.error.withOpacity(0.3),
+                                width: 1.w,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.delete,
+                                  size: 10.sp,
+                                  color: AppColors.error,
+                                ),
+                                SizedBox(width: 2.w),
+                                Text(
+                                  'Remove',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.error,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 10.sp,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    // Edit Price button for inventory items
+                    GestureDetector(
+                      onTap: () => _editItemPrice(selectedItem),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6.r),
+                          border: Border.all(
+                            color: AppColors.primaryBlue.withOpacity(0.3),
+                            width: 1.w,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.edit,
+                              size: 12.sp,
+                              color: AppColors.primaryBlue,
+                            ),
+                            SizedBox(width: 4.w),
+                            Text(
+                              'Edit Price',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.primaryBlue,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -705,10 +1104,10 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
   void _updateQuantity(InventoryItem item, int newQuantity) {
     setState(() {
       if (newQuantity <= 0) {
-        selectedItems.removeWhere((sItem) => sItem.item.id == item.id);
+        selectedItems.removeWhere((sItem) => sItem.item?.id == item.id);
       } else if (newQuantity <= item.quantity) {
         final existingIndex = selectedItems.indexWhere(
-          (sItem) => sItem.item.id == item.id,
+          (sItem) => sItem.item?.id == item.id,
         );
         if (existingIndex >= 0) {
           selectedItems[existingIndex].quantity = newQuantity;
@@ -716,6 +1115,30 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
           selectedItems.add(SaleItem(item: item, quantity: newQuantity));
         }
       }
+    });
+  }
+
+  void _updateTemporaryItemQuantity(SaleItem saleItem, int newQuantity) {
+    setState(() {
+      if (newQuantity <= 0) {
+        selectedItems.remove(saleItem);
+      } else {
+        final index = selectedItems.indexOf(saleItem);
+        if (index >= 0) {
+          selectedItems[index] = SaleItem(
+            temporaryItemName: saleItem.temporaryItemName,
+            temporaryItemPrice: saleItem.temporaryItemPrice,
+            quantity: newQuantity,
+            temporaryPrice: saleItem.temporaryPrice,
+          );
+        }
+      }
+    });
+  }
+
+  void _removeTemporaryItem(SaleItem saleItem) {
+    setState(() {
+      selectedItems.remove(saleItem);
     });
   }
 
@@ -728,12 +1151,12 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text('Edit Price - ${saleItem.item.name}'),
+            title: Text('Edit Price - ${saleItem.itemName}'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Original Price: ₹${saleItem.item.price.toStringAsFixed(2)}',
+                  'Original Price: ₹${saleItem.basePrice.toStringAsFixed(2)}',
                 ),
                 SizedBox(height: 16.h),
                 TextField(
@@ -822,7 +1245,10 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                   if (name.isNotEmpty && amount != null && amount > 0) {
                     setState(() {
                       additionalCharges.add(
-                        AdditionalCharge(name: name, amount: amount),
+                        order_models.AdditionalCharge(
+                          name: name,
+                          amount: amount,
+                        ),
                       );
                     });
                     Navigator.pop(context);
@@ -844,6 +1270,118 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
   double get _totalAdditionalCharges =>
       additionalCharges.fold(0.0, (sum, charge) => sum + charge.totalAmount);
 
+  void _addTemporaryItem() {
+    _showTemporaryItemDialog();
+  }
+
+  void _editTemporaryItem(SaleItem saleItem) {
+    _showTemporaryItemDialog(saleItem: saleItem);
+  }
+
+  void _showTemporaryItemDialog({SaleItem? saleItem}) {
+    final TextEditingController nameController = TextEditingController(
+      text: saleItem?.temporaryItemName ?? '',
+    );
+    final TextEditingController priceController = TextEditingController(
+      text: saleItem?.temporaryItemPrice?.toString() ?? '',
+    );
+    final TextEditingController quantityController = TextEditingController(
+      text: saleItem?.quantity.toString() ?? '1',
+    );
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(saleItem != null ? 'Edit Temporary Item' : 'Add Temporary Item'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Item Name',
+                    hintText: 'Enter item name',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Price',
+                    prefixText: '₹',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                TextField(
+                  controller: quantityController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Quantity',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel'),
+              ),
+              if (saleItem != null) ...[
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedItems.remove(saleItem);
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: Text('Delete', style: TextStyle(color: AppColors.error)),
+                ),
+              ],
+              TextButton(
+                onPressed: () {
+                  final name = nameController.text.trim();
+                  final price = double.tryParse(priceController.text);
+                  final quantity = int.tryParse(quantityController.text) ?? 1;
+
+                  if (name.isNotEmpty &&
+                      price != null &&
+                      price > 0 &&
+                      quantity > 0) {
+                    setState(() {
+                      if (saleItem != null) {
+                        // Update existing item
+                        final index = selectedItems.indexOf(saleItem);
+                        selectedItems[index] = SaleItem(
+                          temporaryItemName: name,
+                          temporaryItemPrice: price,
+                          quantity: quantity,
+                        );
+                      } else {
+                        // Add new item
+                        selectedItems.add(
+                          SaleItem(
+                            temporaryItemName: name,
+                            temporaryItemPrice: price,
+                            quantity: quantity,
+                          ),
+                        );
+                      }
+                    });
+                    Navigator.pop(context);
+                  }
+                },
+                child: Text(saleItem != null ? 'Update' : 'Add'),
+              ),
+            ],
+          ),
+    );
+  }
+
   void _showSelectedItemsBottomSheet() {
     showModalBottomSheet(
       context: context,
@@ -862,9 +1400,9 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                 ...selectedItems
                     .map(
                       (sItem) => ListTile(
-                        title: Text(sItem.item.name),
+                        title: Text(sItem.itemName),
                         subtitle: Text(
-                          '₹${sItem.item.price} × ${sItem.quantity}',
+                          '₹${sItem.basePrice} × ${sItem.quantity}',
                         ),
                         trailing: Text(
                           '₹${sItem.totalPrice.toStringAsFixed(2)}',

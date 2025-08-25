@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:inventory_manager/models/sale_order.dart';
 import 'package:inventory_manager/service/pdf_service.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shop.dart';
-import '../../models/sale_order.dart';
+import '../../models/sale_order.dart' as order_models;
 import '../../ui/screens/multi_item_sale_screen.dart' as multi_sale;
 import '../../theme/color.dart';
 import '../../theme/style.dart';
@@ -76,6 +77,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
               SizedBox(height: 16.h),
               _buildSaleItemsCard(),
               SizedBox(height: 16.h),
+              if (widget.saleOrder.additionalCharges.isNotEmpty) ...[
+                _buildAdditionalChargesCard(),
+                SizedBox(height: 16.h),
+              ],
               _buildBillSummaryCard(subtotal, tax, total),
               SizedBox(height: 24.h),
               _buildActionButtons(subtotal, tax, total),
@@ -281,17 +286,49 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            item.item.name,
-                            style: AppTextStyles.bodyLarge.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                          Row(
+                            children: [
+                              Text(
+                                item.itemName,
+                                style: AppTextStyles.bodyLarge.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              if (item.isTemporaryItem) ...[
+                                SizedBox(width: 8.w),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 6.w,
+                                    vertical: 2.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.warning.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(4.r),
+                                    border: Border.all(
+                                      color: AppColors.warning.withOpacity(0.3),
+                                      width: 1.w,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Temporary',
+                                    style: AppTextStyles.bodySmall.copyWith(
+                                      color: AppColors.warning,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 10.sp,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                           SizedBox(height: 4.h),
                           Text(
-                            '₹${item.item.price.toStringAsFixed(2)} each',
+                            '₹${item.unitPrice.toStringAsFixed(2)} each',
                             style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.textSecondary,
+                              color:
+                                  item.isTemporaryItem
+                                      ? AppColors.warning
+                                      : AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -339,6 +376,17 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
   }
 
   Widget _buildBillSummaryCard(double subtotal, double tax, double total) {
+    final inventoryItemsSubtotal = widget.saleOrder.items
+        .where((item) => !item.isTemporaryItem)
+        .fold(0.0, (sum, item) => sum + item.totalPrice);
+    final temporaryItemsSubtotal = widget.saleOrder.items
+        .where((item) => item.isTemporaryItem)
+        .fold(0.0, (sum, item) => sum + item.totalPrice);
+    final additionalChargesTotal = widget.saleOrder.additionalCharges.fold(
+      0.0,
+      (sum, charge) => sum + charge.totalAmount,
+    );
+
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -381,6 +429,28 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
           ),
           SizedBox(height: 8.h),
           _buildSummaryRow(
+            'Inventory Items:',
+            '₹${inventoryItemsSubtotal.toStringAsFixed(2)}',
+            false,
+          ),
+          if (temporaryItemsSubtotal > 0) ...[
+            SizedBox(height: 8.h),
+            _buildSummaryRow(
+              'Temporary Items:',
+              '₹${temporaryItemsSubtotal.toStringAsFixed(2)}',
+              false,
+            ),
+          ],
+          if (additionalChargesTotal > 0) ...[
+            SizedBox(height: 8.h),
+            _buildSummaryRow(
+              'Additional Charges:',
+              '₹${additionalChargesTotal.toStringAsFixed(2)}',
+              false,
+            ),
+          ],
+          SizedBox(height: 8.h),
+          _buildSummaryRow(
             'Subtotal:',
             '₹${subtotal.toStringAsFixed(2)}',
             false,
@@ -399,6 +469,81 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
             true,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAdditionalChargesCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.cardBackground,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadowBlue,
+            blurRadius: 15.r,
+            spreadRadius: 2.r,
+            offset: Offset(0, 4.h),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(20.w),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.blueTinted,
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(
+                    Icons.add_circle_outline,
+                    color: AppColors.primaryBlue,
+                    size: 20.sp,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Text('Additional Charges', style: AppTextStyles.headingMedium),
+              ],
+            ),
+            SizedBox(height: 16.h),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: widget.saleOrder.additionalCharges.length,
+              itemBuilder: (context, index) {
+                final charge = widget.saleOrder.additionalCharges[index];
+                return Row(
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        charge.name,
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '₹${charge.amount.toStringAsFixed(2)}',
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.success,
+                        ),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -516,25 +661,35 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
       final saleOrder = widget.saleOrder;
       final saleItems =
           saleOrder.items.map((item) {
-            InventoryItem? inventoryItem;
-            try {
-              inventoryItem = widget.shop.inventory.firstWhere(
-                (i) => i.id == item.item.id,
+            if (item.isTemporaryItem) {
+              // Handle temporary items
+              return multi_sale.SaleItem(
+                temporaryItemName: item.temporaryItemName,
+                temporaryItemPrice: item.temporaryItemPrice,
+                quantity: item.quantity,
               );
-            } catch (_) {
-              inventoryItem = InventoryItem(
-                id: item.item.id,
-                name: item.item.name,
-                price: item.item.price,
-                quantity: 0,
-                createdDate: item.item.createdDate,
-                lastUpdated: item.item.lastUpdated,
+            } else {
+              // Handle inventory items
+              InventoryItem? inventoryItem;
+              try {
+                inventoryItem = widget.shop.inventory.firstWhere(
+                  (i) => i.id == item.item?.id,
+                );
+              } catch (_) {
+                inventoryItem = InventoryItem(
+                  id: item.item?.id ?? '',
+                  name: item.itemName,
+                  price: item.unitPrice,
+                  quantity: 0,
+                  createdDate: item.item?.createdDate ?? DateTime.now(),
+                  lastUpdated: item.item?.lastUpdated ?? DateTime.now(),
+                );
+              }
+              return multi_sale.SaleItem(
+                item: inventoryItem,
+                quantity: item.quantity,
               );
             }
-            return multi_sale.SaleItem(
-              item: inventoryItem,
-              quantity: item.quantity,
-            );
           }).toList();
 
       final pdfService = PDFService();
@@ -548,7 +703,15 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 : saleOrder.customerName,
         customerPhone: saleOrder.customerPhone,
         saleItems: saleItems,
-        additionalCharges: [], // No additional charges for existing sale orders
+        additionalCharges:
+            saleOrder.additionalCharges
+                .map(
+                  (charge) => order_models.AdditionalCharge(
+                    name: charge.name,
+                    amount: charge.amount,
+                  ),
+                )
+                .toList(),
         subtotal: subtotal,
         tax: tax,
         total: total,

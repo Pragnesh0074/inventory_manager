@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:inventory_manager/models/sale_order.dart' hide SaleItem;
 import 'package:inventory_manager/ui/screens/multi_item_sale_screen.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -209,7 +210,7 @@ class PDFService {
             .map(
               (saleItem) => pw.TableRow(
                 children: [
-                  _buildTableCell(saleItem.item.name),
+                  _buildTableCell(saleItem.itemName),
                   _buildTableCell('₹${saleItem.unitPrice.toStringAsFixed(2)}'),
                   _buildTableCell('${saleItem.quantity}'),
                   _buildTableCell('₹${saleItem.totalPrice.toStringAsFixed(2)}'),

@@ -252,7 +252,7 @@ class SalesListScreen extends StatelessWidget {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    '• ${item.item.name}',
+                                    '• ${item.itemName}',
                                     style: AppTextStyles.bodySmall,
                                   ),
                                 ),
