@@ -6,6 +6,7 @@ import '../../models/shop.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
+import '../../models/purchase.dart';
 
 class AddEditItemScreen extends StatefulWidget {
   final Shop shop;
@@ -22,9 +23,19 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   final _nameController = TextEditingController();
   final _priceController = TextEditingController();
   final _quantityController = TextEditingController();
+  final _partyNameController = TextEditingController();
+  final _partyAddressController = TextEditingController();
+  final _purchasePriceController = TextEditingController();
+  final _totalPaymentController = TextEditingController();
+  final _paidAmountController = TextEditingController();
   final _nameFocusNode = FocusNode();
   final _priceFocusNode = FocusNode();
   final _quantityFocusNode = FocusNode();
+  final _partyNameFocusNode = FocusNode();
+  final _partyAddressFocusNode = FocusNode();
+  final _purchasePriceFocusNode = FocusNode();
+  final _totalPaymentFocusNode = FocusNode();
+  final _paidAmountFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -34,6 +45,19 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
       _priceController.text = widget.item!.price.toString();
       _quantityController.text = widget.item!.quantity.toString();
     }
+    // Update total payment display when qty or purchase price changes
+    _quantityController.addListener(_onPriceOrQtyChanged);
+    _purchasePriceController.addListener(_onPriceOrQtyChanged);
+  }
+
+  void _onPriceOrQtyChanged() {
+    if (mounted) setState(() {});
+  }
+
+  double _calculateTotalPayment() {
+    final qty = int.tryParse(_quantityController.text) ?? 0;
+    final buyPrice = double.tryParse(_purchasePriceController.text) ?? 0.0;
+    return qty * buyPrice;
   }
 
   @override
@@ -181,10 +205,12 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                             child: _buildInputField(
                               controller: _priceController,
                               focusNode: _priceFocusNode,
-                              label: 'Price',
+                              label: 'Selling Price',
                               hint: '0.00',
                               icon: Icons.currency_rupee_rounded,
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter price';
@@ -211,7 +237,8 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter quantity';
                                 }
-                                if (int.tryParse(value) == null || int.parse(value) < 0) {
+                                if (int.tryParse(value) == null ||
+                                    int.parse(value) < 0) {
                                   return 'Please enter valid quantity';
                                 }
                                 return null;
@@ -219,6 +246,143 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                             ),
                           ),
                         ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20.h),
+
+                // Purchase Details (optional on create; hidden on edit unless needed)
+                Container(
+                  padding: EdgeInsets.all(24.w),
+                  decoration: BoxDecoration(
+                    color: AppColors.cardBackground,
+                    borderRadius: BorderRadius.circular(20.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadowBlue,
+                        blurRadius: 15.r,
+                        spreadRadius: 2.r,
+                        offset: Offset(0, 4.h),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Purchase Details',
+                        style: AppTextStyles.headingMedium,
+                      ),
+                      SizedBox(height: 20.h),
+                      _buildInputField(
+                        controller: _partyNameController,
+                        focusNode: _partyNameFocusNode,
+                        label: 'Party Name (Supplier)',
+                        hint: 'Enter supplier name',
+                        icon: Icons.person_outline,
+                        validator: (value) {
+                          // optional, allow empty
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 16.h),
+                      _buildInputField(
+                        controller: _partyAddressController,
+                        focusNode: _partyAddressFocusNode,
+                        label: 'Party Address',
+                        hint: 'Enter supplier address',
+                        icon: Icons.location_on_outlined,
+                        validator: (value) {
+                          return null;
+                        },
+                        maxLines: 2,
+                      ),
+                      SizedBox(height: 16.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildInputField(
+                              controller: _purchasePriceController,
+                              focusNode: _purchasePriceFocusNode,
+                              label: 'Purchase Unit Price',
+                              hint: '0.00',
+                              icon: Icons.currency_rupee_rounded,
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return null; // optional
+                                }
+                                if (double.tryParse(value) == null ||
+                                    double.parse(value) < 0) {
+                                  return 'Invalid price';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 16.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Total Payment (Invoice)',
+                                  style: AppTextStyles.bodyMedium.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                SizedBox(height: 36.h),
+                                Row(
+                                  children: [
+                                    Container(
+                                      margin: EdgeInsets.only(right: 8.w),
+                                      padding: EdgeInsets.all(8.w),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.blueTinted,
+                                        borderRadius: BorderRadius.circular(
+                                          8.r,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        Icons.receipt_long,
+                                        color: AppColors.primaryBlue,
+                                        size: 18.sp,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        '₹${_calculateTotalPayment().toStringAsFixed(2)}',
+                                        style: AppTextStyles.headingMedium,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16.h),
+                      _buildInputField(
+                        controller: _paidAmountController,
+                        focusNode: _paidAmountFocusNode,
+                        label: 'Paid Amount',
+                        hint: '0.00',
+                        icon: Icons.payments_outlined,
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) return null;
+                          final v = double.tryParse(value);
+                          if (v == null || v < 0) return 'Invalid amount';
+                          return null;
+                        },
                       ),
                     ],
                   ),
@@ -324,9 +488,10 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
             color: AppColors.backgroundLight,
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color: focusNode.hasFocus
-                  ? AppColors.primaryBlue
-                  : Colors.transparent,
+              color:
+                  focusNode.hasFocus
+                      ? AppColors.primaryBlue
+                      : Colors.transparent,
               width: 2.w,
             ),
           ),
@@ -351,11 +516,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                   color: AppColors.blueTinted,
                   borderRadius: BorderRadius.circular(8.r),
                 ),
-                child: Icon(
-                  icon,
-                  color: AppColors.primaryBlue,
-                  size: 20.sp,
-                ),
+                child: Icon(icon, color: AppColors.primaryBlue, size: 20.sp),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
@@ -371,17 +532,11 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(
-                  color: AppColors.error,
-                  width: 1.w,
-                ),
+                borderSide: BorderSide(color: AppColors.error, width: 1.w),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(
-                  color: AppColors.error,
-                  width: 2.w,
-                ),
+                borderSide: BorderSide(color: AppColors.error, width: 2.w),
               ),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16.w,
@@ -437,6 +592,27 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
           createdDate: DateTime.now(),
         );
         shopProvider.addInventoryItem(widget.shop.id, newItem);
+
+        // If purchase details provided, record purchase
+        final qty = int.tryParse(_quantityController.text) ?? 0;
+        final unitPurchasePrice = double.tryParse(
+          _purchasePriceController.text,
+        );
+        final totalPayment =
+            (unitPurchasePrice != null ? unitPurchasePrice * qty : 0.0);
+        final paidAmount = double.tryParse(_paidAmountController.text) ?? 0.0;
+        if (qty > 0 && unitPurchasePrice != null) {
+          shopProvider.recordPurchase(
+            shopId: widget.shop.id,
+            item: newItem,
+            quantity: qty,
+            unitPurchasePrice: unitPurchasePrice,
+            partyName: _partyNameController.text.trim(),
+            partyAddress: _partyAddressController.text.trim(),
+            totalPayment: totalPayment,
+            paidAmount: paidAmount,
+          );
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Item added successfully!'),
@@ -458,9 +634,17 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     _nameController.dispose();
     _priceController.dispose();
     _quantityController.dispose();
+    _partyNameController.dispose();
+    _partyAddressController.dispose();
+    _purchasePriceController.dispose();
+    _paidAmountController.dispose();
     _nameFocusNode.dispose();
     _priceFocusNode.dispose();
     _quantityFocusNode.dispose();
+    _partyNameFocusNode.dispose();
+    _partyAddressFocusNode.dispose();
+    _purchasePriceFocusNode.dispose();
+    _paidAmountFocusNode.dispose();
     super.dispose();
   }
 }

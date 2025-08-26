@@ -5,6 +5,7 @@ import '../models/inventory_item.dart';
 import '../models/shop.dart';
 import '../models/stock_entry.dart';
 import '../models/transaction.dart' as trans;
+import '../models/purchase.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -23,8 +24,9 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'inventory_management.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -81,6 +83,51 @@ class DatabaseHelper {
         FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
       )
     ''');
+
+    // Create purchases table
+    await db.execute('''
+      CREATE TABLE purchases(
+        id TEXT PRIMARY KEY,
+        shop_id TEXT NOT NULL,
+        item_id TEXT NOT NULL,
+        item_name TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        unit_purchase_price REAL NOT NULL,
+        total_amount REAL NOT NULL,
+        party_name TEXT NOT NULL,
+        party_address TEXT,
+        total_payment REAL NOT NULL,
+        paid_amount REAL NOT NULL,
+        date_time TEXT NOT NULL,
+        note TEXT,
+        FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE,
+        FOREIGN KEY (item_id) REFERENCES inventory_items (id) ON DELETE CASCADE
+      )
+    ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS purchases(
+          id TEXT PRIMARY KEY,
+          shop_id TEXT NOT NULL,
+          item_id TEXT NOT NULL,
+          item_name TEXT NOT NULL,
+          quantity INTEGER NOT NULL,
+          unit_purchase_price REAL NOT NULL,
+          total_amount REAL NOT NULL,
+          party_name TEXT NOT NULL,
+          party_address TEXT,
+          total_payment REAL NOT NULL,
+          paid_amount REAL NOT NULL,
+          date_time TEXT NOT NULL,
+          note TEXT,
+          FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE,
+          FOREIGN KEY (item_id) REFERENCES inventory_items (id) ON DELETE CASCADE
+        )
+      ''');
+    }
   }
 
   // Shop operations
@@ -96,7 +143,10 @@ class DatabaseHelper {
       shop.inventory = await getInventoryItems(shop.id);
 
       // Load transactions for this shop
-      shop.transactions = (await getTransactions(shop.id)).cast<trans.Transaction>();
+      shop.transactions =
+          (await getTransactions(shop.id)).cast<trans.Transaction>();
+
+      // We do not load purchases here to keep memory usage light
 
       shops.add(shop);
     }
@@ -191,7 +241,11 @@ class DatabaseHelper {
 
   Future<int> deleteInventoryItem(String itemId) async {
     final db = await database;
-    return await db.delete('inventory_items', where: 'id = ?', whereArgs: [itemId]);
+    return await db.delete(
+      'inventory_items',
+      where: 'id = ?',
+      whereArgs: [itemId],
+    );
   }
 
   // Stock entry operations
@@ -251,7 +305,10 @@ class DatabaseHelper {
     });
   }
 
-  Future<int> insertTransaction(String shopId, trans.Transaction transaction) async {
+  Future<int> insertTransaction(
+    String shopId,
+    trans.Transaction transaction,
+  ) async {
     final db = await database;
     return await db.insert('transactions', {
       'id': transaction.id,
@@ -266,7 +323,10 @@ class DatabaseHelper {
     });
   }
 
-  Future<List<trans.Transaction>> getMonthlyTransactions(String shopId, DateTime month) async {
+  Future<List<trans.Transaction>> getMonthlyTransactions(
+    String shopId,
+    DateTime month,
+  ) async {
     final db = await database;
     final startDate = DateTime(month.year, month.month, 1);
     final endDate = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
@@ -300,5 +360,46 @@ class DatabaseHelper {
   Future<void> close() async {
     final db = await database;
     db.close();
+  }
+
+  // Purchase operations
+  Future<int> insertPurchase(Purchase purchase) async {
+    final db = await database;
+    return await db.insert('purchases', purchase.toMap());
+  }
+
+  Future<List<Purchase>> getPurchases(String shopId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'purchases',
+      where: 'shop_id = ?',
+      whereArgs: [shopId],
+      orderBy: 'date_time DESC',
+    );
+    return maps.map((m) => Purchase.fromMap(m)).toList();
+  }
+
+  Future<List<Purchase>> getPurchasesByItem(String itemId) async {
+    final db = await database;
+    final maps = await db.query(
+      'purchases',
+      where: 'item_id = ?',
+      whereArgs: [itemId],
+      orderBy: 'date_time DESC',
+    );
+    return maps.map((m) => Purchase.fromMap(m)).toList();
+  }
+
+  Future<int> updatePurchasePayment({
+    required String purchaseId,
+    required double paidAmount,
+  }) async {
+    final db = await database;
+    return await db.update(
+      'purchases',
+      {'paid_amount': paidAmount},
+      where: 'id = ?',
+      whereArgs: [purchaseId],
+    );
   }
 }

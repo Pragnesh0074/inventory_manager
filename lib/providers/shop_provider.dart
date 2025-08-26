@@ -5,6 +5,7 @@ import '../models/stock_entry.dart';
 import '../models/transaction.dart';
 import '../models/sale_order.dart';
 import '../database/database_helper.dart';
+import '../models/purchase.dart';
 
 class ShopProvider with ChangeNotifier {
   List<Shop> _shops = [];
@@ -235,6 +236,96 @@ class ShopProvider with ChangeNotifier {
     } catch (e) {
       print('Error adding stock: $e');
       throw e;
+    }
+  }
+
+  // Record a purchase and add stock accordingly
+  Future<void> recordPurchase({
+    required String shopId,
+    required InventoryItem item,
+    required int quantity,
+    required double unitPurchasePrice,
+    required String partyName,
+    required String partyAddress,
+    required double totalPayment,
+    required double paidAmount,
+    String? note,
+  }) async {
+    try {
+      // Increase stock for the item
+      final shop = _shops.firstWhere((s) => s.id == shopId);
+      final existingItemIndex = shop.inventory.indexWhere(
+        (i) => i.id == item.id,
+      );
+      if (existingItemIndex == -1) {
+        throw Exception('Item not found in shop inventory');
+      }
+
+      final stockEntry = StockEntry(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        quantity: quantity,
+        type: 'addition',
+        dateTime: DateTime.now(),
+        note: 'Purchase stock',
+      );
+
+      shop.inventory[existingItemIndex].quantity += quantity;
+      shop.inventory[existingItemIndex].lastUpdated = DateTime.now();
+      shop.inventory[existingItemIndex].stockEntries.add(stockEntry);
+
+      await _databaseHelper.updateInventoryItem(
+        shop.inventory[existingItemIndex],
+      );
+      await _databaseHelper.insertStockEntry(item.id, stockEntry);
+
+      // Create purchase record
+      final purchase = Purchase(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        shopId: shopId,
+        itemId: item.id,
+        itemName: item.name,
+        quantity: quantity,
+        unitPurchasePrice: unitPurchasePrice,
+        totalAmount: unitPurchasePrice * quantity,
+        partyName: partyName,
+        partyAddress: partyAddress,
+        totalPayment: totalPayment,
+        paidAmount: paidAmount,
+        dateTime: DateTime.now(),
+        note: note,
+      );
+
+      await _databaseHelper.insertPurchase(purchase);
+
+      notifyListeners();
+    } catch (e) {
+      print('Error recording purchase: $e');
+      rethrow;
+    }
+  }
+
+  Future<List<Purchase>> getPurchases(String shopId) async {
+    try {
+      return await _databaseHelper.getPurchases(shopId);
+    } catch (e) {
+      print('Error getting purchases: $e');
+      return [];
+    }
+  }
+
+  Future<void> updatePurchasePayment({
+    required String purchaseId,
+    required double paidAmount,
+  }) async {
+    try {
+      await _databaseHelper.updatePurchasePayment(
+        purchaseId: purchaseId,
+        paidAmount: paidAmount,
+      );
+      notifyListeners();
+    } catch (e) {
+      print('Error updating purchase payment: $e');
+      rethrow;
     }
   }
 

@@ -12,6 +12,7 @@ import 'add_edit_item_screen.dart';
 import 'item_detail_screen.dart';
 import 'monthly_summary_screen.dart';
 import 'sales_list_screen.dart';
+import 'purchases_list_screen.dart';
 
 class InventoryScreen extends StatelessWidget {
   final Shop shop;
@@ -45,59 +46,79 @@ class InventoryScreen extends StatelessWidget {
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 10.w),
-            child: IconButton(
-              icon: Icon(
-                Icons.receipt_long,
-                color: AppColors.textOnPrimary,
-                size: 24.sp,
-              ),
-              onPressed:
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => SalesListScreen(shop: shop),
-                    ),
+        actions: [],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(56.h),
+          child: Container(
+            height: 56.h,
+            padding: EdgeInsets.only(right: 2.w, left: 0.w, bottom: 8.h),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  icon: Icon(
+                    Icons.receipt_long,
+                    color: AppColors.textOnPrimary,
+                    size: 24.sp,
                   ),
+                  onPressed:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SalesListScreen(shop: shop),
+                        ),
+                      ),
+                ),
+                SizedBox(width: 4.w),
+                IconButton(
+                  icon: Icon(
+                    Icons.point_of_sale,
+                    color: AppColors.textOnPrimary,
+                    size: 24.sp,
+                  ),
+                  onPressed:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MultiItemSaleScreen(shop: shop),
+                        ),
+                      ),
+                ),
+                SizedBox(width: 4.w),
+                IconButton(
+                  icon: Icon(
+                    Icons.analytics,
+                    color: AppColors.textOnPrimary,
+                    size: 24.sp,
+                  ),
+                  onPressed:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => MonthlySummaryScreen(shop: shop),
+                        ),
+                      ),
+                ),
+                SizedBox(width: 4.w),
+                IconButton(
+                  icon: Icon(
+                    Icons.shopping_bag,
+                    color: AppColors.textOnPrimary,
+                    size: 24.sp,
+                  ),
+                  onPressed:
+                      () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PurchasesListScreen(shop: shop),
+                        ),
+                      ),
+                ),
+              ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.only(right: 10.w),
-            child: IconButton(
-              icon: Icon(
-                Icons.point_of_sale,
-                color: AppColors.textOnPrimary,
-                size: 24.sp,
-              ),
-              onPressed:
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MultiItemSaleScreen(shop: shop),
-                    ),
-                  ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.only(right: 10.w),
-            child: IconButton(
-              icon: Icon(
-                Icons.analytics,
-                color: AppColors.textOnPrimary,
-                size: 24.sp,
-              ),
-              onPressed:
-                  () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MonthlySummaryScreen(shop: shop),
-                    ),
-                  ),
-            ),
-          ),
-        ],
+        ),
       ),
       body: Consumer<ShopProvider>(
         builder: (context, shopProvider, child) {
@@ -872,100 +893,242 @@ class InventoryScreen extends StatelessWidget {
     InventoryItem item,
   ) {
     final quantityController = TextEditingController();
+    final partyNameController = TextEditingController();
+    final partyAddressController = TextEditingController();
+    final unitPriceController = TextEditingController();
+    final paidAmountController = TextEditingController();
 
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: AppColors.backgroundLight,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.r),
-            ),
-            title: Text(
-              'Add Stock - ${item.name}',
-              style: AppTextStyles.dialogTitle,
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            double calcTotal() {
+              final qty = int.tryParse(quantityController.text) ?? 0;
+              final price = double.tryParse(unitPriceController.text) ?? 0.0;
+              return qty * price;
+            }
+
+            return AlertDialog(
+              backgroundColor: AppColors.backgroundLight,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              title: Text(
+                'Add Stock - ${item.name}',
+                style: AppTextStyles.dialogTitle,
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(16.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.blueTinted,
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.inventory,
+                            color: AppColors.primaryBlue,
+                            size: 20.sp,
+                          ),
+                          SizedBox(width: 12.w),
+                          Text(
+                            'Current Stock: ${item.quantity}',
+                            style: AppTextStyles.dialogContent,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    TextField(
+                      controller: quantityController,
+                      keyboardType: TextInputType.number,
+                      onChanged: (_) => setStateDialog(() {}),
+                      style: AppTextStyles.bodyLarge,
+                      decoration: InputDecoration(
+                        labelText: 'Quantity to add',
+                        labelStyle: AppTextStyles.bodyMedium,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          borderSide: BorderSide(color: AppColors.primaryBlue),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    TextField(
+                      controller: unitPriceController,
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      onChanged: (_) => setStateDialog(() {}),
+                      style: AppTextStyles.bodyLarge,
+                      decoration: InputDecoration(
+                        labelText: 'Purchase Unit Price',
+                        labelStyle: AppTextStyles.bodyMedium,
+                        prefixIcon: Icon(Icons.currency_rupee_rounded),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          borderSide: BorderSide(color: AppColors.primaryBlue),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    TextField(
+                      controller: paidAmountController,
+                      keyboardType: TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      style: AppTextStyles.bodyLarge,
+                      decoration: InputDecoration(
+                        labelText: 'Paid Amount',
+                        labelStyle: AppTextStyles.bodyMedium,
+                        prefixIcon: Icon(Icons.payments_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          borderSide: BorderSide(color: AppColors.primaryBlue),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    TextField(
+                      controller: partyNameController,
+                      style: AppTextStyles.bodyLarge,
+                      decoration: InputDecoration(
+                        labelText: 'Supplier Name (optional)',
+                        labelStyle: AppTextStyles.bodyMedium,
+                        prefixIcon: Icon(Icons.person_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          borderSide: BorderSide(color: AppColors.primaryBlue),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 12.h),
+                    TextField(
+                      controller: partyAddressController,
+                      maxLines: 2,
+                      style: AppTextStyles.bodyLarge,
+                      decoration: InputDecoration(
+                        labelText: 'Supplier Address (optional)',
+                        labelStyle: AppTextStyles.bodyMedium,
+                        prefixIcon: Icon(Icons.location_on_outlined),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          borderSide: BorderSide(color: AppColors.primaryBlue),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(12.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.backgroundLight,
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(
+                          color: AppColors.primaryBlue.withOpacity(0.15),
+                          width: 1.w,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Total Payment',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            '₹${calcTotal().toStringAsFixed(2)}',
+                            style: AppTextStyles.headingMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Cancel', style: AppTextStyles.dialogButton),
+                ),
                 Container(
-                  padding: EdgeInsets.all(16.w),
                   decoration: BoxDecoration(
-                    color: AppColors.blueTinted,
+                    gradient: AppColors.accentGradient,
                     borderRadius: BorderRadius.circular(12.r),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.inventory,
-                        color: AppColors.primaryBlue,
-                        size: 20.sp,
-                      ),
-                      SizedBox(width: 12.w),
-                      Text(
-                        'Current Stock: ${item.quantity}',
-                        style: AppTextStyles.dialogContent,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                TextField(
-                  controller: quantityController,
-                  keyboardType: TextInputType.number,
-                  style: AppTextStyles.bodyLarge,
-                  decoration: InputDecoration(
-                    labelText: 'Quantity to add',
-                    labelStyle: AppTextStyles.bodyMedium,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide(color: AppColors.primaryBlue),
+                  child: TextButton(
+                    onPressed: () async {
+                      final qty = int.tryParse(quantityController.text) ?? 0;
+                      final unitPrice = double.tryParse(
+                        unitPriceController.text,
+                      );
+                      final paid =
+                          double.tryParse(paidAmountController.text) ?? 0.0;
+                      if (qty > 0 && unitPrice != null) {
+                        await Provider.of<ShopProvider>(
+                          context,
+                          listen: false,
+                        ).recordPurchase(
+                          shopId: shop.id,
+                          item: item,
+                          quantity: qty,
+                          unitPurchasePrice: unitPrice,
+                          partyName: partyNameController.text.trim(),
+                          partyAddress: partyAddressController.text.trim(),
+                          totalPayment: unitPrice * qty,
+                          paidAmount: paid,
+                        );
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                'Added $qty ${item.name}(s) to stock',
+                              ),
+                              backgroundColor: AppColors.success,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: Text(
+                      'Save Purchase',
+                      style: AppTextStyles.dialogButtonPrimary,
                     ),
                   ),
                 ),
               ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel', style: AppTextStyles.dialogButton),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.accentGradient,
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: TextButton(
-                  onPressed: () {
-                    final quantity = int.tryParse(quantityController.text) ?? 0;
-                    if (quantity > 0) {
-                      Provider.of<ShopProvider>(
-                        context,
-                        listen: false,
-                      ).addStock(shop.id, item.id, quantity);
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Added $quantity ${item.name}(s) to stock',
-                          ),
-                          backgroundColor: AppColors.success,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text('Add', style: AppTextStyles.dialogButtonPrimary),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
+        );
+      },
     );
   }
 
