@@ -33,6 +33,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
   bool isProcessing = false;
   String? billNumber;
   DateTime? saleDateTime;
+  final TextEditingController _paidAmountController = TextEditingController();
 
   @override
   void initState() {
@@ -576,6 +577,27 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             '₹${total.toStringAsFixed(2)}',
             true,
           ),
+          SizedBox(height: 16.h),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text('Amount Paid Now', style: AppTextStyles.bodyMedium),
+          ),
+          SizedBox(height: 8.h),
+          TextField(
+            controller: _paidAmountController,
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(
+              prefixIcon: Icon(Icons.payments_outlined),
+              hintText: '0.00',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12.r),
+                borderSide: BorderSide(color: AppColors.primaryBlue),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -867,6 +889,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
       final subtotal = itemsSubtotal + additionalChargesTotal;
       final tax = subtotal * 0.18;
       final total = subtotal + tax;
+      final paidAmount = double.tryParse(_paidAmountController.text) ?? 0.0;
 
       // Create sale order
       final saleOrder = order_models.SaleOrder(
@@ -903,6 +926,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
         tax: tax,
         total: total,
         billNumber: billNumber!,
+        paidAmount: paidAmount,
       );
 
       // Create the sale order (this will also update inventory)

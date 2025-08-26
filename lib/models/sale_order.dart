@@ -94,6 +94,7 @@ class SaleOrder {
   final double tax;
   final double total;
   final String billNumber;
+  final double paidAmount;
 
   SaleOrder({
     required this.id,
@@ -107,6 +108,7 @@ class SaleOrder {
     required this.tax,
     required this.total,
     required this.billNumber,
+    required this.paidAmount,
   });
 
   // Get total quantity of all items
@@ -132,6 +134,8 @@ class SaleOrder {
   // Get formatted tax
   String get formattedTax => '₹${tax.toStringAsFixed(2)}';
 
+  double get remainingAmount => (total - paidAmount).clamp(0, double.infinity);
+
   // Convert to Map for database
   Map<String, dynamic> toMap() {
     return {
@@ -144,6 +148,7 @@ class SaleOrder {
       'tax': tax,
       'total': total,
       'bill_number': billNumber,
+      'paid_amount': paidAmount,
     };
   }
 
@@ -162,6 +167,7 @@ class SaleOrder {
       'tax': tax,
       'total': total,
       'billNumber': billNumber,
+      'paidAmount': paidAmount,
     };
   }
 
@@ -200,6 +206,7 @@ class SaleOrder {
       tax: json['tax']?.toDouble() ?? 0.0,
       total: json['total']?.toDouble() ?? 0.0,
       billNumber: json['billNumber'] ?? '',
+      paidAmount: json['paidAmount']?.toDouble() ?? 0.0,
     );
   }
 
@@ -216,6 +223,7 @@ class SaleOrder {
     double? tax,
     double? total,
     String? billNumber,
+    double? paidAmount,
   }) {
     return SaleOrder(
       id: id ?? this.id,
@@ -229,6 +237,7 @@ class SaleOrder {
       tax: tax ?? this.tax,
       total: total ?? this.total,
       billNumber: billNumber ?? this.billNumber,
+      paidAmount: paidAmount ?? this.paidAmount,
     );
   }
 

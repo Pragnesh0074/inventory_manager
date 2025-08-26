@@ -6,6 +6,7 @@ import '../models/shop.dart';
 import '../models/stock_entry.dart';
 import '../models/transaction.dart' as trans;
 import '../models/purchase.dart';
+import '../models/sale_order.dart' as order_models;
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -24,7 +25,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'inventory_management.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -80,6 +81,7 @@ class DatabaseHelper {
         total_amount REAL NOT NULL,
         date_time TEXT NOT NULL,
         type TEXT NOT NULL,
+        order_id TEXT,
         FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
       )
     ''');
@@ -104,6 +106,23 @@ class DatabaseHelper {
         FOREIGN KEY (item_id) REFERENCES inventory_items (id) ON DELETE CASCADE
       )
     ''');
+
+    // Create sale_orders table
+    await db.execute('''
+      CREATE TABLE sale_orders(
+        id TEXT PRIMARY KEY,
+        shop_id TEXT NOT NULL,
+        customer_name TEXT NOT NULL,
+        customer_phone TEXT,
+        date_time TEXT NOT NULL,
+        subtotal REAL NOT NULL,
+        tax REAL NOT NULL,
+        total REAL NOT NULL,
+        bill_number TEXT NOT NULL,
+        paid_amount REAL NOT NULL,
+        FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
+      )
+    ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -125,6 +144,26 @@ class DatabaseHelper {
           note TEXT,
           FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE,
           FOREIGN KEY (item_id) REFERENCES inventory_items (id) ON DELETE CASCADE
+        )
+      ''');
+    }
+    if (oldVersion < 3) {
+      // Add order_id column if missing
+      await db.execute('ALTER TABLE transactions ADD COLUMN order_id TEXT');
+      // Create sale_orders table
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS sale_orders(
+          id TEXT PRIMARY KEY,
+          shop_id TEXT NOT NULL,
+          customer_name TEXT NOT NULL,
+          customer_phone TEXT,
+          date_time TEXT NOT NULL,
+          subtotal REAL NOT NULL,
+          tax REAL NOT NULL,
+          total REAL NOT NULL,
+          bill_number TEXT NOT NULL,
+          paid_amount REAL NOT NULL,
+          FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
         )
       ''');
     }
@@ -310,7 +349,7 @@ class DatabaseHelper {
     trans.Transaction transaction,
   ) async {
     final db = await database;
-    return await db.insert('transactions', {
+    final data = {
       'id': transaction.id,
       'shop_id': shopId,
       'item_id': transaction.itemId,
@@ -320,7 +359,19 @@ class DatabaseHelper {
       'total_amount': transaction.totalAmount,
       'date_time': transaction.dateTime.toIso8601String(),
       'type': transaction.type,
-    });
+    };
+    // Try insert with order_id when available; if the column doesn't exist, retry without it
+    if (transaction.orderId != null) {
+      try {
+        final withOrder = Map<String, Object?>.from(data)
+          ..['order_id'] = transaction.orderId;
+        return await db.insert('transactions', withOrder);
+      } catch (e) {
+        // Fallback: retry without order_id (older DB without migration)
+        return await db.insert('transactions', data);
+      }
+    }
+    return await db.insert('transactions', data);
   }
 
   Future<List<trans.Transaction>> getMonthlyTransactions(
@@ -400,6 +451,51 @@ class DatabaseHelper {
       {'paid_amount': paidAmount},
       where: 'id = ?',
       whereArgs: [purchaseId],
+    );
+  }
+
+  // Sale order operations
+  Future<int> insertSaleOrder(order_models.SaleOrder saleOrder) async {
+    final db = await database;
+    return await db.insert('sale_orders', saleOrder.toMap());
+  }
+
+  Future<List<order_models.SaleOrder>> getSaleOrders(String shopId) async {
+    final db = await database;
+    final maps = await db.query(
+      'sale_orders',
+      where: 'shop_id = ?',
+      whereArgs: [shopId],
+      orderBy: 'date_time DESC',
+    );
+    return maps
+        .map(
+          (m) => order_models.SaleOrder(
+            id: m['id'] as String,
+            shopId: m['shop_id'] as String,
+            items: const [],
+            additionalCharges: const [],
+            customerName: m['customer_name'] as String,
+            customerPhone: (m['customer_phone'] ?? '') as String,
+            dateTime: DateTime.parse(m['date_time'] as String),
+            subtotal: (m['subtotal'] as num).toDouble(),
+            tax: (m['tax'] as num).toDouble(),
+            total: (m['total'] as num).toDouble(),
+            billNumber: m['bill_number'] as String,
+            paidAmount: (m['paid_amount'] as num).toDouble(),
+          ),
+        )
+        .toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getSaleOrderItems(String orderId) async {
+    final db = await database;
+    return await db.query(
+      'transactions',
+      columns: ['item_name', 'quantity', 'price', 'total_amount'],
+      where: 'order_id = ? AND type = ?',
+      whereArgs: [orderId, 'sale'],
+      orderBy: 'date_time ASC',
     );
   }
 }

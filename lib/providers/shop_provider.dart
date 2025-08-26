@@ -360,6 +360,7 @@ class ShopProvider with ChangeNotifier {
             totalAmount: saleItem.totalPrice,
             dateTime: saleOrder.dateTime,
             type: 'sale',
+            orderId: saleOrder.id,
           );
 
           shop.transactions.add(transaction);
@@ -395,6 +396,7 @@ class ShopProvider with ChangeNotifier {
               totalAmount: saleItem.totalPrice,
               dateTime: saleOrder.dateTime,
               type: 'sale',
+              orderId: saleOrder.id,
             );
 
             shop.transactions.add(transaction);
@@ -409,11 +411,9 @@ class ShopProvider with ChangeNotifier {
         }
       }
 
-      // Add sale order to shop
+      // Add sale order to shop and persist
       shop.saleOrders.add(saleOrder);
-
-      // Save sale order to database (you'll need to implement this in DatabaseHelper)
-      // await _databaseHelper.insertSaleOrder(saleOrder);
+      await _databaseHelper.insertSaleOrder(saleOrder);
 
       notifyListeners();
     } catch (e) {
@@ -443,6 +443,24 @@ class ShopProvider with ChangeNotifier {
       }).toList();
     } catch (e) {
       print('Error getting monthly sale orders: $e');
+      return [];
+    }
+  }
+
+  Future<List<SaleOrder>> getSaleOrdersFromDb(String shopId) async {
+    try {
+      return await _databaseHelper.getSaleOrders(shopId);
+    } catch (e) {
+      print('Error getting sale orders: $e');
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getSaleOrderItems(String orderId) async {
+    try {
+      return await _databaseHelper.getSaleOrderItems(orderId);
+    } catch (e) {
+      print('Error getting sale order items: $e');
       return [];
     }
   }

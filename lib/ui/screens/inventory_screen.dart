@@ -13,6 +13,7 @@ import 'item_detail_screen.dart';
 import 'monthly_summary_screen.dart';
 import 'sales_list_screen.dart';
 import 'purchases_list_screen.dart';
+import 'sales_payments_list_screen.dart';
 
 class InventoryScreen extends StatelessWidget {
   final Shop shop;
@@ -48,72 +49,146 @@ class InventoryScreen extends StatelessWidget {
         ),
         actions: [],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(56.h),
+          preferredSize: Size.fromHeight(80.h),
           child: Container(
-            height: 56.h,
+            height: 80.h,
             padding: EdgeInsets.only(right: 2.w, left: 0.w, bottom: 8.h),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.receipt_long,
-                    color: AppColors.textOnPrimary,
-                    size: 24.sp,
-                  ),
-                  onPressed:
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SalesListScreen(shop: shop),
-                        ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.receipt_long,
+                        color: AppColors.textOnPrimary,
+                        size: 24.sp,
                       ),
+                      onPressed:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SalesListScreen(shop: shop),
+                            ),
+                          ),
+                    ),
+                    Text(
+                      'Sales',
+                      style: AppTextStyles.cardCaption.copyWith(
+                        color: AppColors.textOnPrimary,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 4.w),
-                IconButton(
-                  icon: Icon(
-                    Icons.point_of_sale,
-                    color: AppColors.textOnPrimary,
-                    size: 24.sp,
-                  ),
-                  onPressed:
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MultiItemSaleScreen(shop: shop),
-                        ),
+                SizedBox(width: 8.w),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.point_of_sale,
+                        color: AppColors.textOnPrimary,
+                        size: 24.sp,
                       ),
+                      onPressed:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => MultiItemSaleScreen(shop: shop),
+                            ),
+                          ),
+                    ),
+                    Text(
+                      'New Sale',
+                      style: AppTextStyles.cardCaption.copyWith(
+                        color: AppColors.textOnPrimary,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 4.w),
-                IconButton(
-                  icon: Icon(
-                    Icons.analytics,
-                    color: AppColors.textOnPrimary,
-                    size: 24.sp,
-                  ),
-                  onPressed:
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => MonthlySummaryScreen(shop: shop),
-                        ),
+                SizedBox(width: 8.w),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.analytics,
+                        color: AppColors.textOnPrimary,
+                        size: 24.sp,
                       ),
+                      onPressed:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => MonthlySummaryScreen(shop: shop),
+                            ),
+                          ),
+                    ),
+                    Text(
+                      'Summary',
+                      style: AppTextStyles.cardCaption.copyWith(
+                        color: AppColors.textOnPrimary,
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 4.w),
-                IconButton(
-                  icon: Icon(
-                    Icons.shopping_bag,
-                    color: AppColors.textOnPrimary,
-                    size: 24.sp,
-                  ),
-                  onPressed:
-                      () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PurchasesListScreen(shop: shop),
-                        ),
+                SizedBox(width: 8.w),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.shopping_bag,
+                        color: AppColors.textOnPrimary,
+                        size: 24.sp,
                       ),
+                      onPressed:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => PurchasesListScreen(shop: shop),
+                            ),
+                          ),
+                    ),
+                    Text(
+                      'Purchases',
+                      style: AppTextStyles.cardCaption.copyWith(
+                        color: AppColors.textOnPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(width: 8.w),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.account_balance_wallet,
+                        color: AppColors.textOnPrimary,
+                        size: 24.sp,
+                      ),
+                      onPressed:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) =>
+                                      SalesPaymentsListScreen(shop: shop),
+                            ),
+                          ),
+                    ),
+                    Text(
+                      'Payments',
+                      style: AppTextStyles.cardCaption.copyWith(
+                        color: AppColors.textOnPrimary,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

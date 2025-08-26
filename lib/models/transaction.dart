@@ -6,7 +6,8 @@ class Transaction {
   final double price;
   final double totalAmount;
   final DateTime dateTime;
-  final String type;
+  final String type; // 'sale' or 'purchase'
+  final String? orderId; // link to sale_orders when type is 'sale'
 
   Transaction({
     required this.id,
@@ -17,6 +18,7 @@ class Transaction {
     required this.totalAmount,
     required this.dateTime,
     required this.type,
+    this.orderId,
   });
 
   // Convert Transaction to Map for database insertion
@@ -42,7 +44,9 @@ class Transaction {
       quantity: map['quantity']?.toInt() ?? 0,
       price: map['price']?.toDouble() ?? 0.0,
       totalAmount: map['total_amount']?.toDouble() ?? 0.0,
-      dateTime: DateTime.parse(map['date_time'] ?? DateTime.now().toIso8601String()),
+      dateTime: DateTime.parse(
+        map['date_time'] ?? DateTime.now().toIso8601String(),
+      ),
       type: map['type'] ?? '',
     );
   }
@@ -58,6 +62,7 @@ class Transaction {
       'totalAmount': totalAmount,
       'dateTime': dateTime.toIso8601String(),
       'type': type,
+      'orderId': orderId,
     };
   }
 
@@ -70,8 +75,11 @@ class Transaction {
       quantity: json['quantity']?.toInt() ?? 0,
       price: json['price']?.toDouble() ?? 0.0,
       totalAmount: json['totalAmount']?.toDouble() ?? 0.0,
-      dateTime: DateTime.parse(json['dateTime'] ?? DateTime.now().toIso8601String()),
+      dateTime: DateTime.parse(
+        json['dateTime'] ?? DateTime.now().toIso8601String(),
+      ),
       type: json['type'] ?? '',
+      orderId: json['orderId'],
     );
   }
 
