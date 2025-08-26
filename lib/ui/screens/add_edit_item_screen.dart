@@ -6,6 +6,7 @@ import '../../models/shop.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
+import 'add_purchase_screen.dart';
 
 class AddEditItemScreen extends StatefulWidget {
   final Shop shop;
@@ -20,18 +21,25 @@ class AddEditItemScreen extends StatefulWidget {
 class _AddEditItemScreenState extends State<AddEditItemScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _priceController = TextEditingController();
+  final _sellingPriceController = TextEditingController();
+  final _purchasePriceController = TextEditingController();
   final _quantityController = TextEditingController();
   final _nameFocusNode = FocusNode();
-  final _priceFocusNode = FocusNode();
+  final _sellingPriceFocusNode = FocusNode();
+  final _purchasePriceFocusNode = FocusNode();
   final _quantityFocusNode = FocusNode();
+  
+  bool _addPurchaseDetails = false;
 
   @override
   void initState() {
     super.initState();
     if (widget.item != null) {
       _nameController.text = widget.item!.name;
-      _priceController.text = widget.item!.price.toString();
+      _sellingPriceController.text = widget.item!.sellingPrice.toString();
+      if (widget.item!.purchasePrice != null) {
+        _purchasePriceController.text = widget.item!.purchasePrice!.toString();
+      }
       _quantityController.text = widget.item!.quantity.toString();
     }
   }
@@ -173,45 +181,64 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                       ),
                       SizedBox(height: 20.h),
 
-                      // Price and Quantity Row
+                      // Selling Price Field
+                      _buildInputField(
+                        controller: _sellingPriceController,
+                        focusNode: _sellingPriceFocusNode,
+                        label: 'Selling Price',
+                        hint: '0.00',
+                        icon: Icons.currency_rupee_rounded,
+                        keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter selling price';
+                          }
+                          if (double.tryParse(value) == null ||
+                              double.parse(value) <= 0) {
+                            return 'Please enter valid selling price';
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 20.h),
+
+                      // Purchase Price Field (Optional)
+                      _buildInputField(
+                        controller: _purchasePriceController,
+                        focusNode: _purchasePriceFocusNode,
+                        label: 'Purchase Price (Optional)',
+                        hint: '0.00',
+                        icon: Icons.shopping_cart_outlined,
+                        keyboardType: TextInputType.numberWithOptions(decimal: true),
+                        validator: (value) {
+                          if (value != null && value.isNotEmpty) {
+                            if (double.tryParse(value) == null ||
+                                double.parse(value) <= 0) {
+                              return 'Please enter valid purchase price';
+                            }
+                          }
+                          return null;
+                        },
+                      ),
+                      SizedBox(height: 20.h),
+
+                      // Quantity Field
                       Row(
                         children: [
-                          // Price Field
-                          Expanded(
-                            child: _buildInputField(
-                              controller: _priceController,
-                              focusNode: _priceFocusNode,
-                              label: 'Price',
-                              hint: '0.00',
-                              icon: Icons.currency_rupee_rounded,
-                              keyboardType: TextInputType.numberWithOptions(decimal: true),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Please enter price';
-                                }
-                                if (double.tryParse(value) == null ||
-                                    double.parse(value) <= 0) {
-                                  return 'Please enter valid price';
-                                }
-                                return null;
-                              },
-                            ),
-                          ),
-                          SizedBox(width: 16.w),
-                          // Quantity Field
                           Expanded(
                             child: _buildInputField(
                               controller: _quantityController,
                               focusNode: _quantityFocusNode,
                               label: 'Quantity',
                               hint: '0',
-                              icon: Icons.format_list_numbered_outlined,
+                              icon: Icons.inventory_2_outlined,
                               keyboardType: TextInputType.number,
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return 'Please enter quantity';
                                 }
-                                if (int.tryParse(value) == null || int.parse(value) < 0) {
+                                if (int.tryParse(value) == null ||
+                                    int.parse(value) <= 0) {
                                   return 'Please enter valid quantity';
                                 }
                                 return null;
@@ -224,6 +251,64 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                   ),
                 ),
                 SizedBox(height: 20.h),
+
+                // Purchase Details Option (only for new items)
+                if (widget.item == null) ...[
+                  Container(
+                    padding: EdgeInsets.all(20.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBackground,
+                      borderRadius: BorderRadius.circular(16.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadowBlue,
+                          blurRadius: 10.r,
+                          spreadRadius: 1.r,
+                          offset: Offset(0, 2.h),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.shopping_cart_outlined,
+                          color: AppColors.primary,
+                          size: 24.sp,
+                        ),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Add Purchase Details',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                'Include supplier and payment information',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: _addPurchaseDetails,
+                          onChanged: (value) {
+                            setState(() {
+                              _addPurchaseDetails = value;
+                            });
+                          },
+                          activeColor: AppColors.primary,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+                ],
 
                 // Action Buttons
                 Container(
@@ -402,7 +487,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     );
   }
 
-  void _saveItem() {
+  void _saveItem() async {
     if (_formKey.currentState!.validate()) {
       final shopProvider = Provider.of<ShopProvider>(context, listen: false);
 
@@ -411,7 +496,10 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
         final updatedItem = InventoryItem(
           id: widget.item!.id,
           name: _nameController.text.trim(),
-          price: double.parse(_priceController.text),
+          sellingPrice: double.parse(_sellingPriceController.text),
+          purchasePrice: _purchasePriceController.text.isNotEmpty 
+              ? double.parse(_purchasePriceController.text) 
+              : widget.item!.purchasePrice,
           quantity: int.parse(_quantityController.text),
           createdDate: widget.item!.createdDate,
           stockEntries: widget.item!.stockEntries,
@@ -432,11 +520,18 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
         final newItem = InventoryItem(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           name: _nameController.text.trim(),
-          price: double.parse(_priceController.text),
+          sellingPrice: double.parse(_sellingPriceController.text),
+          purchasePrice: _purchasePriceController.text.isNotEmpty 
+              ? double.parse(_purchasePriceController.text) 
+              : null,
           quantity: int.parse(_quantityController.text),
           createdDate: DateTime.now(),
         );
-        shopProvider.addInventoryItem(widget.shop.id, newItem);
+        
+        // Add item to inventory first
+        await shopProvider.addInventoryItem(widget.shop.id, newItem);
+        
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Item added successfully!'),
@@ -447,9 +542,37 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
             ),
           ),
         );
-      }
 
-      Navigator.pop(context);
+        // If purchase details option is selected, navigate to purchase screen
+        if (_addPurchaseDetails) {
+          final result = await Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => AddPurchaseScreen(
+                item: newItem,
+                purchaseQuantity: newItem.quantity,
+              ),
+            ),
+          );
+          
+          if (result != null) {
+            // Purchase was added successfully
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Purchase details added successfully!'),
+                backgroundColor: AppColors.success,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+            );
+          }
+        }
+        
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pop();
+      }
     }
   }
 

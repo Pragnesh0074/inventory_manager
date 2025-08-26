@@ -9,6 +9,8 @@ import '../models/transaction.dart' as trans;
 import '../models/sale.dart';
 import '../models/sale_item.dart';
 import '../models/additional_cost.dart';
+import '../models/purchase.dart';
+import '../models/purchase_party.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -27,7 +29,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'inventory_management.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -51,6 +53,8 @@ class DatabaseHelper {
         shop_id TEXT NOT NULL,
         name TEXT NOT NULL,
         price REAL NOT NULL,
+        selling_price REAL,
+        purchase_price REAL,
         quantity INTEGER NOT NULL,
         created_date TEXT NOT NULL,
         last_updated TEXT NOT NULL,
@@ -102,6 +106,40 @@ class DatabaseHelper {
         FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
       )
     ''');
+
+    // Create purchase_parties table
+    await db.execute('''
+      CREATE TABLE purchase_parties(
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        address TEXT NOT NULL,
+        phone TEXT,
+        email TEXT,
+        created_date TEXT NOT NULL,
+        last_updated TEXT NOT NULL
+      )
+    ''');
+
+    // Create purchases table
+    await db.execute('''
+      CREATE TABLE purchases(
+        id TEXT PRIMARY KEY,
+        item_id TEXT NOT NULL,
+        item_name TEXT NOT NULL,
+        purchase_party_id TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        purchase_price REAL NOT NULL,
+        total_amount REAL NOT NULL,
+        paid_amount REAL NOT NULL,
+        remaining_amount REAL NOT NULL,
+        purchase_date TEXT NOT NULL,
+        notes TEXT,
+        created_date TEXT NOT NULL,
+        last_updated TEXT NOT NULL,
+        FOREIGN KEY (item_id) REFERENCES inventory_items (id) ON DELETE CASCADE,
+        FOREIGN KEY (purchase_party_id) REFERENCES purchase_parties (id) ON DELETE CASCADE
+      )
+    ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -119,6 +157,49 @@ class DatabaseHelper {
           date_time TEXT NOT NULL,
           notes TEXT,
           FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
+        )
+      ''');
+    }
+    
+    if (oldVersion < 3) {
+      // Add new columns to inventory_items table for version 3
+      await db.execute('ALTER TABLE inventory_items ADD COLUMN selling_price REAL');
+      await db.execute('ALTER TABLE inventory_items ADD COLUMN purchase_price REAL');
+      
+      // Migrate existing price data to selling_price
+      await db.execute('UPDATE inventory_items SET selling_price = price');
+      
+      // Create purchase_parties table
+      await db.execute('''
+        CREATE TABLE purchase_parties(
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          address TEXT NOT NULL,
+          phone TEXT,
+          email TEXT,
+          created_date TEXT NOT NULL,
+          last_updated TEXT NOT NULL
+        )
+      ''');
+
+      // Create purchases table
+      await db.execute('''
+        CREATE TABLE purchases(
+          id TEXT PRIMARY KEY,
+          item_id TEXT NOT NULL,
+          item_name TEXT NOT NULL,
+          purchase_party_id TEXT NOT NULL,
+          quantity INTEGER NOT NULL,
+          purchase_price REAL NOT NULL,
+          total_amount REAL NOT NULL,
+          paid_amount REAL NOT NULL,
+          remaining_amount REAL NOT NULL,
+          purchase_date TEXT NOT NULL,
+          notes TEXT,
+          created_date TEXT NOT NULL,
+          last_updated TEXT NOT NULL,
+          FOREIGN KEY (item_id) REFERENCES inventory_items (id) ON DELETE CASCADE,
+          FOREIGN KEY (purchase_party_id) REFERENCES purchase_parties (id) ON DELETE CASCADE
         )
       ''');
     }
@@ -188,7 +269,8 @@ class DatabaseHelper {
       final item = InventoryItem(
         id: map['id'],
         name: map['name'],
-        price: map['price'],
+        sellingPrice: map['selling_price']?.toDouble() ?? map['price']?.toDouble() ?? 0.0,
+        purchasePrice: map['purchase_price']?.toDouble(),
         quantity: map['quantity'],
         createdDate: DateTime.parse(map['created_date']),
         lastUpdated: DateTime.parse(map['last_updated']),
@@ -208,7 +290,9 @@ class DatabaseHelper {
       'id': item.id,
       'shop_id': shopId,
       'name': item.name,
-      'price': item.price,
+      'price': item.sellingPrice, // Keep for backward compatibility
+      'selling_price': item.sellingPrice,
+      'purchase_price': item.purchasePrice,
       'quantity': item.quantity,
       'created_date': item.createdDate.toIso8601String(),
       'last_updated': item.lastUpdated.toIso8601String(),
@@ -221,7 +305,9 @@ class DatabaseHelper {
       'inventory_items',
       {
         'name': item.name,
-        'price': item.price,
+        'price': item.sellingPrice, // Keep for backward compatibility
+        'selling_price': item.sellingPrice,
+        'purchase_price': item.purchasePrice,
         'quantity': item.quantity,
         'last_updated': item.lastUpdated.toIso8601String(),
       },
@@ -449,6 +535,250 @@ class DatabaseHelper {
       where: 'id = ?',
       whereArgs: [saleId],
     );
+  }
+
+  // Purchase Party operations
+  Future<List<PurchaseParty>> getAllPurchaseParties() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query('purchase_parties');
+    return List.generate(maps.length, (i) {
+      return PurchaseParty.fromJson(maps[i]);
+    });
+  }
+
+  Future<PurchaseParty?> getPurchaseParty(String id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'purchase_parties',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return PurchaseParty.fromJson(maps.first);
+    }
+    return null;
+  }
+
+  Future<int> insertPurchaseParty(PurchaseParty party) async {
+    final db = await database;
+    return await db.insert('purchase_parties', {
+      'id': party.id,
+      'name': party.name,
+      'address': party.address,
+      'phone': party.phone,
+      'email': party.email,
+      'created_date': party.createdDate.toIso8601String(),
+      'last_updated': party.lastUpdated.toIso8601String(),
+    });
+  }
+
+  Future<int> updatePurchaseParty(PurchaseParty party) async {
+    final db = await database;
+    return await db.update(
+      'purchase_parties',
+      {
+        'name': party.name,
+        'address': party.address,
+        'phone': party.phone,
+        'email': party.email,
+        'last_updated': DateTime.now().toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [party.id],
+    );
+  }
+
+  Future<int> deletePurchaseParty(String id) async {
+    final db = await database;
+    return await db.delete(
+      'purchase_parties',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // Purchase operations
+  Future<List<Purchase>> getAllPurchases() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'purchases',
+      orderBy: 'purchase_date DESC',
+    );
+    
+    List<Purchase> purchases = [];
+    for (var map in maps) {
+      Purchase purchase = Purchase.fromJson(map);
+      // Load purchase party details
+      purchase.purchaseParty = await getPurchaseParty(purchase.purchasePartyId);
+      purchases.add(purchase);
+    }
+    return purchases;
+  }
+
+  Future<List<Purchase>> getPurchasesByItem(String itemId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'purchases',
+      where: 'item_id = ?',
+      whereArgs: [itemId],
+      orderBy: 'purchase_date DESC',
+    );
+    
+    List<Purchase> purchases = [];
+    for (var map in maps) {
+      Purchase purchase = Purchase.fromJson(map);
+      // Load purchase party details
+      purchase.purchaseParty = await getPurchaseParty(purchase.purchasePartyId);
+      purchases.add(purchase);
+    }
+    return purchases;
+  }
+
+  Future<List<Purchase>> getPurchasesByParty(String purchasePartyId) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'purchases',
+      where: 'purchase_party_id = ?',
+      whereArgs: [purchasePartyId],
+      orderBy: 'purchase_date DESC',
+    );
+    
+    List<Purchase> purchases = [];
+    for (var map in maps) {
+      Purchase purchase = Purchase.fromJson(map);
+      // Load purchase party details
+      purchase.purchaseParty = await getPurchaseParty(purchase.purchasePartyId);
+      purchases.add(purchase);
+    }
+    return purchases;
+  }
+
+  Future<List<Purchase>> getUnpaidPurchases() async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'purchases',
+      where: 'remaining_amount > 0',
+      orderBy: 'purchase_date DESC',
+    );
+    
+    List<Purchase> purchases = [];
+    for (var map in maps) {
+      Purchase purchase = Purchase.fromJson(map);
+      // Load purchase party details
+      purchase.purchaseParty = await getPurchaseParty(purchase.purchasePartyId);
+      purchases.add(purchase);
+    }
+    return purchases;
+  }
+
+  Future<Purchase?> getPurchase(String id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'purchases',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      Purchase purchase = Purchase.fromJson(maps.first);
+      // Load purchase party details
+      purchase.purchaseParty = await getPurchaseParty(purchase.purchasePartyId);
+      return purchase;
+    }
+    return null;
+  }
+
+  Future<int> insertPurchase(Purchase purchase) async {
+    final db = await database;
+    return await db.insert('purchases', {
+      'id': purchase.id,
+      'item_id': purchase.itemId,
+      'item_name': purchase.itemName,
+      'purchase_party_id': purchase.purchasePartyId,
+      'quantity': purchase.quantity,
+      'purchase_price': purchase.purchasePrice,
+      'total_amount': purchase.totalAmount,
+      'paid_amount': purchase.paidAmount,
+      'remaining_amount': purchase.remainingAmount,
+      'purchase_date': purchase.purchaseDate.toIso8601String(),
+      'notes': purchase.notes,
+      'created_date': purchase.createdDate.toIso8601String(),
+      'last_updated': purchase.lastUpdated.toIso8601String(),
+    });
+  }
+
+  Future<int> updatePurchase(Purchase purchase) async {
+    final db = await database;
+    return await db.update(
+      'purchases',
+      {
+        'item_name': purchase.itemName,
+        'purchase_party_id': purchase.purchasePartyId,
+        'quantity': purchase.quantity,
+        'purchase_price': purchase.purchasePrice,
+        'total_amount': purchase.totalAmount,
+        'paid_amount': purchase.paidAmount,
+        'remaining_amount': purchase.remainingAmount,
+        'purchase_date': purchase.purchaseDate.toIso8601String(),
+        'notes': purchase.notes,
+        'last_updated': DateTime.now().toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [purchase.id],
+    );
+  }
+
+  Future<int> updatePurchasePayment(String purchaseId, double paidAmount) async {
+    final db = await database;
+    
+    // Get current purchase to calculate remaining amount
+    final purchase = await getPurchase(purchaseId);
+    if (purchase == null) return 0;
+    
+    final remainingAmount = purchase.totalAmount - paidAmount;
+    
+    return await db.update(
+      'purchases',
+      {
+        'paid_amount': paidAmount,
+        'remaining_amount': remainingAmount,
+        'last_updated': DateTime.now().toIso8601String(),
+      },
+      where: 'id = ?',
+      whereArgs: [purchaseId],
+    );
+  }
+
+  Future<int> deletePurchase(String id) async {
+    final db = await database;
+    return await db.delete(
+      'purchases',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  // Get purchase summary statistics
+  Future<Map<String, dynamic>> getPurchaseSummary() async {
+    final db = await database;
+    
+    final totalPurchasesResult = await db.rawQuery(
+      'SELECT COUNT(*) as count, SUM(total_amount) as total FROM purchases'
+    );
+    
+    final paidAmountResult = await db.rawQuery(
+      'SELECT SUM(paid_amount) as paid FROM purchases'
+    );
+    
+    final remainingAmountResult = await db.rawQuery(
+      'SELECT SUM(remaining_amount) as remaining FROM purchases WHERE remaining_amount > 0'
+    );
+    
+    return {
+      'totalPurchases': totalPurchasesResult.first['count'] ?? 0,
+      'totalAmount': totalPurchasesResult.first['total'] ?? 0.0,
+      'paidAmount': paidAmountResult.first['paid'] ?? 0.0,
+      'remainingAmount': remainingAmountResult.first['remaining'] ?? 0.0,
+    };
   }
 
   // Close database

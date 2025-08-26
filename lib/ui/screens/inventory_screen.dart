@@ -11,6 +11,7 @@ import 'item_detail_screen.dart';
 import 'monthly_summary_screen.dart';
 import 'multi_item_sale_screen.dart';
 import 'sales_list_screen.dart';
+import 'purchase_list_screen.dart';
 
 class InventoryScreen extends StatelessWidget {
   final Shop shop;
@@ -45,6 +46,18 @@ class InventoryScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          Padding(
+            padding: EdgeInsets.only(right: 10.w),
+            child: IconButton(
+              icon: Icon(
+                Icons.shopping_cart_outlined,
+                color: AppColors.textOnPrimary,
+                size: 24.sp,
+              ),
+              onPressed: () => _navigateToPurchaseList(context),
+              tooltip: 'Purchase Records',
+            ),
+          ),
           Padding(
             padding: EdgeInsets.only(right: 10.w),
             child: IconButton(
@@ -850,6 +863,15 @@ class InventoryScreen extends StatelessWidget {
               ),
             ],
           ),
+    );
+  }
+
+  void _navigateToPurchaseList(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const PurchaseListScreen(),
+      ),
     );
   }
 }
