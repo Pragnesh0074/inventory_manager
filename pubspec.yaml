@@ -43,6 +43,7 @@ dependencies:
   pdf: ^3.11.3
   open_file: ^3.5.10
   device_info_plus: ^10.1.0
+  fl_chart: ^0.66.2
 
 dev_dependencies:
   flutter_test:

@@ -7,6 +7,7 @@ import '../../theme/color.dart';
 import '../../theme/style.dart';
 import 'add_edit_shop_screen.dart';
 import 'inventory_screen.dart';
+import 'statistics_summary_screen.dart';
 
 class ShopListScreen extends StatelessWidget {
   const ShopListScreen({super.key});
@@ -217,6 +218,30 @@ class ShopListScreen extends StatelessWidget {
                                 itemBuilder:
                                     (context) => [
                                       PopupMenuItem(
+                                        value: 'statistics',
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: 4.h,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.analytics_outlined,
+                                                size: 20,
+                                                color: AppColors.primaryBlue,
+                                              ),
+                                              SizedBox(width: 12),
+                                              Text(
+                                                'Statistics',
+                                                style:
+                                                    AppTextStyles
+                                                        .menuItemPrimary,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      PopupMenuItem(
                                         value: 'edit',
                                         child: Container(
                                           padding: EdgeInsets.symmetric(
@@ -266,7 +291,9 @@ class ShopListScreen extends StatelessWidget {
                                       ),
                                     ],
                                 onSelected: (value) {
-                                  if (value == 'edit') {
+                                  if (value == 'statistics') {
+                                    _navigateToStatistics(context, shop);
+                                  } else if (value == 'edit') {
                                     _navigateToEditShop(context, shop);
                                   } else if (value == 'delete') {
                                     _showDeleteDialog(context, shop);
@@ -315,6 +342,17 @@ class ShopListScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const AddEditShopScreen()),
+    );
+  }
+
+  void _navigateToStatistics(BuildContext context, Shop shop) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) =>
+                StatisticsSummaryScreen(shopId: shop.id, shopName: shop.name),
+      ),
     );
   }
 
