@@ -172,17 +172,18 @@ class _PurchasesListScreenState extends State<PurchasesListScreen> {
             ],
           ),
           SizedBox(height: 12.h),
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton.icon(
-              onPressed: () => _showUpdatePaidDialog(p),
-              icon: Icon(Icons.payments, color: AppColors.primaryBlue),
-              label: Text(
-                'Update Payment',
-                style: AppTextStyles.menuItemPrimary,
+          if (!isCleared) // Only show Update Payment button when there's remaining amount
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => _showUpdatePaidDialog(p),
+                icon: Icon(Icons.payments, color: AppColors.primaryBlue),
+                label: Text(
+                  'Update Payment',
+                  style: AppTextStyles.menuItemPrimary,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -217,6 +218,7 @@ class _PurchasesListScreenState extends State<PurchasesListScreen> {
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 labelText: 'Paid Amount',
+                hintText: 'Max: ₹${p.totalPayment.toStringAsFixed(2)}',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
                 ),
@@ -230,11 +232,28 @@ class _PurchasesListScreenState extends State<PurchasesListScreen> {
               TextButton(
                 onPressed: () async {
                   final v = double.tryParse(controller.text) ?? p.paidAmount;
+                  if (v > p.totalPayment) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Paid amount (₹${v.toStringAsFixed(2)}) cannot exceed total payment amount (₹${p.totalPayment.toStringAsFixed(2)})',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
                   await Provider.of<ShopProvider>(
                     context,
                     listen: false,
                   ).updatePurchasePayment(purchaseId: p.id, paidAmount: v);
                   Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Payment updated successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
                   _refresh();
                 },
                 child: Text('Save', style: AppTextStyles.dialogTitle),

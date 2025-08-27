@@ -329,6 +329,36 @@ class ShopProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateSaleOrderPayment({
+    required String orderId,
+    required double paidAmount,
+  }) async {
+    try {
+      await _databaseHelper.updateSaleOrderPayment(
+        orderId: orderId,
+        paidAmount: paidAmount,
+      );
+
+      // Update local shop state
+      for (final shop in _shops) {
+        final orderIndex = shop.saleOrders.indexWhere(
+          (order) => order.id == orderId,
+        );
+        if (orderIndex != -1) {
+          shop.saleOrders[orderIndex] = shop.saleOrders[orderIndex].copyWith(
+            paidAmount: paidAmount,
+          );
+          break;
+        }
+      }
+
+      notifyListeners();
+    } catch (e) {
+      print('Error updating sale order payment: $e');
+      rethrow;
+    }
+  }
+
   Future<List<Transaction>> getMonthlyTransactions(
     String shopId,
     DateTime month,

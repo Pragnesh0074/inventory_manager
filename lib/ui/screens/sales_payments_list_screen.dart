@@ -210,6 +210,19 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
                   );
                 },
               ),
+              SizedBox(height: 12.h),
+              if (!isCleared) // Only show Update Payment button when there's remaining amount
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () => _showUpdatePaymentDialog(o),
+                    icon: Icon(Icons.payments, color: AppColors.primaryBlue),
+                    label: Text(
+                      'Update Payment',
+                      style: AppTextStyles.menuItemPrimary,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),
@@ -225,6 +238,69 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
         SizedBox(height: 4.h),
         Text(v, style: AppTextStyles.cardSubtitle),
       ],
+    );
+  }
+
+  void _showUpdatePaymentDialog(SaleOrder o) {
+    final controller = TextEditingController(
+      text: o.paidAmount.toStringAsFixed(2),
+    );
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: AppColors.backgroundLight,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.r),
+            ),
+            title: Text('Update Paid Amount', style: AppTextStyles.dialogTitle),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: 'Paid Amount',
+                hintText: 'Max: ₹${o.total.toStringAsFixed(2)}',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel', style: AppTextStyles.dialogButton),
+              ),
+              TextButton(
+                onPressed: () async {
+                  final v = double.tryParse(controller.text) ?? o.paidAmount;
+                  if (v > o.total) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Paid amount (₹${v.toStringAsFixed(2)}) cannot exceed total amount (₹${o.total.toStringAsFixed(2)})',
+                        ),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+                  await Provider.of<ShopProvider>(
+                    context,
+                    listen: false,
+                  ).updateSaleOrderPayment(orderId: o.id, paidAmount: v);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Payment updated successfully'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                  _refresh();
+                },
+                child: Text('Save', style: AppTextStyles.dialogTitle),
+              ),
+            ],
+          ),
     );
   }
 }

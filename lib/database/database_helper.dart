@@ -454,6 +454,19 @@ class DatabaseHelper {
     );
   }
 
+  Future<int> updateSaleOrderPayment({
+    required String orderId,
+    required double paidAmount,
+  }) async {
+    final db = await database;
+    return await db.update(
+      'sale_orders',
+      {'paid_amount': paidAmount},
+      where: 'id = ?',
+      whereArgs: [orderId],
+    );
+  }
+
   // Sale order operations
   Future<int> insertSaleOrder(order_models.SaleOrder saleOrder) async {
     final db = await database;
