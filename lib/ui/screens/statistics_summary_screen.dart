@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:provider/provider.dart';
-import 'package:inventory_manager/providers/shop_provider.dart';
 import 'package:inventory_manager/models/inventory_item.dart';
 import 'package:inventory_manager/models/purchase.dart';
 import 'package:inventory_manager/models/sale_order.dart';
@@ -405,6 +403,8 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
         return Card(
           margin: EdgeInsets.only(bottom: 16.h),
           child: ExpansionTile(
+            shape: const Border(), // Remove the default border lines
+            collapsedShape: const Border(), // Remove border when collapsed too
             title: Text(
               stat.itemName,
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -557,6 +557,11 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Profit/Loss by Item', style: AppTextStyles.headingMedium),
+          SizedBox(height: 8.h),
+          _buildChartLegend([
+            LegendItem(color: Colors.green, label: 'Profit'),
+            LegendItem(color: Colors.red, label: 'Loss'),
+          ]),
           SizedBox(height: 16.h),
           SizedBox(height: 300.h, child: _buildProfitLossChart()),
 
@@ -565,11 +570,20 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
             'Sales vs Purchase Comparison',
             style: AppTextStyles.headingMedium,
           ),
+          SizedBox(height: 8.h),
+          _buildChartLegend([
+            LegendItem(color: Colors.orange, label: 'Purchase Amount'),
+            LegendItem(color: Colors.green, label: 'Sale Amount'),
+          ]),
           SizedBox(height: 16.h),
           SizedBox(height: 300.h, child: _buildSalesVsPurchaseChart()),
 
           SizedBox(height: 32.h),
           Text('Monthly Sales Trend', style: AppTextStyles.headingMedium),
+          SizedBox(height: 8.h),
+          _buildChartLegend([
+            LegendItem(color: AppColors.primaryBlue, label: 'Monthly Sales'),
+          ]),
           SizedBox(height: 16.h),
           SizedBox(height: 300.h, child: _buildMonthlyTrendChart()),
         ],
@@ -812,6 +826,50 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
       ),
     );
   }
+
+  Widget _buildChartLegend(List<LegendItem> items) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children:
+            items
+                .map(
+                  (item) => Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 16.w,
+                          height: 16.w,
+                          decoration: BoxDecoration(
+                            color: item.color,
+                            borderRadius: BorderRadius.circular(4.r),
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+      ),
+    );
+  }
 }
 
 class ItemStatistics {
@@ -860,4 +918,11 @@ class SaleRecord {
     required this.total,
     required this.billNumber,
   });
+}
+
+class LegendItem {
+  final Color color;
+  final String label;
+
+  LegendItem({required this.color, required this.label});
 }

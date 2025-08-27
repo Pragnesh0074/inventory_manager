@@ -187,6 +187,9 @@ class DatabaseHelper {
 
       // We do not load purchases here to keep memory usage light
 
+      // Also load sale orders so they are available after app restart
+      shop.saleOrders = await getSaleOrders(shop.id);
+
       shops.add(shop);
     }
 
@@ -481,24 +484,47 @@ class DatabaseHelper {
       whereArgs: [shopId],
       orderBy: 'date_time DESC',
     );
-    return maps
-        .map(
-          (m) => order_models.SaleOrder(
-            id: m['id'] as String,
-            shopId: m['shop_id'] as String,
-            items: const [],
-            additionalCharges: const [],
-            customerName: m['customer_name'] as String,
-            customerPhone: (m['customer_phone'] ?? '') as String,
-            dateTime: DateTime.parse(m['date_time'] as String),
-            subtotal: (m['subtotal'] as num).toDouble(),
-            tax: (m['tax'] as num).toDouble(),
-            total: (m['total'] as num).toDouble(),
-            billNumber: m['bill_number'] as String,
-            paidAmount: (m['paid_amount'] as num).toDouble(),
-          ),
-        )
-        .toList();
+
+    final List<order_models.SaleOrder> orders = [];
+    for (final m in maps) {
+      final order = order_models.SaleOrder(
+        id: m['id'] as String,
+        shopId: m['shop_id'] as String,
+        items: const [],
+        additionalCharges: const [],
+        customerName: m['customer_name'] as String,
+        customerPhone: (m['customer_phone'] ?? '') as String,
+        dateTime: DateTime.parse(m['date_time'] as String),
+        subtotal: (m['subtotal'] as num).toDouble(),
+        tax: (m['tax'] as num).toDouble(),
+        total: (m['total'] as num).toDouble(),
+        billNumber: m['bill_number'] as String,
+        paidAmount: (m['paid_amount'] as num).toDouble(),
+      );
+
+      // Load items linked to this order from transactions table
+      final itemsMaps = await db.query(
+        'transactions',
+        columns: ['item_name', 'quantity', 'price', 'total_amount'],
+        where: 'order_id = ? AND type = ?',
+        whereArgs: [order.id, 'sale'],
+        orderBy: 'date_time ASC',
+      );
+
+      final items =
+          itemsMaps.map((im) {
+            return order_models.SaleItem(
+              temporaryItemName: im['item_name'] as String,
+              temporaryItemPrice: (im['price'] as num?)?.toDouble(),
+              quantity: (im['quantity'] as num?)?.toInt() ?? 0,
+              unitPrice: (im['price'] as num?)?.toDouble() ?? 0.0,
+            );
+          }).toList();
+
+      orders.add(order.copyWith(items: items));
+    }
+
+    return orders;
   }
 
   Future<List<Map<String, dynamic>>> getSaleOrderItems(String orderId) async {
