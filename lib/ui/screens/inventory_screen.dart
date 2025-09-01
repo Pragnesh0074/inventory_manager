@@ -93,13 +93,18 @@ class InventoryScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: Container(
-        width: 56.w,
-        height: 56.h,
         decoration: BoxDecoration(
           color: Colors.black,
-          borderRadius: BorderRadius.circular(28.r),
+          borderRadius: BorderRadius.circular(20.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
+            ),
+          ],
         ),
-        child: FloatingActionButton(
+        child: FloatingActionButton.extended(
           onPressed: () =>
               Navigator.push(
                 context,
@@ -109,7 +114,16 @@ class InventoryScreen extends StatelessWidget {
               ),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          child: Icon(Icons.add, color: Colors.white, size: 28.sp),
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: Text(
+            'CREATE SALE',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
+          ),
         ),
       ),
 
