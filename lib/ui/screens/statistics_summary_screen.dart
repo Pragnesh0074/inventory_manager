@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:inventory_manager/models/inventory_item.dart';
+import 'package:inventory_manager/models/item_statistics.dart';
 import 'package:inventory_manager/models/purchase.dart';
 import 'package:inventory_manager/models/sale_order.dart';
 import 'package:inventory_manager/database/database_helper.dart';
+import 'package:inventory_manager/models/sale_record.dart';
 import 'package:inventory_manager/theme/color.dart';
 import 'package:inventory_manager/theme/style.dart';
 
@@ -1471,55 +1473,6 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
       return value.toStringAsFixed(0);
     }
   }
-}
-
-// Keep existing classes unchanged
-class ItemStatistics {
-  final String itemId;
-  final String itemName;
-  final int currentQuantity;
-  double averagePurchasePrice;
-  int totalPurchaseQuantity;
-  double totalPurchaseAmount;
-  int totalSaleQuantity;
-  double totalSaleAmount;
-  double averageSalePrice;
-  double totalProfit;
-  double profitMargin;
-  final List<Purchase> purchaseHistory;
-  final List<SaleRecord> saleHistory;
-
-  ItemStatistics({
-    required this.itemId,
-    required this.itemName,
-    required this.currentQuantity,
-    required this.averagePurchasePrice,
-    required this.totalPurchaseQuantity,
-    required this.totalPurchaseAmount,
-    required this.totalSaleQuantity,
-    required this.totalSaleAmount,
-    required this.averageSalePrice,
-    required this.totalProfit,
-    required this.profitMargin,
-    required this.purchaseHistory,
-    required this.saleHistory,
-  });
-}
-
-class SaleRecord {
-  final DateTime date;
-  final int quantity;
-  final double price;
-  final double total;
-  final String billNumber;
-
-  SaleRecord({
-    required this.date,
-    required this.quantity,
-    required this.price,
-    required this.total,
-    required this.billNumber,
-  });
 }
 
 class LegendItem {

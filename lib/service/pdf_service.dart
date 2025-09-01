@@ -211,13 +211,13 @@ class PDFService {
               (saleItem) => pw.TableRow(
                 children: [
                   _buildTableCell(saleItem.itemName),
-                  _buildTableCell('₹${saleItem.unitPrice.toStringAsFixed(2)}'),
-                  _buildTableCell('${saleItem.quantity}'),
-                  _buildTableCell('₹${saleItem.totalPrice.toStringAsFixed(2)}'),
+                  _buildTableCell(saleItem.unitPrice.toStringAsFixed(2)),
+                  _buildTableCell(saleItem.quantity.toStringAsFixed(2)),
+                  _buildTableCell(saleItem.totalPrice.toStringAsFixed(2)),
                 ],
               ),
             )
-            .toList(),
+            ,
       ],
     );
   }
@@ -282,13 +282,13 @@ class PDFService {
             children: [
               _buildSummaryRow(
                 'Subtotal:',
-                '₹${subtotal.toStringAsFixed(2)}',
+                subtotal.toStringAsFixed(2),
                 false,
               ),
               pw.SizedBox(height: 8),
               _buildSummaryRow(
                 'GST (18%):',
-                '₹${tax.toStringAsFixed(2)}',
+                tax.toStringAsFixed(2),
                 false,
               ),
               pw.SizedBox(height: 15),
@@ -296,7 +296,7 @@ class PDFService {
               pw.SizedBox(height: 15),
               _buildSummaryRow(
                 'Total Amount:',
-                '₹${total.toStringAsFixed(2)}',
+                total.toStringAsFixed(2),
                 true,
               ),
             ],
