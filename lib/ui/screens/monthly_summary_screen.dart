@@ -22,29 +22,32 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: const Color(0xFFF5F3F0),
       appBar: AppBar(
-        title: Text(
-          'Monthly Summary',
-          style: AppTextStyles.appBarTitle,
-        ),
+        backgroundColor: const Color(0xFFFDB462),
         elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(16.r),
-              bottomRight: Radius.circular(16.r),
-            ),
+        title: Text(
+          'MONTHLY SUMMARY',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
+        centerTitle: true,
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textOnPrimary,
+            Icons.arrow_back_ios,
+            color: Colors.black,
             size: 20.sp,
           ),
           onPressed: () => Navigator.pop(context),
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24.r),
+          ),
         ),
       ),
       body: Consumer<ShopProvider>(
@@ -55,14 +58,14 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Center(
                   child: Container(
-                    padding: EdgeInsets.all(20.w),
+                    padding: EdgeInsets.all(30.w),
                     decoration: BoxDecoration(
-                      color: AppColors.cardBackground,
-                      borderRadius: BorderRadius.circular(16.r),
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20.r),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.shadowBlue,
-                          blurRadius: 15.r,
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10.r,
                           spreadRadius: 2.r,
                           offset: Offset(0, 4.h),
                         ),
@@ -72,13 +75,16 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         CircularProgressIndicator(
-                          color: AppColors.primaryBlue,
+                          color: const Color(0xFFFFCC02),
                           strokeWidth: 3.w,
                         ),
                         SizedBox(height: 16.h),
                         Text(
                           'Loading summary...',
-                          style: AppTextStyles.bodyMedium,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.black87,
+                          ),
                         ),
                       ],
                     ),
@@ -92,7 +98,7 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
 
               return SingleChildScrollView(
                 child: Padding(
-                  padding: EdgeInsets.all(24.w),
+                  padding: EdgeInsets.all(20.w),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -126,12 +132,12 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
       width: double.infinity,
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowBlue,
-            blurRadius: 15.r,
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10.r,
             spreadRadius: 2.r,
             offset: Offset(0, 4.h),
           ),
@@ -142,19 +148,19 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
           Container(
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
-              gradient: AppColors.lightGradient,
+              color: const Color(0xFFFDB462),
               borderRadius: BorderRadius.circular(12.r),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.shadowBlueStrong,
-                  blurRadius: 10.r,
+                  color: const Color(0xFFFFCC02).withOpacity(0.3),
+                  blurRadius: 8.r,
                   offset: Offset(0, 4.h),
                 ),
               ],
             ),
             child: Icon(
               Icons.calendar_month,
-              color: AppColors.textOnPrimary,
+              color: Colors.black,
               size: 24.sp,
             ),
           ),
@@ -165,30 +171,38 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
               children: [
                 Text(
                   'Selected Period',
-                  style: AppTextStyles.bodySmall,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 SizedBox(height: 4.h),
                 Text(
                   _getMonthYear(selectedMonth),
-                  style: AppTextStyles.headingMedium,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: Container(
-              padding: EdgeInsets.all(8.w),
+          GestureDetector(
+            onTap: () => _selectMonth(context),
+            child: Container(
+              padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: AppColors.blueTinted,
-                borderRadius: BorderRadius.circular(8.r),
+                color: const Color(0xFFFFCC02).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Icon(
                 Icons.edit_calendar,
-                color: AppColors.primaryBlue,
+                color: const Color(0xFFFFCC02),
                 size: 20.sp,
               ),
             ),
-            onPressed: () => _selectMonth(context),
           ),
         ],
       ),
@@ -205,46 +219,46 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
                 'Total Sales',
                 '₹${totalSales.toStringAsFixed(2)}',
                 Icons.currency_rupee_rounded,
-                AppColors.success,
-                AppColors.success.withOpacity(0.1),
+                const Color(0xFF4CAF50),
+                Colors.white,
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 15.w),
             Expanded(
               child: _buildStatCard(
                 'Items Sold',
                 totalItems.toString(),
-                Icons.shopping_cart,
-                AppColors.primaryBlue,
-                AppColors.blueTinted,
+                Icons.shopping_cart_outlined,
+                const Color(0xFF2196F3),
+                Colors.white,
               ),
             ),
           ],
         ),
-        SizedBox(height: 12.h),
+        SizedBox(height: 15.h),
         _buildStatCard(
           'Total Transactions',
           transactionCount.toString(),
-          Icons.receipt_long,
-          AppColors.warning,
-          AppColors.warning.withOpacity(0.1),
+          Icons.receipt_long_outlined,
+          const Color(0xFFFF9800),
+          Colors.white,
           fullWidth: true,
         ),
       ],
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, Color bgColor, {bool fullWidth = false}) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color iconColor, Color bgColor, {bool fullWidth = false}) {
     return Container(
       width: fullWidth ? double.infinity : null,
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16.r),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowBlue,
-            blurRadius: 15.r,
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10.r,
             spreadRadius: 2.r,
             offset: Offset(0, 4.h),
           ),
@@ -258,33 +272,35 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
               Container(
                 padding: EdgeInsets.all(10.w),
                 decoration: BoxDecoration(
-                  color: bgColor,
+                  color: iconColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
                   icon,
-                  color: color,
-                  size: 20.sp,
+                  color: iconColor,
+                  size: 24.sp,
                 ),
               ),
               SizedBox(width: 12.w),
               Expanded(
                 child: Text(
                   title,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 16.h),
           Text(
             value,
-            style: AppTextStyles.headingLarge.copyWith(
-              fontWeight: FontWeight.w700,
-              color: color,
+            style: TextStyle(
               fontSize: 24.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
             ),
           ),
         ],
@@ -296,12 +312,12 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowBlue,
-            blurRadius: 15.r,
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10.r,
             spreadRadius: 2.r,
             offset: Offset(0, 4.h),
           ),
@@ -315,21 +331,25 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8.w),
+                  padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
-                    color: AppColors.blueTinted,
-                    borderRadius: BorderRadius.circular(8.r),
+                    color: const Color(0xFFFFCC02).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
                     Icons.bar_chart,
-                    color: AppColors.primaryBlue,
-                    size: 20.sp,
+                    color: const Color(0xFFFFCC02),
+                    size: 24.sp,
                   ),
                 ),
                 SizedBox(width: 12.w),
                 Text(
                   'Daily Sales Chart',
-                  style: AppTextStyles.headingMedium,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
                 ),
               ],
             ),
@@ -348,12 +368,12 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowBlue,
-            blurRadius: 15.r,
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10.r,
             spreadRadius: 2.r,
             offset: Offset(0, 4.h),
           ),
@@ -367,21 +387,25 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
             child: Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(8.w),
+                  padding: EdgeInsets.all(10.w),
                   decoration: BoxDecoration(
-                    color: AppColors.blueTinted,
-                    borderRadius: BorderRadius.circular(8.r),
+                    color: const Color(0xFFFFCC02).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: Icon(
                     Icons.history,
-                    color: AppColors.primaryBlue,
-                    size: 20.sp,
+                    color: const Color(0xFFFFCC02),
+                    size: 24.sp,
                   ),
                 ),
                 SizedBox(width: 12.w),
                 Text(
                   'Recent Transactions',
-                  style: AppTextStyles.headingMedium,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
                 ),
               ],
             ),
@@ -402,24 +426,31 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
           Container(
             padding: EdgeInsets.all(20.w),
             decoration: BoxDecoration(
-              color: AppColors.blueTinted,
+              color: const Color(0xFFFFCC02).withOpacity(0.2),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.receipt_outlined,
               size: 40.sp,
-              color: AppColors.primaryBlue,
+              color: const Color(0xFFFFCC02),
             ),
           ),
           SizedBox(height: 16.h),
           Text(
             'No Transactions',
-            style: AppTextStyles.emptyStateTitle.copyWith(fontSize: 18.sp),
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
             'No transactions found for ${_getMonthYear(selectedMonth)}',
-            style: AppTextStyles.emptyStateSubtitle.copyWith(fontSize: 14.sp),
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.black54,
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -437,7 +468,7 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
         separatorBuilder: (context, index) => Container(
           margin: EdgeInsets.symmetric(horizontal: 24.w),
           height: 1.h,
-          color: AppColors.surfaceLight,
+          color: const Color(0xFFE8D5B7),
         ),
         itemBuilder: (context, index) {
           final transaction = transactions[index];
@@ -449,19 +480,19 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
                   width: 48.w,
                   height: 48.h,
                   decoration: BoxDecoration(
-                    gradient: AppColors.lightGradient,
+                    color: const Color(0xFFFDB462),
                     borderRadius: BorderRadius.circular(12.r),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primaryBlue.withOpacity(0.3),
+                        color: const Color(0xFFFFCC02).withOpacity(0.3),
                         blurRadius: 8.r,
                         offset: Offset(0, 2.h),
                       ),
                     ],
                   ),
                   child: Icon(
-                    Icons.shopping_cart,
-                    color: Colors.white,
+                    Icons.shopping_bag_outlined,
+                    color: Colors.black,
                     size: 24.sp,
                   ),
                 ),
@@ -472,16 +503,18 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
                     children: [
                       Text(
                         transaction.itemName,
-                        style: AppTextStyles.bodyLarge.copyWith(
+                        style: TextStyle(
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: Colors.black87,
                         ),
                       ),
                       SizedBox(height: 4.h),
                       Text(
                         transaction.formattedDateTime,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.black54,
                         ),
                       ),
                     ],
@@ -492,24 +525,25 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
                   children: [
                     Text(
                       transaction.formattedTotal,
-                      style: AppTextStyles.bodyLarge.copyWith(
+                      style: TextStyle(
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.success,
+                        color: const Color(0xFF4CAF50),
                       ),
                     ),
                     SizedBox(height: 4.h),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                       decoration: BoxDecoration(
-                        color: AppColors.blueTinted,
-                        borderRadius: BorderRadius.circular(6.r),
+                        color: const Color(0xFFE8D5B7),
+                        borderRadius: BorderRadius.circular(12.r),
                       ),
                       child: Text(
-                        'Qty: ${transaction.quantity}',
+                        '${transaction.quantity} pcs',
                         style: TextStyle(
                           fontSize: 10.sp,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.primaryBlue,
+                          color: Colors.black87,
                         ),
                       ),
                     ),
@@ -530,22 +564,23 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: EdgeInsets.all(16.w),
+              padding: EdgeInsets.all(20.w),
               decoration: BoxDecoration(
-                color: AppColors.blueTinted,
+                color: const Color(0xFFFFCC02).withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.bar_chart_outlined,
                 size: 32.sp,
-                color: AppColors.primaryBlue,
+                color: const Color(0xFFFFCC02),
               ),
             ),
             SizedBox(height: 12.h),
             Text(
               'No data to display',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: Colors.black54,
               ),
             ),
           ],
@@ -564,8 +599,9 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
       return Center(
         child: Text(
           'No data to display',
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: AppColors.textSecondary,
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: Colors.black54,
           ),
         ),
       );
@@ -580,7 +616,7 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.end,
-            children: sortedDays.take(7).map((day) {
+            children: sortedDays.take(15).map((day) {
               final sales = dailySales[day] ?? 0;
               final height = maxSales > 0 ? (sales / maxSales) * 120 : 0;
 
@@ -588,14 +624,14 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Container(
-                    width: 24.w,
+                    width: 16.w,
                     height: height.toDouble(),
                     decoration: BoxDecoration(
-                      gradient: AppColors.lightGradient,
-                      borderRadius: BorderRadius.circular(6.r),
+                      color: const Color(0xFFFDB462),
+                      borderRadius: BorderRadius.circular(8.r),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primaryBlue.withOpacity(0.3),
+                          color: const Color(0xFFFFCC02).withOpacity(0.3),
                           blurRadius: 4.r,
                           offset: Offset(0, 2.h),
                         ),
@@ -606,9 +642,9 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
                   Text(
                     day.toString(),
                     style: TextStyle(
-                      fontSize: 12.sp,
+                      fontSize: 10.sp,
                       fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
+                      color: Colors.black54,
                     ),
                   ),
                 ],
@@ -616,11 +652,12 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
             }).toList(),
           ),
         ),
-        SizedBox(height: 8.h),
+        SizedBox(height: 12.h),
         Text(
           'Day of Month',
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textHint,
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: Colors.black45,
           ),
         ),
       ],
@@ -646,9 +683,10 @@ class _MonthlySummaryScreenState extends State<MonthlySummaryScreen> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: ColorScheme.light(
-              primary: AppColors.primaryBlue,
-              onPrimary: AppColors.textOnPrimary,
-              surface: AppColors.cardBackground,
+              primary: const Color(0xFFFFCC02),
+              onPrimary: Colors.black,
+              surface: Colors.white,
+              onSurface: Colors.black,
             ),
           ),
           child: child!,

@@ -16,269 +16,445 @@ class SalesListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: const Color(0xFFFDB462),
       appBar: AppBar(
-        title: Text('Sales - ${shop.name}', style: AppTextStyles.appBarTitle),
+        backgroundColor: const Color(0xFFFDB462),
         elevation: 0,
-        flexibleSpace: Container(
+        leading: Container(
+          margin: EdgeInsets.all(8.w),
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(16.r),
-              bottomRight: Radius.circular(16.r),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.black,
+              size: 18.sp,
             ),
+            onPressed: () => Navigator.pop(context),
           ),
         ),
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textOnPrimary,
-            size: 20.sp,
+        title: Text(
+          'SALES',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.2,
           ),
-          onPressed: () => Navigator.pop(context),
         ),
+        centerTitle: true,
       ),
       body: Consumer<ShopProvider>(
         builder: (context, shopProvider, child) {
           final currentShop = shopProvider.shops.firstWhere(
-            (s) => s.id == shop.id,
+                (s) => s.id == shop.id,
           );
 
-          // Get sale orders instead of individual transactions
           final saleOrders = shopProvider.getSaleOrders(shop.id);
 
           if (saleOrders.isEmpty) {
             return Center(
-              child: Padding(
-                padding: EdgeInsets.all(24.w),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 80.w,
+                    height: 80.w,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
                       Icons.receipt_long,
-                      size: 64.sp,
-                      color: AppColors.textSecondary.withOpacity(0.5),
+                      size: 40.sp,
+                      color: Colors.grey[400],
                     ),
-                    SizedBox(height: 12.h),
-                    Text('No sales yet', style: AppTextStyles.emptyStateTitle),
-                    SizedBox(height: 8.h),
-                    Text(
-                      'Sales will appear here once you complete a sale',
-                      style: AppTextStyles.emptyStateSubtitle,
-                      textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 20.h),
+                  Text(
+                    'No sales yet',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    'Sales will appear here once you complete a sale',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey[600],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             );
           }
 
-          return ListView.separated(
-            padding: EdgeInsets.all(16.w),
-            itemCount: saleOrders.length,
-            separatorBuilder: (context, index) => SizedBox(height: 12.h),
-            itemBuilder: (context, index) {
-              final saleOrder = saleOrders[index];
-              return _buildSaleOrderCard(context, currentShop, saleOrder);
-            },
+          return Column(
+            children: [
+              // Summary Cards
+              Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildSummaryCard(
+                        title: 'Total Sales',
+                        value: saleOrders.length.toString(),
+                        icon: Icons.receipt_long,
+                        color: const Color(0xFF6C5CE7),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: _buildSummaryCard(
+                        title: 'Revenue',
+                        value: '₹${_calculateTotalRevenue(saleOrders)}',
+                        icon: Icons.trending_up,
+                        color: const Color(0xFF00B894),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Sales List
+              Expanded(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(24.r),
+                      topRight: Radius.circular(24.r),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(16.w),
+                        child: Row(
+                          children: [
+                            Text(
+                              'Recent Sales',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const Spacer(),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 6.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF5E6A8),
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              child: Text(
+                                '${saleOrders.length} orders',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.separated(
+                          padding: EdgeInsets.symmetric(horizontal: 16.w),
+                          itemCount: saleOrders.length,
+                          separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                          itemBuilder: (context, index) {
+                            final saleOrder = saleOrders[index];
+                            return _buildSaleOrderCard(context, currentShop, saleOrder);
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
     );
   }
 
+  Widget _buildSummaryCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20.sp,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12.sp,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _calculateTotalRevenue(List<SaleOrder> saleOrders) {
+    double total = 0;
+    for (var order in saleOrders) {
+      total += order.total;
+    }
+    return total.toStringAsFixed(0);
+  }
+
   Widget _buildSaleOrderCard(
-    BuildContext context,
-    Shop shop,
-    SaleOrder saleOrder,
-  ) {
+      BuildContext context,
+      Shop shop,
+      SaleOrder saleOrder,
+      ) {
     return InkWell(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder:
-                (context) => SaleDetailScreen(shop: shop, saleOrder: saleOrder),
+            builder: (context) => SaleDetailScreen(shop: shop, saleOrder: saleOrder),
           ),
         );
       },
+      borderRadius: BorderRadius.circular(16.r),
       child: Container(
+        padding: EdgeInsets.all(16.w),
         decoration: BoxDecoration(
-          color: AppColors.cardBackground,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16.r),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadowBlue,
-              blurRadius: 12.r,
-              spreadRadius: 1.r,
-              offset: Offset(0, 4.h),
-            ),
-          ],
+          border: Border.all(
+            color: Colors.grey.withOpacity(0.2),
+            width: 1,
+          ),
         ),
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header row with bill number and total
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(12.w),
-                    decoration: BoxDecoration(
-                      color: AppColors.blueTinted,
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Icon(
-                      Icons.receipt_long,
-                      color: AppColors.primaryBlue,
-                      size: 20.sp,
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Bill #${saleOrder.billNumber}',
-                          style: AppTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          saleOrder.formattedDateTime,
-                          style: AppTextStyles.cardCaption,
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: 10.w),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        saleOrder.formattedTotal,
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.success,
-                        ),
-                      ),
-                      Text(
-                        '${saleOrder.itemCount} items',
-                        style: AppTextStyles.cardCaption.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-
-              SizedBox(height: 12.h),
-
-              // Customer info
-              if (saleOrder.customerName.isNotEmpty ||
-                  saleOrder.customerPhone.isNotEmpty)
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header row
+            Row(
+              children: [
                 Container(
-                  padding: EdgeInsets.all(12.w),
+                  width: 40.w,
+                  height: 40.w,
                   decoration: BoxDecoration(
-                    color: AppColors.blueTinted.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8.r),
+                    color: const Color(0xFF6C5CE7).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12.r),
                   ),
-                  child: Row(
+                  child: Icon(
+                    Icons.receipt,
+                    color: const Color(0xFF6C5CE7),
+                    size: 20.sp,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.person_outline,
-                        size: 16.sp,
-                        color: AppColors.primaryBlue,
+                      Text(
+                        'Bill #${saleOrder.billNumber}',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
                       ),
-                      SizedBox(width: 8.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (saleOrder.customerName.isNotEmpty)
-                              Text(
-                                saleOrder.customerName,
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            if (saleOrder.customerPhone.isNotEmpty)
-                              Text(
-                                saleOrder.customerPhone,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                          ],
+                      SizedBox(height: 2.h),
+                      Text(
+                        saleOrder.formattedDateTime,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.grey[600],
                         ),
                       ),
                     ],
                   ),
                 ),
-
-              SizedBox(height: 8.h),
-
-              // Items summary
-              Container(
-                padding: EdgeInsets.all(12.w),
-                decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
-                  border: Border.all(
-                    color: AppColors.shadowBlue.withOpacity(0.2),
-                  ),
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      'Items (${saleOrder.totalQuantity} total)',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+                      saleOrder.formattedTotal,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF00B894),
                       ),
                     ),
-                    SizedBox(height: 8.h),
-                    ...saleOrder.items
-                        .take(3)
-                        .map(
-                          (item) => Padding(
-                            padding: EdgeInsets.only(bottom: 4.h),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    '• ${item.itemName}',
-                                    style: AppTextStyles.bodySmall,
-                                  ),
-                                ),
-                                Text(
-                                  '${item.quantity} × ₹${item.unitPrice.toStringAsFixed(2)}',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    if (saleOrder.items.length > 3)
-                      Text(
-                        '... and ${saleOrder.items.length - 3} more items',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                          fontStyle: FontStyle.italic,
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 2.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF5E6A8),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Text(
+                        '${saleOrder.itemCount} items',
+                        style: TextStyle(
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
                         ),
                       ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            // Customer info (if available)
+            if (saleOrder.customerName.isNotEmpty || saleOrder.customerPhone.isNotEmpty) ...[
+              SizedBox(height: 12.h),
+              Container(
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.person_outline,
+                      size: 14.sp,
+                      color: Colors.grey[600],
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (saleOrder.customerName.isNotEmpty)
+                            Text(
+                              saleOrder.customerName,
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          if (saleOrder.customerPhone.isNotEmpty)
+                            Text(
+                              saleOrder.customerPhone,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
-          ),
+
+            SizedBox(height: 12.h),
+
+            // Items preview
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Qty: ${saleOrder.totalQuantity}',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 8.w,
+                    vertical: 4.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6C5CE7).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Text(
+                    'View Details',
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF6C5CE7),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

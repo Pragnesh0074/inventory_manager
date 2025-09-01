@@ -7,7 +7,6 @@ import '../../theme/color.dart';
 import '../../theme/style.dart';
 
 class AddEditShopScreen extends StatefulWidget {
-
   final Shop? shop;
 
   const AddEditShopScreen({super.key, this.shop});
@@ -30,6 +29,10 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
       _nameController.text = widget.shop!.name;
       _addressController.text = widget.shop!.address;
     }
+
+    // Add focus listeners to trigger UI updates
+    _nameFocusNode.addListener(() => setState(() {}));
+    _addressFocusNode.addListener(() => setState(() {}));
   }
 
   @override
@@ -37,104 +40,121 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
     final isEditing = widget.shop != null;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
         title: Text(
-          isEditing ? 'Edit Shop' : 'Add Shop',
-          style: AppTextStyles.appBarTitle,
-        ),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(16.r),
-              bottomRight: Radius.circular(16.r),
-            ),
+          isEditing ? 'Edit Shop' : 'Add New Shop',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
         ),
+        backgroundColor: const Color(0xFFF5F6FA),
+        elevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textOnPrimary,
-            size: 20.sp,
+          icon: Container(
+            padding: EdgeInsets.all(8.r),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.black87,
+              size: 18.r,
+            ),
           ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(24.w),
+          padding: EdgeInsets.all(24.r),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Header Section
                 Container(
                   width: double.infinity,
-                  padding: EdgeInsets.all(12.r),
+                  padding: EdgeInsets.all(24.r),
                   decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
-                    borderRadius: BorderRadius.circular(20.r),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24.r),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.shadowBlue,
-                        blurRadius: 15.r,
-                        spreadRadius: 2.r,
-                        offset: Offset(0, 4.h),
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 15,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
                       Container(
-                        padding: EdgeInsets.all(16.r),
+                        width: 80.w,
+                        height: 80.h,
                         decoration: BoxDecoration(
-                          gradient: AppColors.lightGradient,
-                          borderRadius: BorderRadius.circular(16.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.shadowBlueStrong,
-                              blurRadius: 10.r,
-                              offset: Offset(0, 4.h),
-                            ),
-                          ],
+                          color: const Color(0xFFFFE5B8),
+                          borderRadius: BorderRadius.circular(20.r),
                         ),
                         child: Icon(
-                          Icons.store,
-                          size: 35.sp,
-                          color: AppColors.textOnPrimary,
+                          isEditing ? Icons.edit_outlined : Icons.add_business,
+                          size: 36.r,
+                          color: const Color(0xFFFF9500),
                         ),
                       ),
-                      SizedBox(height: 16.h),
+                      SizedBox(height: 20.h),
                       Text(
-                        isEditing ? 'Edit Shop Details' : 'Create New Shop',
-                        style: AppTextStyles.headingMedium,
+                        isEditing ? 'Update Shop Details' : 'Create New Shop',
+                        style: TextStyle(
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 8.h),
                       Text(
                         isEditing
-                            ? 'Update your shop information'
-                            : 'Fill in the details to create your shop',
-                        style: AppTextStyles.bodySmall,
+                            ? 'Modify your shop information below'
+                            : 'Fill in the details to create your new shop',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.grey[600],
+                          height: 1.4,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 20.h),
+
+                SizedBox(height: 32.h),
+
+                // Form Section
                 Container(
-                  padding: EdgeInsets.all(24.w),
+                  padding: EdgeInsets.all(24.r),
                   decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
-                    borderRadius: BorderRadius.circular(20.r),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(24.r),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.shadowBlue,
-                        blurRadius: 15.r,
-                        spreadRadius: 2.r,
-                        offset: Offset(0, 4.h),
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 15,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
@@ -143,9 +163,14 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
                     children: [
                       Text(
                         'Shop Information',
-                        style: AppTextStyles.headingMedium,
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: 24.h),
+
                       _buildInputField(
                         controller: _nameController,
                         focusNode: _nameFocusNode,
@@ -162,17 +187,19 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
                           return null;
                         },
                       ),
-                      SizedBox(height: 20.h),
+
+                      SizedBox(height: 24.h),
+
                       _buildInputField(
                         controller: _addressController,
                         focusNode: _addressFocusNode,
-                        label: 'Address',
-                        hint: 'Enter shop address',
+                        label: 'Shop Address',
+                        hint: 'Enter complete shop address',
                         icon: Icons.location_on_outlined,
                         maxLines: 3,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Please enter address';
+                            return 'Please enter shop address';
                           }
                           if (value.length < 5) {
                             return 'Please enter a valid address';
@@ -183,69 +210,86 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 20.h),
-                Container(
-                  width: double.infinity,
-                  height: 56.h,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.accentGradient,
-                    borderRadius: BorderRadius.circular(16.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.shadowBlueFAB,
-                        blurRadius: 15.r,
-                        offset: Offset(0, 6.h),
-                      ),
-                    ],
-                  ),
-                  child: ElevatedButton(
-                    onPressed: _saveShop,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
+
+                SizedBox(height: 32.h),
+
+                // Action Buttons
+                Column(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      height: 56.h,
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
                         borderRadius: BorderRadius.circular(16.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
                       ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          isEditing ? Icons.update : Icons.add_business,
-                          color: AppColors.textOnPrimary,
-                          size: 24.sp,
+                      child: ElevatedButton(
+                        onPressed: _saveShop,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
                         ),
-                        SizedBox(width: 12.w),
-                        Text(
-                          isEditing ? 'Update Shop' : 'Create Shop',
-                          style: AppTextStyles.buttonLarge,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              isEditing ? Icons.update : Icons.add_business,
+                              color: Colors.white,
+                              size: 20.r,
+                            ),
+                            SizedBox(width: 12.w),
+                            Text(
+                              isEditing ? 'UPDATE SHOP' : 'CREATE SHOP',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56.h,
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      backgroundColor: AppColors.surfaceLight,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r),
                       ),
                     ),
-                    child: Text(
-                      'Cancel',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 16.sp,
-                        fontWeight: FontWeight.w500,
+
+                    SizedBox(height: 16.h),
+
+                    SizedBox(
+                      width: double.infinity,
+                      height: 56.h,
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.grey[100],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                        ),
+                        child: Text(
+                          'CANCEL',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[600],
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
+
+                SizedBox(height: 40.h), // Bottom padding
               ],
             ),
           ),
@@ -263,88 +307,89 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
     int maxLines = 1,
     String? Function(String?)? validator,
   }) {
+    final isFocused = focusNode.hasFocus;
+    final hasError = _formKey.currentState?.validate() == false;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: AppTextStyles.bodyMedium.copyWith(
+          style: TextStyle(
+            fontSize: 16.sp,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Colors.black87,
           ),
         ),
-        SizedBox(height: 8.h),
+        SizedBox(height: 12.h),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.backgroundLight,
-            borderRadius: BorderRadius.circular(12.r),
+            color: isFocused ? const Color(0xFFF0F8FF) : const Color(0xFFF8F9FA),
+            borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
-              color: focusNode.hasFocus
-                  ? AppColors.primaryBlue
-                  : Colors.transparent,
-              width: 2.w,
+              color: isFocused
+                  ? const Color(0xFF4A90E2)
+                  : Colors.grey.withOpacity(0.2),
+              width: isFocused ? 2.w : 1.w,
             ),
+            boxShadow: isFocused
+                ? [
+              BoxShadow(
+                color: const Color(0xFF4A90E2).withOpacity(0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ]
+                : null,
           ),
           child: TextFormField(
-            onTapOutside: (_) => FocusScope.of(context).unfocus(),
             controller: controller,
             focusNode: focusNode,
             maxLines: maxLines,
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.textHint,
+              hintStyle: TextStyle(
+                fontSize: 16.sp,
+                color: Colors.grey[500],
+                fontWeight: FontWeight.w400,
               ),
               prefixIcon: Container(
-                margin: EdgeInsets.all(12.w),
-                padding: EdgeInsets.all(8.w),
+                margin: EdgeInsets.all(12.r),
+                width: 40.w,
+                height: 40.h,
                 decoration: BoxDecoration(
-                  color: AppColors.blueTinted,
-                  borderRadius: BorderRadius.circular(8.r),
+                  color: isFocused
+                      ? const Color(0xFF4A90E2).withOpacity(0.1)
+                      : const Color(0xFFFFE5B8),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
                   icon,
-                  color: AppColors.primaryBlue,
-                  size: 20.sp,
+                  color: isFocused
+                      ? const Color(0xFF4A90E2)
+                      : const Color(0xFFFF9500),
+                  size: 20.r,
                 ),
               ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide.none,
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(
-                  color: AppColors.error,
-                  width: 1.w,
-                ),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(
-                  color: AppColors.error,
-                  width: 2.w,
-                ),
-              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              focusedErrorBorder: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16.w,
-                vertical: 16.h,
+                vertical: maxLines > 1 ? 16.h : 20.h,
               ),
               errorStyle: TextStyle(
-                color: AppColors.error,
+                color: Colors.red[400],
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
+                height: 1.2,
               ),
             ),
             validator: validator,
@@ -370,14 +415,42 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
           transactions: widget.shop!.transactions,
         );
         shopProvider.updateShop(updatedShop);
+
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Shop updated successfully!'),
-            backgroundColor: AppColors.success,
+            content: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(6.r),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: 16.r,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  'Shop updated successfully!',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green[400],
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.r),
             ),
+            margin: EdgeInsets.all(16.r),
+            duration: const Duration(seconds: 2),
           ),
         );
       } else {
@@ -388,14 +461,42 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
           createdDate: DateTime.now(),
         );
         shopProvider.addShop(newShop);
+
+        // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Shop created successfully!'),
-            backgroundColor: AppColors.success,
+            content: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(6.r),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Icon(
+                    Icons.check,
+                    color: Colors.white,
+                    size: 16.r,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  'Shop created successfully!',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green[400],
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.r),
             ),
+            margin: EdgeInsets.all(16.r),
+            duration: const Duration(seconds: 2),
           ),
         );
       }

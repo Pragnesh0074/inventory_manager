@@ -23,182 +23,50 @@ class InventoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: Text(
-          '${shop.name} - Inventory',
-          style: AppTextStyles.appBarTitle,
-        ),
+        backgroundColor: Color(0xFFFDB462),
         elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(16.r),
-              bottomRight: Radius.circular(16.r),
-            ),
+        title: Text(
+          'INVENTORY',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
+        centerTitle: true,
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textOnPrimary,
+            Icons.arrow_back_ios,
+            color: Colors.black,
             size: 20.sp,
           ),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [],
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(80.h),
-          child: Container(
-            height: 80.h,
-            padding: EdgeInsets.only(right: 2.w, left: 0.w, bottom: 8.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.receipt_long,
-                        color: AppColors.textOnPrimary,
-                        size: 24.sp,
-                      ),
-                      onPressed:
-                          () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => SalesListScreen(shop: shop),
-                            ),
-                          ),
-                    ),
-                    Text(
-                      'Sales',
-                      style: AppTextStyles.cardCaption.copyWith(
-                        color: AppColors.textOnPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(width: 8.w),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.point_of_sale,
-                        color: AppColors.textOnPrimary,
-                        size: 24.sp,
-                      ),
-                      onPressed:
-                          () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => MultiItemSaleScreen(shop: shop),
-                            ),
-                          ),
-                    ),
-                    Text(
-                      'New Sale',
-                      style: AppTextStyles.cardCaption.copyWith(
-                        color: AppColors.textOnPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(width: 8.w),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.analytics,
-                        color: AppColors.textOnPrimary,
-                        size: 24.sp,
-                      ),
-                      onPressed:
-                          () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => MonthlySummaryScreen(shop: shop),
-                            ),
-                          ),
-                    ),
-                    Text(
-                      'Summary',
-                      style: AppTextStyles.cardCaption.copyWith(
-                        color: AppColors.textOnPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(width: 8.w),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.shopping_bag,
-                        color: AppColors.textOnPrimary,
-                        size: 24.sp,
-                      ),
-                      onPressed:
-                          () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) => PurchasesListScreen(shop: shop),
-                            ),
-                          ),
-                    ),
-                    Text(
-                      'Purchases',
-                      style: AppTextStyles.cardCaption.copyWith(
-                        color: AppColors.textOnPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(width: 8.w),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(
-                        Icons.account_balance_wallet,
-                        color: AppColors.textOnPrimary,
-                        size: 24.sp,
-                      ),
-                      onPressed:
-                          () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder:
-                                  (context) =>
-                                      SalesPaymentsListScreen(shop: shop),
-                            ),
-                          ),
-                    ),
-                    Text(
-                      'Payments',
-                      style: AppTextStyles.cardCaption.copyWith(
-                        color: AppColors.textOnPrimary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.search,
+              color: Colors.black,
+              size: 24.sp,
             ),
+            onPressed: () {
+              // Search functionality can be added here
+            },
+          ),
+        ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24.r),
           ),
         ),
       ),
       body: Consumer<ShopProvider>(
         builder: (context, shopProvider, child) {
           final currentShop = shopProvider.shops.firstWhere(
-            (s) => s.id == shop.id,
+                (s) => s.id == shop.id,
           );
 
           if (currentShop.inventory.isEmpty) {
@@ -207,19 +75,17 @@ class InventoryScreen extends StatelessWidget {
 
           return Column(
             children: [
-              _buildSummarySection(currentShop),
+              _buildSummaryCards(currentShop),
+              SizedBox(height: 8.h),
               Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  child: ListView.separated(
-                    itemCount: currentShop.inventory.length,
-                    separatorBuilder:
-                        (context, index) => SizedBox(height: 12.h),
-                    itemBuilder: (context, index) {
-                      final item = currentShop.inventory[index];
-                      return _buildInventoryCard(context, currentShop, item);
-                    },
-                  ),
+                child: ListView.separated(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                  itemCount: currentShop.inventory.length,
+                  separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                  itemBuilder: (context, index) {
+                    final item = currentShop.inventory[index];
+                    return _buildInventoryCard(context, currentShop, item);
+                  },
                 ),
               ),
             ],
@@ -227,22 +93,301 @@ class InventoryScreen extends StatelessWidget {
         },
       ),
       floatingActionButton: Container(
+        width: 56.w,
+        height: 56.h,
         decoration: BoxDecoration(
-          gradient: AppColors.accentGradient,
-          borderRadius: BorderRadius.circular(16.r),
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(28.r),
+        ),
+        child: FloatingActionButton(
+          onPressed: () =>
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MultiItemSaleScreen(shop: shop),
+                ),
+              ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Icon(Icons.add, color: Colors.white, size: 28.sp),
+        ),
+      ),
+
+      bottomNavigationBar: Container(
+        height: 80.h,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDB462),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20.r),
+            topRight: Radius.circular(20.r),
+          ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.shadowBlueFAB,
-              blurRadius: 15.r,
-              offset: Offset(0, 6.h),
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10.r,
+              offset: Offset(0, -2.h),
             ),
           ],
         ),
-        child: FloatingActionButton(
-          onPressed: () => _navigateToAddItem(context, shop),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          child: Icon(Icons.add, color: AppColors.textOnPrimary, size: 28.sp),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildBottomNavItem(
+              Icons.receipt_long,
+              'Sales',
+                  () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SalesListScreen(shop: shop),
+                ),
+              ),
+            ),
+            _buildBottomNavItem(
+              Icons.add_box_sharp,
+              'Add Item',
+                  () => _navigateToAddItem(context, shop)
+            ),
+            _buildBottomNavItem(
+              Icons.analytics,
+              'Summary',
+                  () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MonthlySummaryScreen(shop: shop),
+                ),
+              ),
+            ),
+            _buildBottomNavItem(
+              Icons.shopping_bag,
+              'Purchases',
+                  () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PurchasesListScreen(shop: shop),
+                ),
+              ),
+            ),
+            _buildBottomNavItem(
+              Icons.account_balance_wallet,
+              'Payments',
+                  () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => SalesPaymentsListScreen(shop: shop),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryCards(Shop shop) {
+    final totalItems = shop.inventory.length;
+    final lowStockItems = shop.inventory.where((item) => item.quantity < 10).length;
+    final totalValue = shop.inventory.fold(
+      0.0,
+          (sum, item) => sum + (item.price * item.quantity),
+    );
+
+    return Padding(
+      padding: EdgeInsets.all(16.w),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildSummaryCard(
+              icon: Icons.inventory_2_outlined,
+              value: totalItems.toString(),
+              label: 'Total Items',
+              color: Color(0xFF4A90E2),
+              iconBg: Color(0xFF2D3748),
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: _buildSummaryCard(
+              icon: Icons.warning_amber_outlined,
+              value: lowStockItems.toString(),
+              label: 'Low Stock',
+              color: Color(0xFFFFE5B8),
+              iconBg: Colors.orange.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard({
+    required IconData icon,
+    required String value,
+    required String label,
+    required Color color,
+    required Color iconBg,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(24.r),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 48.w,
+            height: 48.h,
+            decoration: BoxDecoration(
+              color: iconBg,
+              borderRadius: BorderRadius.circular(24.r),
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 24.sp,
+            ),
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 32.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInventoryCard(
+      BuildContext context,
+      Shop shop,
+      InventoryItem item,
+      ) {
+    final isLowStock = item.quantity < 10;
+
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ItemDetailScreen(shop: shop, item: item),
+        ),
+      ),
+      child: Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10.r,
+              offset: Offset(0, 2.h),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Item info section
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Container(
+                    width: double.infinity,
+                    height: 8.h,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(4.r),
+                    ),
+                    child: FractionallySizedBox(
+                      alignment: Alignment.centerLeft,
+                      widthFactor: (item.quantity / 100).clamp(0.0, 1.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: isLowStock
+                              ? Colors.orange.shade400
+                              : Colors.green.shade400,
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Row(
+                    children: [
+                      Text(
+                        '${item.quantity} pcs',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Spacer(),
+                      if (isLowStock)
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8.w,
+                            vertical: 4.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade100,
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                          child: Text(
+                            'Reorder level',
+                            style: TextStyle(
+                              fontSize: 10.sp,
+                              color: Colors.orange.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: 16.w),
+            // Action button
+            InkWell(
+              onTap: () => _showMenuOptions(context, shop, item),
+              child: Container(
+                width: 48.w,
+                height: 48.h,
+                decoration: BoxDecoration(
+                  color: Colors.black,
+                  borderRadius: BorderRadius.circular(24.r),
+                ),
+                child: Icon(
+                  Icons.menu,
+                  color: Colors.white,
+                  size: 24.sp,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -251,722 +396,427 @@ class InventoryScreen extends StatelessWidget {
   Widget _buildEmptyState(BuildContext context, Shop shop) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Container(
-          padding: EdgeInsets.all(32.w),
-          decoration: BoxDecoration(
-            color: AppColors.cardBackground,
-            borderRadius: BorderRadius.circular(24.r),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.shadowBlue,
-                blurRadius: 20.r,
-                spreadRadius: 2.r,
-                offset: Offset(0, 8.h),
+        padding: EdgeInsets.all(32.w),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120.w,
+              height: 120.h,
+              decoration: BoxDecoration(
+                color: Color(0xFFFDB462).withOpacity(0.2),
+                borderRadius: BorderRadius.circular(60.r),
               ),
-            ],
+              child: Icon(
+                Icons.inventory_2_outlined,
+                size: 60.sp,
+                color: Color(0xFFFDB462),
+              ),
+            ),
+            SizedBox(height: 32.h),
+            Text(
+              'No Items Yet',
+              style: TextStyle(
+                fontSize: 24.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            Text(
+              'Start building your inventory by\nadding your first item',
+              style: TextStyle(
+                fontSize: 16.sp,
+                color: Colors.grey.shade600,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 40.h),
+            Container(
+              width: 200.w,
+              height: 50.h,
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(25.r),
+              ),
+              child: ElevatedButton(
+                onPressed: () => _navigateToAddItem(context, shop),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25.r),
+                  ),
+                ),
+                child: Text(
+                  'ADD STOCK',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+  }
+
+  void _showMenuOptions(BuildContext context, Shop shop, InventoryItem item) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.8,
+        maxChildSize: 0.8,
+        minChildSize: 0.3,
+        builder: (context, scrollController) => Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             children: [
+              // Handle bar
               Container(
-                padding: EdgeInsets.all(24.r),
+                margin: EdgeInsets.only(top: 12.h),
+                width: 40.w,
+                height: 4.h,
                 decoration: BoxDecoration(
-                  gradient: AppColors.lightGradient,
-                  borderRadius: BorderRadius.circular(20.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.shadowBlueStrong,
-                      blurRadius: 15.r,
-                      offset: Offset(0, 6.h),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.inventory_2_outlined,
-                  size: 60.sp,
-                  color: AppColors.textOnPrimary,
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2.r),
                 ),
               ),
-              SizedBox(height: 24.h),
-              Text('No Items Yet', style: AppTextStyles.emptyStateTitle),
-              SizedBox(height: 12.h),
+              SizedBox(height: 20.h),
+              // Title
               Text(
-                'Start building your inventory by adding your first item',
-                style: AppTextStyles.emptyStateSubtitle,
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 32.h),
-              Container(
-                width: double.infinity,
-                height: 50.h,
-                decoration: BoxDecoration(
-                  gradient: AppColors.accentGradient,
-                  borderRadius: BorderRadius.circular(16.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.shadowBlueFAB,
-                      blurRadius: 15.r,
-                      offset: Offset(0, 6.h),
-                    ),
-                  ],
-                ),
-                child: ElevatedButton.icon(
-                  onPressed: () => _navigateToAddItem(context, shop),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16.r),
-                    ),
-                  ),
-                  icon: Icon(
-                    Icons.add,
-                    color: AppColors.textOnPrimary,
-                    size: 20.sp,
-                  ),
-                  label: Text(
-                    'Add First Item',
-                    style: AppTextStyles.buttonLarge,
-                  ),
+                item.name,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummarySection(Shop shop) {
-    final totalItems = shop.inventory.length;
-    final lowStockItems =
-        shop.inventory.where((item) => item.quantity < 10).length;
-    final totalValue = shop.inventory.fold(
-      0.0,
-      (sum, item) => sum + (item.price * item.quantity),
-    );
-
-    return Container(
-      margin: EdgeInsets.all(16.w),
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.shadowBlue,
-            blurRadius: 15.r,
-            spreadRadius: 2.r,
-            offset: Offset(0, 4.h),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Inventory Overview', style: AppTextStyles.headingMedium),
-          SizedBox(height: 16.h),
-          IntrinsicHeight(
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Total Items',
-                    totalItems.toString(),
-                    Icons.inventory_2_outlined,
-                    AppColors.primaryBlue,
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Low Stock',
-                    lowStockItems.toString(),
-                    Icons.warning_amber_outlined,
-                    AppColors.warning,
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: _buildSummaryCard(
-                    'Total Value',
-                    '₹${totalValue.toStringAsFixed(2)}',
-                    Icons.currency_rupee_rounded,
-                    AppColors.success,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: color.withOpacity(0.2), width: 1.w),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Container(
-            padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12.r),
-            ),
-            child: Icon(icon, color: color, size: 20.sp),
-          ),
-          SizedBox(height: 12.h),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            title,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInventoryCard(
-    BuildContext context,
-    Shop shop,
-    InventoryItem item,
-  ) {
-    final isLowStock = item.quantity < 10;
-
-    return InkWell(
-      onTap:
-          () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ItemDetailScreen(shop: shop, item: item),
-            ),
-          ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.cardBackground,
-          borderRadius: BorderRadius.circular(20.r),
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Row(
-            children: [
-              Container(
-                width: 60.w,
-                height: 60.w,
-                decoration: BoxDecoration(
-                  gradient:
-                      isLowStock
-                          ? LinearGradient(
-                            colors: [
-                              AppColors.error,
-                              AppColors.error.withOpacity(0.7),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          )
-                          : AppColors.lightGradient,
-                  borderRadius: BorderRadius.circular(16.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          isLowStock
-                              ? AppColors.error.withOpacity(0.3)
-                              : AppColors.shadowBlueStrong,
-                      blurRadius: 10.r,
-                      offset: Offset(0, 4.h),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    item.quantity.toString(),
-                    style: TextStyle(
-                      color: AppColors.textOnPrimary,
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 16.w),
+              SizedBox(height: 20.h),
+              // Scrollable content
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.name,
-                      style: AppTextStyles.cardTitle.copyWith(fontSize: 16.sp),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      'Price: ₹${item.price.toStringAsFixed(2)}',
-                      style: AppTextStyles.cardSubtitle,
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      'Updated: ${_formatDate(item.lastUpdated)}',
-                      style: AppTextStyles.cardCaption,
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                children: [
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: Column(
                     children: [
-                      _buildActionButton(
+                      _buildMenuOption(
                         icon: Icons.point_of_sale,
-                        color: AppColors.primaryBlue,
-                        onPressed:
-                            () => _showQuickSaleDialog(context, shop, item),
+                        title: 'Quick Sale',
+                        color: Color(0xFFFDB462),
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showQuickSaleDialog(context, shop, item);
+                        },
                       ),
-                      SizedBox(width: 8.w),
-                      _buildActionButton(
-                        icon: Icons.remove_shopping_cart,
-                        color: AppColors.error,
-                        onPressed: () => _showSellDialog(context, shop, item),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 8.h),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildActionButton(
+                      SizedBox(height: 16.h),
+                      _buildMenuOption(
                         icon: Icons.add_shopping_cart,
-                        color: AppColors.success,
-                        onPressed:
-                            () => _showAddStockDialog(context, shop, item),
+                        title: 'Add Stock',
+                        color: Colors.green.shade400,
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showAddStockDialog(context, shop, item);
+                        },
                       ),
-                      SizedBox(width: 8.w),
-                      _buildMenuButton(context, shop, item),
+                      SizedBox(height: 16.h),
+                      _buildMenuOption(
+                        icon: Icons.remove_shopping_cart_outlined,
+                        title: 'Remove Stock',
+                        color: Colors.red.shade400,
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showRemoveItemDialog(context, shop, item);
+                        },
+                      ),
+                      SizedBox(height: 16.h),
+                      _buildMenuOption(
+                        icon: Icons.visibility,
+                        title: 'View Details',
+                        color: Colors.blue.shade400,
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ItemDetailScreen(shop: shop, item: item),
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 16.h),
+                      _buildMenuOption(
+                        icon: Icons.edit,
+                        title: 'Edit Item',
+                        color: Colors.grey.shade600,
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AddEditItemScreen(shop: shop, item: item),
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(height: 16.h),
+                      _buildMenuOption(
+                        icon: Icons.delete,
+                        title: 'Delete Item',
+                        color: Colors.red.shade400,
+                        onTap: () {
+                          Navigator.pop(context);
+                          _showDeleteDialog(context, shop, item);
+                        },
+                      ),
+                      SizedBox(height: 40.h), // Extra bottom padding
                     ],
                   ),
-                ],
+                ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuOption({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 20.w),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40.w,
+              height: 40.h,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: 20.sp,
+              ),
+            ),
+            SizedBox(width: 16.w),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   void _showQuickSaleDialog(
-    BuildContext context,
-    Shop shop,
-    InventoryItem item,
-  ) {
+      BuildContext context,
+      Shop shop,
+      InventoryItem item,
+      ) {
     final quantityController = TextEditingController();
     final customerNameController = TextEditingController();
     final customerPhoneController = TextEditingController();
 
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: AppColors.backgroundLight,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.r),
-            ),
-            title: Text(
-              'Quick Sale - ${item.name}',
-              style: AppTextStyles.dialogTitle,
-            ),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(16.w),
-                    decoration: BoxDecoration(
-                      color: AppColors.blueTinted,
-                      borderRadius: BorderRadius.circular(12.r),
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        title: Text(
+          'Quick Sale - ${item.name}',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  color: Color(0xFFFDB462).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.inventory,
+                      color: Color(0xFFFDB462),
+                      size: 20.sp,
                     ),
-                    child: Row(
+                    SizedBox(width: 12.w),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(
-                          Icons.inventory,
-                          color: AppColors.primaryBlue,
-                          size: 20.sp,
+                        Text(
+                          'Available: ${item.quantity}',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black87,
+                          ),
                         ),
-                        SizedBox(width: 12.w),
-                        Column(
-                          children: [
-                            Text(
-                              'Available: ${item.quantity}',
-                              style: AppTextStyles.dialogContent,
-                            ),
-                            SizedBox(height: 4.h),
-                            Text(
-                              'Price: ₹${item.price.toStringAsFixed(2)}',
-                              style: AppTextStyles.dialogContent,
-                            ),
-                          ],
+                        Text(
+                          'Price: ₹${item.price.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Colors.black54,
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  SizedBox(height: 16.h),
-                  TextField(
-                    controller: quantityController,
-                    keyboardType: TextInputType.number,
-                    style: AppTextStyles.bodyLarge,
-                    decoration: InputDecoration(
-                      labelText: 'Quantity to sell',
-                      labelStyle: AppTextStyles.bodyMedium,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide(color: AppColors.primaryBlue),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  TextField(
-                    controller: customerNameController,
-                    style: AppTextStyles.bodyLarge,
-                    decoration: InputDecoration(
-                      labelText: 'Customer Name (Optional)',
-                      labelStyle: AppTextStyles.bodyMedium,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide(color: AppColors.primaryBlue),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  TextField(
-                    controller: customerPhoneController,
-                    keyboardType: TextInputType.phone,
-                    style: AppTextStyles.bodyLarge,
-                    decoration: InputDecoration(
-                      labelText: 'Customer Phone (Optional)',
-                      labelStyle: AppTextStyles.bodyMedium,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                        borderSide: BorderSide(color: AppColors.primaryBlue),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel', style: AppTextStyles.dialogButton),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.accentGradient,
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: TextButton(
-                  onPressed: () {
-                    final quantity = int.tryParse(quantityController.text) ?? 0;
-                    if (quantity > 0 && quantity <= item.quantity) {
-                      Navigator.pop(context);
-                      final saleItems = [
-                        SaleItem(item: item, quantity: quantity),
-                      ];
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => SaleSummaryScreen(
-                                shop: shop,
-                                saleItems: saleItems,
-                                additionalCharges:
-                                    [], // No additional charges for quick sale
-                                customerName:
-                                    customerNameController.text.trim(),
-                                customerPhone:
-                                    customerPhoneController.text.trim(),
-                              ),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Invalid quantity'),
-                          backgroundColor: AppColors.error,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text(
-                    'Proceed to Bill',
-                    style: AppTextStyles.dialogButtonPrimary,
-                  ),
-                ),
-              ),
-            ],
-          ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required Color color,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      width: 40.w,
-      height: 40.h,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: color.withOpacity(0.2), width: 1.w),
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: color, size: 18.sp),
-        onPressed: onPressed,
-        padding: EdgeInsets.zero,
-      ),
-    );
-  }
-
-  Widget _buildMenuButton(BuildContext context, Shop shop, InventoryItem item) {
-    return Container(
-      width: 40.w,
-      height: 40.h,
-      decoration: BoxDecoration(
-        color: AppColors.blueTinted,
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: PopupMenuButton(
-        color: AppColors.backgroundLight,
-        padding: EdgeInsets.zero,
-        icon: Icon(Icons.more_vert, color: AppColors.primaryBlue, size: 18.sp),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        itemBuilder:
-            (context) => [
-              PopupMenuItem(
-                value: 'view',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.visibility,
-                      size: 20.sp,
-                      color: AppColors.primaryBlue,
-                    ),
-                    SizedBox(width: 12.w),
-                    Text('View Details', style: AppTextStyles.menuItemPrimary),
                   ],
                 ),
               ),
-              PopupMenuItem(
-                value: 'edit',
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.edit,
-                      size: 20.sp,
-                      color: AppColors.textSecondary,
-                    ),
-                    SizedBox(width: 12.w),
-                    Text('Edit', style: AppTextStyles.menuItem),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete, size: 20.sp, color: AppColors.error),
-                    SizedBox(width: 12.w),
-                    Text('Delete', style: AppTextStyles.menuItemDanger),
-                  ],
-                ),
-              ),
-            ],
-        onSelected: (value) {
-          if (value == 'view') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ItemDetailScreen(shop: shop, item: item),
-              ),
-            );
-          } else if (value == 'edit') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AddEditItemScreen(shop: shop, item: item),
-              ),
-            );
-          } else if (value == 'delete') {
-            _showDeleteDialog(context, shop, item);
-          }
-        },
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
-  void _navigateToAddItem(BuildContext context, Shop shop) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => AddEditItemScreen(shop: shop)),
-    );
-  }
-
-  void _showSellDialog(BuildContext context, Shop shop, InventoryItem item) {
-    final quantityController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: AppColors.backgroundLight,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.r),
-            ),
-            title: Text(
-              'Remove Stock - ${item.name}',
-              style: AppTextStyles.dialogTitle,
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: AppColors.blueTinted,
+              SizedBox(height: 16.h),
+              TextField(
+                controller: quantityController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Quantity to sell',
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.inventory,
-                        color: AppColors.primaryBlue,
-                        size: 20.sp,
-                      ),
-                      SizedBox(width: 12.w),
-                      Text(
-                        'Available: ${item.quantity}',
-                        style: AppTextStyles.dialogContent,
-                      ),
-                    ],
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: Color(0xFFFDB462)),
                   ),
                 ),
-                SizedBox(height: 16.h),
-                TextField(
-                  controller: quantityController,
-                  keyboardType: TextInputType.number,
-                  style: AppTextStyles.bodyLarge,
-                  decoration: InputDecoration(
-                    labelText: 'Quantity to sell',
-                    labelStyle: AppTextStyles.bodyMedium,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      borderSide: BorderSide(color: AppColors.primaryBlue),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel', style: AppTextStyles.dialogButton),
               ),
-              Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.accentGradient,
-                  borderRadius: BorderRadius.circular(12.r),
+              SizedBox(height: 16.h),
+              TextField(
+                controller: customerNameController,
+                decoration: InputDecoration(
+                  labelText: 'Customer Name (Optional)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: Color(0xFFFDB462)),
+                  ),
                 ),
-                child: TextButton(
-                  onPressed: () {
-                    final quantity = int.tryParse(quantityController.text) ?? 0;
-                    if (quantity > 0 && quantity <= item.quantity) {
-                      Provider.of<ShopProvider>(
-                        context,
-                        listen: false,
-                      ).sellItem(shop.id, item.id, quantity);
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Sold $quantity ${item.name}(s)'),
-                          backgroundColor: AppColors.success,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Invalid quantity'),
-                          backgroundColor: AppColors.error,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  child: Text('Sell', style: AppTextStyles.dialogButtonPrimary),
+              ),
+              SizedBox(height: 16.h),
+              TextField(
+                controller: customerPhoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  labelText: 'Customer Phone (Optional)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: Color(0xFFFDB462)),
+                  ),
                 ),
               ),
             ],
           ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Color(0xFFFDB462),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: TextButton(
+              onPressed: () {
+                final quantity = int.tryParse(quantityController.text) ?? 0;
+                if (quantity > 0 && quantity <= item.quantity) {
+                  Navigator.pop(context);
+                  final saleItems = [
+                    SaleItem(item: item, quantity: quantity),
+                  ];
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SaleSummaryScreen(
+                        shop: shop,
+                        saleItems: saleItems,
+                        additionalCharges: [],
+                        customerName: customerNameController.text.trim(),
+                        customerPhone: customerPhoneController.text.trim(),
+                      ),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Invalid quantity'),
+                      backgroundColor: Colors.red.shade400,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Proceed to Bill',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   void _showAddStockDialog(
-    BuildContext context,
-    Shop shop,
-    InventoryItem item,
-  ) {
+      BuildContext context,
+      Shop shop,
+      InventoryItem item,
+      ) {
     final quantityController = TextEditingController();
     final partyNameController = TextEditingController();
     final partyAddressController = TextEditingController();
@@ -985,13 +835,17 @@ class InventoryScreen extends StatelessWidget {
             }
 
             return AlertDialog(
-              backgroundColor: AppColors.backgroundLight,
+              backgroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20.r),
               ),
               title: Text(
                 'Add Stock - ${item.name}',
-                style: AppTextStyles.dialogTitle,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
               ),
               content: SingleChildScrollView(
                 child: Column(
@@ -1000,20 +854,24 @@ class InventoryScreen extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.all(16.w),
                       decoration: BoxDecoration(
-                        color: AppColors.blueTinted,
+                        color: Color(0xFFFDB462).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12.r),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.inventory,
-                            color: AppColors.primaryBlue,
+                            color: Color(0xFFFDB462),
                             size: 20.sp,
                           ),
                           SizedBox(width: 12.w),
                           Text(
                             'Current Stock: ${item.quantity}',
-                            style: AppTextStyles.dialogContent,
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
                           ),
                         ],
                       ),
@@ -1023,74 +881,62 @@ class InventoryScreen extends StatelessWidget {
                       controller: quantityController,
                       keyboardType: TextInputType.number,
                       onChanged: (_) => setStateDialog(() {}),
-                      style: AppTextStyles.bodyLarge,
                       decoration: InputDecoration(
                         labelText: 'Quantity to add',
-                        labelStyle: AppTextStyles.bodyMedium,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide(color: AppColors.primaryBlue),
+                          borderSide: BorderSide(color: Color(0xFFFDB462)),
                         ),
                       ),
                     ),
                     SizedBox(height: 12.h),
                     TextField(
                       controller: unitPriceController,
-                      keyboardType: TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                       onChanged: (_) => setStateDialog(() {}),
-                      style: AppTextStyles.bodyLarge,
                       decoration: InputDecoration(
                         labelText: 'Purchase Unit Price',
-                        labelStyle: AppTextStyles.bodyMedium,
                         prefixIcon: Icon(Icons.currency_rupee_rounded),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide(color: AppColors.primaryBlue),
+                          borderSide: BorderSide(color: Color(0xFFFDB462)),
                         ),
                       ),
                     ),
                     SizedBox(height: 12.h),
                     TextField(
                       controller: paidAmountController,
-                      keyboardType: TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      style: AppTextStyles.bodyLarge,
+                      keyboardType: TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(
                         labelText: 'Paid Amount',
-                        labelStyle: AppTextStyles.bodyMedium,
                         prefixIcon: Icon(Icons.payments_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide(color: AppColors.primaryBlue),
+                          borderSide: BorderSide(color: Color(0xFFFDB462)),
                         ),
                       ),
                     ),
                     SizedBox(height: 12.h),
                     TextField(
                       controller: partyNameController,
-                      style: AppTextStyles.bodyLarge,
                       decoration: InputDecoration(
                         labelText: 'Supplier Name (optional)',
-                        labelStyle: AppTextStyles.bodyMedium,
                         prefixIcon: Icon(Icons.person_outline),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide(color: AppColors.primaryBlue),
+                          borderSide: BorderSide(color: Color(0xFFFDB462)),
                         ),
                       ),
                     ),
@@ -1098,30 +944,27 @@ class InventoryScreen extends StatelessWidget {
                     TextField(
                       controller: partyAddressController,
                       maxLines: 2,
-                      style: AppTextStyles.bodyLarge,
                       decoration: InputDecoration(
                         labelText: 'Supplier Address (optional)',
-                        labelStyle: AppTextStyles.bodyMedium,
                         prefixIcon: Icon(Icons.location_on_outlined),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12.r),
-                          borderSide: BorderSide(color: AppColors.primaryBlue),
+                          borderSide: BorderSide(color: Color(0xFFFDB462)),
                         ),
                       ),
                     ),
                     SizedBox(height: 16.h),
                     Container(
                       width: double.infinity,
-                      padding: EdgeInsets.all(12.w),
+                      padding: EdgeInsets.all(16.w),
                       decoration: BoxDecoration(
-                        color: AppColors.backgroundLight,
+                        color: Colors.grey.shade50,
                         borderRadius: BorderRadius.circular(12.r),
                         border: Border.all(
-                          color: AppColors.primaryBlue.withOpacity(0.15),
-                          width: 1.w,
+                          color: Colors.grey.shade200,
                         ),
                       ),
                       child: Row(
@@ -1129,14 +972,19 @@ class InventoryScreen extends StatelessWidget {
                         children: [
                           Text(
                             'Total Payment',
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
                             ),
                           ),
                           Text(
                             '₹${calcTotal().toStringAsFixed(2)}',
-                            style: AppTextStyles.headingMedium,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
                         ],
                       ),
@@ -1147,21 +995,24 @@ class InventoryScreen extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Cancel', style: AppTextStyles.dialogButton),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    gradient: AppColors.accentGradient,
+                    color: Color(0xFFFDB462),
                     borderRadius: BorderRadius.circular(12.r),
                   ),
                   child: TextButton(
                     onPressed: () async {
                       final qty = int.tryParse(quantityController.text) ?? 0;
-                      final unitPrice = double.tryParse(
-                        unitPriceController.text,
-                      );
-                      final paid =
-                          double.tryParse(paidAmountController.text) ?? 0.0;
+                      final unitPrice = double.tryParse(unitPriceController.text);
+                      final paid = double.tryParse(paidAmountController.text) ?? 0.0;
                       if (qty > 0 && unitPrice != null) {
                         await Provider.of<ShopProvider>(
                           context,
@@ -1180,10 +1031,8 @@ class InventoryScreen extends StatelessWidget {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                'Added $qty ${item.name}(s) to stock',
-                              ),
-                              backgroundColor: AppColors.success,
+                              content: Text('Added $qty ${item.name}(s) to stock'),
+                              backgroundColor: Colors.green.shade400,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12.r),
@@ -1195,7 +1044,10 @@ class InventoryScreen extends StatelessWidget {
                     },
                     child: Text(
                       'Save Purchase',
-                      style: AppTextStyles.dialogButtonPrimary,
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -1207,56 +1059,237 @@ class InventoryScreen extends StatelessWidget {
     );
   }
 
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  void _navigateToAddItem(BuildContext context, Shop shop) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddEditItemScreen(shop: shop)),
+    );
+  }
+
+  void _showRemoveItemDialog(BuildContext context, Shop shop, InventoryItem item) {
+    final quantityController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        title: Text(
+          'Remove Stock - ${item.name}',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16.w),
+              decoration: BoxDecoration(
+                color: Color(0xFFFDB462).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.inventory,
+                    color: Color(0xFFFDB462),
+                    size: 20.sp,
+                  ),
+                  SizedBox(width: 12.w),
+                  Text(
+                    'Available: ${item.quantity}',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16.h),
+            TextField(
+              controller: quantityController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Quantity to remove',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(color: Color(0xFFFDB462)),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Color(0xFFFDB462),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: TextButton(
+              onPressed: () {
+                final quantity = int.tryParse(quantityController.text) ?? 0;
+                if (quantity > 0 && quantity <= item.quantity) {
+                  Provider.of<ShopProvider>(
+                    context,
+                    listen: false,
+                  ).sellItem(shop.id, item.id, quantity);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Removed $quantity ${item.name}(s)'),
+                      backgroundColor: Colors.green.shade400,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Invalid quantity'),
+                      backgroundColor: Colors.red.shade400,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                  );
+                }
+              },
+              child: Text(
+                'Remove',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavItem(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 8.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: Colors.black87,
+              size: 22.sp,
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10.sp,
+                color: Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showDeleteDialog(BuildContext context, Shop shop, InventoryItem item) {
     showDialog(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            backgroundColor: AppColors.backgroundLight,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20.r),
-            ),
-            title: Text('Delete Item', style: AppTextStyles.dialogTitle),
-            content: Text(
-              'Are you sure you want to delete "${item.name}"?',
-              style: AppTextStyles.dialogContent,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Cancel', style: AppTextStyles.dialogButton),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.error,
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-                child: TextButton(
-                  onPressed: () {
-                    Provider.of<ShopProvider>(
-                      context,
-                      listen: false,
-                    ).deleteInventoryItem(shop.id, item.id);
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Item deleted successfully'),
-                        backgroundColor: AppColors.error,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                      ),
-                    );
-                  },
-                  child: Text(
-                    'Delete',
-                    style: AppTextStyles.dialogButtonPrimary,
-                  ),
-                ),
-              ),
-            ],
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        title: Text(
+          'Delete Item',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${item.name}"?',
+          style: TextStyle(
+            fontSize: 14.sp,
+            color: Colors.black54,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.red.shade400,
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: TextButton(
+              onPressed: () {
+                Provider.of<ShopProvider>(
+                  context,
+                  listen: false,
+                ).deleteInventoryItem(shop.id, item.id);
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Item deleted successfully'),
+                    backgroundColor: Colors.red.shade400,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                );
+              },
+              child: Text(
+                'Delete',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

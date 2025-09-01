@@ -69,52 +69,55 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
         title: Text(
-          'Create Sale - ${widget.shop.name}',
-          style: AppTextStyles.appBarTitle,
-        ),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(16.r),
-              bottomRight: Radius.circular(16.r),
-            ),
+          'CREATE SALE',
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+            letterSpacing: 0.5,
           ),
         ),
+        backgroundColor: const Color(0xFFF5F6FA),
+        elevation: 0,
+        centerTitle: true,
         leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textOnPrimary,
-            size: 20.sp,
+          icon: Container(
+            padding: EdgeInsets.all(8.r),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.arrow_back_ios_new,
+              color: Colors.black87,
+              size: 18.r,
+            ),
           ),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           if (selectedItems.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.only(right: 16.w),
+            Container(
+              margin: EdgeInsets.only(right: 16.w),
               child: Row(
                 children: [
                   IconButton(
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.shopping_cart,
-                      color: AppColors.textOnPrimary,
-                      size: 24.sp,
+                      color: Colors.orange,
+                      size: 24,
                     ),
                     onPressed: () => _showSelectedItemsBottomSheet(),
-                  ),
-                  SizedBox(width: 12.w),
-                  IconButton(
-                    icon: Icon(
-                      Icons.point_of_sale,
-                      color: AppColors.textOnPrimary,
-                      size: 24.sp,
-                    ),
-                    onPressed: () => _proceedToSale(),
                   ),
                 ],
               ),
@@ -134,61 +137,168 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
           return SingleChildScrollView(
             child: Column(
               children: [
+                // Shop Info Header
+                Container(
+                  margin: EdgeInsets.all(16.r),
+                  padding: EdgeInsets.all(20.r),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFE5B8),
+                    borderRadius: BorderRadius.circular(20.r),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.orange.withOpacity(0.2),
+                        blurRadius: 15,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.store, color: Colors.black, size: 24.r),
+                      SizedBox(width: 16.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.shop.name,
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              '${currentShop.inventory.length} items available',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
                 // Customer Info Card
                 _buildCustomerInfoCard(),
 
                 // Selected Items Summary (if any)
                 if (selectedItems.isNotEmpty) _buildSelectedItemsSummary(),
+
+                // Quick Actions
                 Container(
-                  width: double.maxFinite,
-                  margin: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryBlue,
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: TextButton.icon(
-                    onPressed: _addTemporaryItem,
-                    icon: Icon(
-                      Icons.add_shopping_cart,
-                      color: AppColors.textOnPrimary,
-                      size: 18.sp,
-                    ),
-                    label: Text(
-                      'Add Item',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textOnPrimary,
-                        fontWeight: FontWeight.w600,
+                  margin: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(12.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: TextButton.icon(
+                            onPressed: _addTemporaryItem,
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                            ),
+                            icon: const Icon(
+                              Icons.add_shopping_cart,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                            label: Text(
+                              'ADD CUSTOM ITEM',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
+
+                SizedBox(height: 16.h),
+
                 // Temporary Items List (if any)
-                if (selectedItems.where((item) => item.isTemporaryItem).isNotEmpty)
+                if (selectedItems
+                    .where((item) => item.isTemporaryItem)
+                    .isNotEmpty)
                   _buildTemporaryItemsList(),
-                
+
                 // Available Items List
                 _buildInventoryList(currentShop),
+
+                SizedBox(height: 100.h), // Bottom padding for FAB
               ],
             ),
           );
         },
       ),
+      floatingActionButton:
+          selectedItems.isNotEmpty
+              ? Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A90E2),
+                  borderRadius: BorderRadius.circular(20.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF4A90E2).withOpacity(0.4),
+                      blurRadius: 15,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
+                child: FloatingActionButton.extended(
+                  onPressed: _proceedToSale,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  icon: const Icon(Icons.point_of_sale, color: Colors.white),
+                  label: Text(
+                    'PROCEED TO SALE',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              )
+              : null,
     );
   }
 
   Widget _buildCustomerInfoCard() {
     return Container(
-      margin: EdgeInsets.all(16.w),
-      padding: EdgeInsets.all(20.w),
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16.r),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowBlue,
-            blurRadius: 15.r,
-            spreadRadius: 2.r,
-            offset: Offset(0, 4.h),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 15,
+            spreadRadius: 1,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -198,19 +308,26 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
           Row(
             children: [
               Container(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.all(8.r),
                 decoration: BoxDecoration(
-                  color: AppColors.blueTinted,
-                  borderRadius: BorderRadius.circular(8.r),
+                  color: const Color(0xFF4A90E2).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
                   Icons.person_outline,
-                  color: AppColors.primaryBlue,
-                  size: 20.sp,
+                  color: const Color(0xFF4A90E2),
+                  size: 20.r,
                 ),
               ),
               SizedBox(width: 12.w),
-              Text('Customer Information', style: AppTextStyles.headingMedium),
+              Text(
+                'Customer Information',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
             ],
           ),
           SizedBox(height: 16.h),
@@ -221,7 +338,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                   controller: _customerNameController,
                   label: 'Customer Name',
                   hint: 'Enter name (optional)',
-                  icon: Icons.person,
+                  icon: Icons.person_outline,
                 ),
               ),
               SizedBox(width: 12.w),
@@ -230,7 +347,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                   controller: _customerPhoneController,
                   label: 'Phone Number',
                   hint: 'Enter phone (optional)',
-                  icon: Icons.phone,
+                  icon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
                 ),
               ),
@@ -253,34 +370,29 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
       children: [
         Text(
           label,
-          style: AppTextStyles.bodySmall.copyWith(
+          style: TextStyle(
+            fontSize: 12.sp,
             fontWeight: FontWeight.w600,
-            color: AppColors.textSecondary,
+            color: Colors.black87,
           ),
         ),
-        SizedBox(height: 6.h),
+        SizedBox(height: 8.h),
         Container(
-          height: 44.h,
+          height: 48.h,
           decoration: BoxDecoration(
-            color: AppColors.backgroundLight,
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(color: AppColors.surfaceLight),
+            color: const Color(0xFFF8F9FA),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: Colors.grey.withOpacity(0.2)),
           ),
           child: TextField(
-            onTapOutside: (_) => FocusScope.of(context).unfocus(),
+            onTapOutside: (_) => FocusScope.of(context).unfocus,
             controller: controller,
             keyboardType: keyboardType,
-            style: AppTextStyles.bodyMedium,
+            style: TextStyle(fontSize: 14.sp, color: Colors.black87),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textHint,
-              ),
-              prefixIcon: Icon(
-                icon,
-                color: AppColors.textSecondary,
-                size: 18.sp,
-              ),
+              hintStyle: TextStyle(fontSize: 14.sp, color: Colors.grey[500]),
+              prefixIcon: Icon(icon, color: Colors.grey[600], size: 18.r),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 12.w,
@@ -305,21 +417,20 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
     );
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w),
-      padding: EdgeInsets.all(16.w),
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        gradient: AppColors.lightGradient,
-        borderRadius: BorderRadius.circular(12.r),
+        color: const Color(0xFF4A90E2),
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadowBlueStrong,
-            blurRadius: 10.r,
-            offset: Offset(0, 4.h),
+            color: const Color(0xFF4A90E2).withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -329,15 +440,17 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                 children: [
                   Text(
                     '${selectedItems.length} Items Selected',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textOnPrimary,
-                      fontWeight: FontWeight.w600,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   Text(
-                    'Total Qty: $totalItems',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textOnPrimary.withOpacity(0.8),
+                    'Total Quantity: $totalItems pcs',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.white.withOpacity(0.9),
                     ),
                   ),
                 ],
@@ -345,73 +458,70 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    '₹${itemsTotal.toStringAsFixed(2)}',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textOnPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
                   if (_totalAdditionalCharges > 0) ...[
                     Text(
-                      '+ ₹${_totalAdditionalCharges.toStringAsFixed(2)} charges',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textOnPrimary.withOpacity(0.8),
+                      '₹${itemsTotal.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.white.withOpacity(0.9),
+                        decoration: TextDecoration.lineThrough,
                       ),
                     ),
                   ],
                   Text(
-                    '₹${totalAmount.toStringAsFixed(2)}',
-                    style: AppTextStyles.headingMedium.copyWith(
-                      color: AppColors.textOnPrimary,
-                      fontWeight: FontWeight.w700,
+                    '₹${totalAmount.toStringAsFixed(0)}',
+                    style: TextStyle(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ],
               ),
             ],
           ),
+
           if (additionalCharges.isNotEmpty) ...[
             SizedBox(height: 12.h),
             Container(
-              padding: EdgeInsets.all(8.w),
+              padding: EdgeInsets.all(12.r),
               decoration: BoxDecoration(
-                color: AppColors.textOnPrimary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8.r),
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Additional Charges:',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textOnPrimary,
+                    style: TextStyle(
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w600,
+                      color: Colors.white,
                     ),
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 8.h),
                   ...additionalCharges
                       .map(
                         (charge) => Padding(
-                          padding: EdgeInsets.only(bottom: 2.h),
+                          padding: EdgeInsets.only(bottom: 4.h),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 charge.name,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textOnPrimary.withOpacity(
-                                    0.9,
-                                  ),
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.white.withOpacity(0.9),
                                 ),
                               ),
                               Row(
                                 children: [
                                   Text(
-                                    '₹${charge.amount.toStringAsFixed(2)}',
-                                    style: AppTextStyles.bodySmall.copyWith(
-                                      color: AppColors.textOnPrimary
-                                          .withOpacity(0.9),
+                                    '₹${charge.amount.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: Colors.white.withOpacity(0.9),
                                     ),
                                   ),
                                   SizedBox(width: 8.w),
@@ -419,11 +529,19 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                                     onTap:
                                         () =>
                                             _removeAdditionalCharge(charge.id),
-                                    child: Icon(
-                                      Icons.close,
-                                      size: 16.sp,
-                                      color: AppColors.textOnPrimary
-                                          .withOpacity(0.7),
+                                    child: Container(
+                                      padding: EdgeInsets.all(2.r),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        Icons.close,
+                                        size: 14.r,
+                                        color: Colors.white,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -437,33 +555,32 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
               ),
             ),
           ],
+
           SizedBox(height: 12.h),
-          Row(
-            children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.textOnPrimary.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: TextButton.icon(
-                    onPressed: _addAdditionalCharge,
-                    icon: Icon(
-                      Icons.add,
-                      color: AppColors.textOnPrimary,
-                      size: 18.sp,
-                    ),
-                    label: Text(
-                      'Add Charge',
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textOnPrimary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
+          GestureDetector(
+            onTap: _addAdditionalCharge,
+            child: Container(
+              padding: EdgeInsets.symmetric(vertical: 8.h),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8.r),
               ),
-            ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add, color: Colors.white, size: 16.r),
+                  SizedBox(width: 8.w),
+                  Text(
+                    'Add Additional Charge',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -471,50 +588,87 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
   }
 
   Widget _buildTemporaryItemsList() {
-    final temporaryItems = selectedItems.where((item) => item.isTemporaryItem).toList();
-    
+    final temporaryItems =
+        selectedItems.where((item) => item.isTemporaryItem).toList();
+
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w),
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 12.h),
-            child: Row(
-              children: [
-                Text('Temporary Items', style: AppTextStyles.headingMedium),
-                SizedBox(width: 8.w),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4.r),
-                    border: Border.all(
-                      color: AppColors.warning.withOpacity(0.3),
-                      width: 1.w,
-                    ),
-                  ),
-                  child: Text(
-                    '${temporaryItems.length}',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.warning,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 10.sp,
-                    ),
-                  ),
+          Container(
+            padding: EdgeInsets.all(16.r),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16.r),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
-          ),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: temporaryItems.length,
-            separatorBuilder: (context, index) => SizedBox(height: 8.h),
-            itemBuilder: (context, index) {
-              final saleItem = temporaryItems[index];
-              return _buildTemporaryItemCard(saleItem);
-            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(6.r),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: Icon(
+                        Icons.add_circle_outline,
+                        color: Colors.orange[600],
+                        size: 18.r,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      'Custom Items',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 4.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Text(
+                        '${temporaryItems.length}',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.orange[600],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: temporaryItems.length,
+                  separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                  itemBuilder: (context, index) {
+                    final saleItem = temporaryItems[index];
+                    return _buildTemporaryItemCard(saleItem);
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -523,72 +677,38 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
 
   Widget _buildTemporaryItemCard(SaleItem saleItem) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: const Color(0xFFFFF3E0),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.warning, width: 2.w),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.warning.withOpacity(0.1),
-            blurRadius: 8.r,
-            offset: Offset(0, 2.h),
-          ),
-        ],
+        border: Border.all(color: Colors.orange.withOpacity(0.3), width: 1.w),
       ),
       child: Row(
         children: [
-          // Item Info
           Expanded(
             flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      saleItem.itemName,
-                      style: AppTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.warning,
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                      decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4.r),
-                        border: Border.all(
-                          color: AppColors.warning.withOpacity(0.3),
-                          width: 1.w,
-                        ),
-                      ),
-                      child: Text(
-                        'Temporary',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.warning,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10.sp,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  saleItem.itemName,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
                 ),
                 SizedBox(height: 4.h),
                 Text(
-                  '₹${saleItem.unitPrice.toStringAsFixed(2)} each',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.warning,
-                  ),
+                  '₹${saleItem.unitPrice.toStringAsFixed(0)} each',
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
                 ),
               ],
             ),
           ),
 
-          // Quantity Controls
           Expanded(
-            flex: 2,
+            flex: 3,
             child: Column(
               children: [
                 Row(
@@ -596,42 +716,56 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                   children: [
                     _buildQuantityButton(
                       icon: Icons.remove,
-                      onPressed: () => _updateTemporaryItemQuantity(saleItem, saleItem.quantity - 1),
-                      color: AppColors.error,
+                      onPressed:
+                          () => _updateTemporaryItemQuantity(
+                            saleItem,
+                            saleItem.quantity - 1,
+                          ),
+                      color: Colors.red[400]!,
                     ),
                     Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 8.h,
+                        horizontal: 12.w,
+                        vertical: 6.h,
                       ),
+                      margin: EdgeInsets.symmetric(horizontal: 8.w),
                       decoration: BoxDecoration(
-                        color: AppColors.warning.withOpacity(0.1),
+                        color: Colors.orange.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8.r),
+                        border: Border.all(
+                          color: Colors.orange.withOpacity(0.3),
+                        ),
                       ),
                       child: Text(
                         '${saleItem.quantity}',
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.warning,
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange[700],
                         ),
                       ),
                     ),
                     _buildQuantityButton(
                       icon: Icons.add,
-                      onPressed: () => _updateTemporaryItemQuantity(saleItem, saleItem.quantity + 1),
-                      color: AppColors.success,
+                      onPressed:
+                          () => _updateTemporaryItemQuantity(
+                            saleItem,
+                            saleItem.quantity + 1,
+                          ),
+                      color: Colors.green[400]!,
                     ),
                   ],
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: 8.h),
                 Text(
-                  '₹${saleItem.totalPrice.toStringAsFixed(2)}',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.warning,
+                  '₹${saleItem.totalPrice.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange[600],
                   ),
                 ),
-                SizedBox(height: 4.h),
+                SizedBox(height: 8.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -639,69 +773,61 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                       onTap: () => _editTemporaryItem(saleItem),
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: 6.w,
-                          vertical: 3.h,
+                          horizontal: 8.w,
+                          vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.warning.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4.r),
-                          border: Border.all(
-                            color: AppColors.warning.withOpacity(0.3),
-                            width: 1.w,
-                          ),
+                          color: const Color(0xFF4A90E2).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.edit,
-                              size: 10.sp,
-                              color: AppColors.warning,
+                              size: 12.r,
+                              color: const Color(0xFF4A90E2),
                             ),
-                            SizedBox(width: 2.w),
+                            SizedBox(width: 4.w),
                             Text(
                               'Edit',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.warning,
-                                fontWeight: FontWeight.w600,
+                              style: TextStyle(
                                 fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF4A90E2),
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    SizedBox(width: 4.w),
+                    SizedBox(width: 8.w),
                     GestureDetector(
                       onTap: () => _removeTemporaryItem(saleItem),
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: 6.w,
-                          vertical: 3.h,
+                          horizontal: 8.w,
+                          vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.error.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4.r),
-                          border: Border.all(
-                            color: AppColors.error.withOpacity(0.3),
-                            width: 1.w,
-                          ),
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
                               Icons.delete,
-                              size: 10.sp,
-                              color: AppColors.error,
+                              size: 12.r,
+                              color: Colors.red[400],
                             ),
-                            SizedBox(width: 2.w),
+                            SizedBox(width: 4.w),
                             Text(
                               'Remove',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.error,
-                                fontWeight: FontWeight.w600,
+                              style: TextStyle(
                                 fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.red[400],
                               ),
                             ),
                           ],
@@ -724,15 +850,70 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 12.h),
-            child: Text('Available Items', style: AppTextStyles.headingMedium),
+          Container(
+            padding: EdgeInsets.all(16.r),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16.r),
+                topRight: Radius.circular(16.r),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.r),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFE5B8),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Icon(
+                    Icons.inventory_2_outlined,
+                    color: const Color(0xFFFF9500),
+                    size: 20.r,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  'Available Inventory',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4A90E2).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Text(
+                    '${shop.inventory.length} items',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF4A90E2),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
+
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: shop.inventory.length,
-            separatorBuilder: (context, index) => SizedBox(height: 8.h),
+            separatorBuilder: (context, index) => SizedBox(height: 1.h),
             itemBuilder: (context, index) {
               final item = shop.inventory[index];
               final selectedItem = selectedItems.firstWhere(
@@ -741,7 +922,12 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
               );
               final isSelected = selectedItem.quantity > 0;
 
-              return _buildInventoryItemCard(item, selectedItem, isSelected);
+              return _buildInventoryItemCard(
+                item,
+                selectedItem,
+                isSelected,
+                index == shop.inventory.length - 1,
+              );
             },
           ),
         ],
@@ -753,296 +939,204 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
     InventoryItem item,
     SaleItem selectedItem,
     bool isSelected,
+    bool isLast,
   ) {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(12.r),
+        color: Colors.white,
+        borderRadius:
+            isLast
+                ? BorderRadius.only(
+                  bottomLeft: Radius.circular(16.r),
+                  bottomRight: Radius.circular(16.r),
+                )
+                : BorderRadius.zero,
         border:
             isSelected
-                ? Border.all(color: AppColors.primaryBlue, width: 2.w)
-                : null,
-        boxShadow: [
-          BoxShadow(
-            color:
-                isSelected
-                    ? AppColors.primaryBlue.withOpacity(0.1)
-                    : AppColors.shadowBlue,
-            blurRadius: isSelected ? 8.r : 6.r,
-            offset: Offset(0, 2.h),
-          ),
-        ],
+                ? Border.all(color: const Color(0xFF4A90E2), width: 2.w)
+                : Border(
+                  bottom: BorderSide(
+                    color: Colors.grey.withOpacity(0.1),
+                    width: 1.w,
+                  ),
+                ),
       ),
       child: Row(
         children: [
+          // Item Icon
+          Container(
+            width: 48.w,
+            height: 48.h,
+            decoration: BoxDecoration(
+              color:
+                  isSelected
+                      ? const Color(0xFF4A90E2).withOpacity(0.1)
+                      : const Color(0xFFFFE5B8),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Icon(
+              isSelected ? Icons.check_circle : Icons.circle_outlined,
+              color:
+                  isSelected
+                      ? const Color(0xFF4A90E2)
+                      : const Color(0xFFFF9500),
+              size: 24.r,
+            ),
+          ),
+
+          SizedBox(width: 16.w),
+
           // Item Info
           Expanded(
-            flex: 3,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      selectedItem.itemName,
-                      style: AppTextStyles.bodyLarge.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color:
-                            isSelected
-                                ? AppColors.primaryBlue
-                                : AppColors.textPrimary,
-                      ),
-                    ),
-                    if (selectedItem.isTemporaryItem) ...[
-                      SizedBox(width: 8.w),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 6.w,
-                          vertical: 2.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.warning.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(4.r),
-                          border: Border.all(
-                            color: AppColors.warning.withOpacity(0.3),
-                            width: 1.w,
-                          ),
-                        ),
-                        child: Text(
-                          'Temporary',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.warning,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 10.sp,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
+                Text(
+                  item.name,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
                 ),
                 SizedBox(height: 4.h),
                 Row(
                   children: [
                     Text(
-                      '₹${selectedItem.unitPrice.toStringAsFixed(2)} each',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color:
-                            selectedItem.isPriceModified
-                                ? AppColors.warning
-                                : AppColors.success,
+                      '₹${selectedItem.unitPrice.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF4A90E2),
                       ),
                     ),
                     if (selectedItem.isPriceModified) ...[
                       SizedBox(width: 4.w),
-                      Icon(Icons.edit, size: 14.sp, color: AppColors.warning),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 4.w,
+                          vertical: 2.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                        child: Text(
+                          'EDITED',
+                          style: TextStyle(
+                            fontSize: 8.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.orange[700],
+                          ),
+                        ),
+                      ),
                     ],
                   ],
                 ),
                 Text(
-                  'Stock: ${item.quantity}',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
+                  'Stock: ${item.quantity} pcs',
+                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
                 ),
               ],
             ),
           ),
 
-          // Quantity Controls
+          // Quantity Controls or Add Button
           if (isSelected) ...[
-            Expanded(
-              flex: 2,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildQuantityButton(
-                        icon: Icons.remove,
-                        onPressed: selectedItem.isTemporaryItem
-                            ? () => _updateTemporaryItemQuantity(selectedItem, selectedItem.quantity - 1)
-                            : () => _updateQuantity(
-                              item,
-                              selectedItem.quantity - 1,
-                            ),
-                        color: AppColors.error,
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 16.w,
-                          vertical: 8.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.blueTinted,
-                          borderRadius: BorderRadius.circular(8.r),
-                        ),
-                        child: Text(
-                          '${selectedItem.quantity}',
-                          style: AppTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryBlue,
-                          ),
-                        ),
-                      ),
-                      _buildQuantityButton(
-                        icon: Icons.add,
-                        onPressed: selectedItem.isTemporaryItem
-                            ? () => _updateTemporaryItemQuantity(selectedItem, selectedItem.quantity + 1)
-                            : (selectedItem.quantity < item.quantity
-                                ? () => _updateQuantity(
-                                  item,
-                                  selectedItem.quantity + 1,
-                                )
-                                : null),
-                        color: AppColors.success,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 4.h),
-                  Text(
-                    '₹${selectedItem.totalPrice.toStringAsFixed(2)}',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryBlue,
+            Column(
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildQuantityButton(
+                      icon: Icons.remove,
+                      onPressed:
+                          () =>
+                              _updateQuantity(item, selectedItem.quantity - 1),
+                      color: Colors.red[400]!,
                     ),
-                  ),
-                  SizedBox(height: 4.h),
-                  if (selectedItem.isTemporaryItem) ...[
-                    // Edit/Remove buttons for temporary items
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GestureDetector(
-                          onTap: () => _editTemporaryItem(selectedItem),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 6.w,
-                              vertical: 3.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.warning.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4.r),
-                              border: Border.all(
-                                color: AppColors.warning.withOpacity(0.3),
-                                width: 1.w,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.edit,
-                                  size: 10.sp,
-                                  color: AppColors.warning,
-                                ),
-                                SizedBox(width: 2.w),
-                                Text(
-                                  'Edit',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.warning,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 10.sp,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 4.w),
-                        GestureDetector(
-                          onTap: () => _removeTemporaryItem(selectedItem),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 6.w,
-                              vertical: 3.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.error.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(4.r),
-                              border: Border.all(
-                                color: AppColors.error.withOpacity(0.3),
-                                width: 1.w,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.delete,
-                                  size: 10.sp,
-                                  color: AppColors.error,
-                                ),
-                                SizedBox(width: 2.w),
-                                Text(
-                                  'Remove',
-                                  style: AppTextStyles.bodySmall.copyWith(
-                                    color: AppColors.error,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 10.sp,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ] else ...[
-                    // Edit Price button for inventory items
-                    GestureDetector(
-                      onTap: () => _editItemPrice(selectedItem),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 8.w,
-                          vertical: 4.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(6.r),
-                          border: Border.all(
-                            color: AppColors.primaryBlue.withOpacity(0.3),
-                            width: 1.w,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.edit,
-                              size: 12.sp,
-                              color: AppColors.primaryBlue,
-                            ),
-                            SizedBox(width: 4.w),
-                            Text(
-                              'Edit Price',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.primaryBlue,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 6.h,
+                      ),
+                      margin: EdgeInsets.symmetric(horizontal: 8.w),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4A90E2).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8.r),
+                        border: Border.all(
+                          color: const Color(0xFF4A90E2).withOpacity(0.3),
                         ),
                       ),
+                      child: Text(
+                        '${selectedItem.quantity}',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF4A90E2),
+                        ),
+                      ),
+                    ),
+                    _buildQuantityButton(
+                      icon: Icons.add,
+                      onPressed:
+                          selectedItem.quantity < item.quantity
+                              ? () => _updateQuantity(
+                                item,
+                                selectedItem.quantity + 1,
+                              )
+                              : null,
+                      color: Colors.green[400]!,
                     ),
                   ],
-                ],
-              ),
+                ),
+                SizedBox(height: 6.h),
+                Text(
+                  '₹${selectedItem.totalPrice.toStringAsFixed(0)}',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF4A90E2),
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                GestureDetector(
+                  onTap: () => _editItemPrice(selectedItem),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 2.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6.r),
+                    ),
+                    child: Text(
+                      'Edit Price',
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ] else ...[
-            // Add Button
             Container(
               decoration: BoxDecoration(
-                gradient: AppColors.lightGradient,
-                borderRadius: BorderRadius.circular(8.r),
+                color: item.quantity > 0 ? Colors.black87 : Colors.grey[300],
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: IconButton(
                 onPressed:
                     item.quantity > 0 ? () => _updateQuantity(item, 1) : null,
                 icon: Icon(
-                  Icons.add_shopping_cart,
-                  color: AppColors.textOnPrimary,
-                  size: 20.sp,
+                  Icons.add,
+                  color: item.quantity > 0 ? Colors.white : Colors.grey[500],
+                  size: 20.r,
                 ),
               ),
             ),
@@ -1057,23 +1151,28 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
     required VoidCallback? onPressed,
     required Color color,
   }) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 4.w),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(6.r),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(6.r),
-        child: Container(
-          padding: EdgeInsets.all(6.w),
-          child: Icon(
-            icon,
-            color: onPressed != null ? color : color.withOpacity(0.5),
-            size: 16.sp,
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: 32.w,
+        height: 32.h,
+        decoration: BoxDecoration(
+          color:
+              onPressed != null
+                  ? color.withOpacity(0.1)
+                  : Colors.grey.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color:
+                onPressed != null
+                    ? color.withOpacity(0.3)
+                    : Colors.grey.withOpacity(0.3),
           ),
+        ),
+        child: Icon(
+          icon,
+          color: onPressed != null ? color : Colors.grey[400],
+          size: 16.r,
         ),
       ),
     );
@@ -1084,17 +1183,32 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.inventory_2_outlined,
-            size: 80.sp,
-            color: AppColors.textSecondary.withOpacity(0.5),
+          Container(
+            width: 120.w,
+            height: 120.h,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFE5B8),
+              borderRadius: BorderRadius.circular(24.r),
+            ),
+            child: Icon(
+              Icons.inventory_2_outlined,
+              size: 48.r,
+              color: const Color(0xFFFF9500),
+            ),
           ),
-          SizedBox(height: 16.h),
-          Text('No Items Available', style: AppTextStyles.emptyStateTitle),
+          SizedBox(height: 24.h),
+          Text(
+            'No Items Available',
+            style: TextStyle(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
           SizedBox(height: 8.h),
           Text(
             'Add items to inventory to start selling',
-            style: AppTextStyles.emptyStateSubtitle,
+            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -1151,21 +1265,59 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text('Edit Price - ${saleItem.itemName}'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Original Price: ₹${saleItem.basePrice.toStringAsFixed(2)}',
+                  'Edit Price',
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                Text(
+                  saleItem.itemName,
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Original Price: ₹${saleItem.basePrice.toStringAsFixed(0)}',
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
                 ),
                 SizedBox(height: 16.h),
-                TextField(
-                  controller: priceController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: 'New Price',
-                    prefixText: '₹',
-                    border: OutlineInputBorder(),
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  ),
+                  child: TextField(
+                    onTapOutside: (_) => FocusScope.of(context).unfocus,
+                    controller: priceController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                    decoration: InputDecoration(
+                      labelText: 'New Price',
+                      prefixText: '₹',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.all(16.r),
+                    ),
                   ),
                 ),
               ],
@@ -1173,28 +1325,51 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  final newPrice = double.tryParse(priceController.text);
-                  if (newPrice != null && newPrice > 0) {
-                    setState(() {
-                      saleItem.temporaryPrice = newPrice;
-                    });
-                    Navigator.pop(context);
-                  }
-                },
-                child: Text('Save'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                ),
               ),
               TextButton(
                 onPressed: () {
                   setState(() {
-                    saleItem.temporaryPrice = null; // Reset to original price
+                    saleItem.temporaryPrice = null;
                   });
                   Navigator.pop(context);
                 },
-                child: Text('Reset'),
+                child: Text(
+                  'Reset',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: Colors.orange[600],
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A90E2),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: TextButton(
+                  onPressed: () {
+                    final newPrice = double.tryParse(priceController.text);
+                    if (newPrice != null && newPrice > 0) {
+                      setState(() {
+                        saleItem.temporaryPrice = newPrice;
+                      });
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text(
+                    'Save',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1209,26 +1384,59 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text('Add Additional Charge'),
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            title: Text(
+              'Add Additional Charge',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Charge Name',
-                    hintText: 'e.g., Delivery, Packaging, etc.',
-                    border: OutlineInputBorder(),
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  ),
+                  child: TextField(
+                    onTapOutside: (_) => FocusScope.of(context).unfocus,
+                    controller: nameController,
+                    style: TextStyle(fontSize: 16.sp),
+                    decoration: InputDecoration(
+                      labelText: 'Charge Name',
+                      hintText: 'e.g., Delivery, Packaging, etc.',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.all(16.r),
+                    ),
                   ),
                 ),
                 SizedBox(height: 16.h),
-                TextField(
-                  controller: amountController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: 'Amount',
-                    prefixText: '₹',
-                    border: OutlineInputBorder(),
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  ),
+                  child: TextField(
+                    onTapOutside: (_) => FocusScope.of(context).unfocus,
+                    controller: amountController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    style: TextStyle(fontSize: 16.sp),
+                    decoration: InputDecoration(
+                      labelText: 'Amount',
+                      prefixText: '₹',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.all(16.r),
+                    ),
                   ),
                 ),
               ],
@@ -1236,25 +1444,41 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                ),
               ),
-              TextButton(
-                onPressed: () {
-                  final name = nameController.text.trim();
-                  final amount = double.tryParse(amountController.text);
-                  if (name.isNotEmpty && amount != null && amount > 0) {
-                    setState(() {
-                      additionalCharges.add(
-                        order_models.AdditionalCharge(
-                          name: name,
-                          amount: amount,
-                        ),
-                      );
-                    });
-                    Navigator.pop(context);
-                  }
-                },
-                child: Text('Add'),
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A90E2),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: TextButton(
+                  onPressed: () {
+                    final name = nameController.text.trim();
+                    final amount = double.tryParse(amountController.text);
+                    if (name.isNotEmpty && amount != null && amount > 0) {
+                      setState(() {
+                        additionalCharges.add(
+                          order_models.AdditionalCharge(
+                            name: name,
+                            amount: amount,
+                          ),
+                        );
+                      });
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text(
+                    'Add',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1293,43 +1517,101 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: Text(saleItem != null ? 'Edit Temporary Item' : 'Add Temporary Item'),
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            title: Text(
+              saleItem != null ? 'Edit Custom Item' : 'Add Custom Item',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Item Name',
-                    hintText: 'Enter item name',
-                    border: OutlineInputBorder(),
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  ),
+                  child: TextField(
+                    onTapOutside: (_) => FocusScope.of(context).unfocus,
+                    controller: nameController,
+                    style: TextStyle(fontSize: 16.sp),
+                    decoration: InputDecoration(
+                      labelText: 'Item Name',
+                      hintText: 'Enter item name',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.all(16.r),
+                    ),
                   ),
                 ),
                 SizedBox(height: 16.h),
-                TextField(
-                  controller: priceController,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: 'Price',
-                    prefixText: '₹',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                SizedBox(height: 16.h),
-                TextField(
-                  controller: quantityController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Quantity',
-                    border: OutlineInputBorder(),
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9FA),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: Colors.grey.withOpacity(0.2),
+                          ),
+                        ),
+                        child: TextField(
+                          onTapOutside: (_) => FocusScope.of(context).unfocus,
+                          controller: priceController,
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          style: TextStyle(fontSize: 16.sp),
+                          decoration: InputDecoration(
+                            labelText: 'Price',
+                            prefixText: '₹',
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.all(16.r),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9FA),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: Colors.grey.withOpacity(0.2),
+                          ),
+                        ),
+                        child: TextField(
+                          onTapOutside: (_) => FocusScope.of(context).unfocus,
+                          controller: quantityController,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(fontSize: 16.sp),
+                          decoration: InputDecoration(
+                            labelText: 'Quantity',
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.all(16.r),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                ),
               ),
               if (saleItem != null) ...[
                 TextButton(
@@ -1339,43 +1621,61 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                     });
                     Navigator.pop(context);
                   },
-                  child: Text('Delete', style: TextStyle(color: AppColors.error)),
+                  child: Text(
+                    'Delete',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.red[400],
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ],
-              TextButton(
-                onPressed: () {
-                  final name = nameController.text.trim();
-                  final price = double.tryParse(priceController.text);
-                  final quantity = int.tryParse(quantityController.text) ?? 1;
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4A90E2),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: TextButton(
+                  onPressed: () {
+                    final name = nameController.text.trim();
+                    final price = double.tryParse(priceController.text);
+                    final quantity = int.tryParse(quantityController.text) ?? 1;
 
-                  if (name.isNotEmpty &&
-                      price != null &&
-                      price > 0 &&
-                      quantity > 0) {
-                    setState(() {
-                      if (saleItem != null) {
-                        // Update existing item
-                        final index = selectedItems.indexOf(saleItem);
-                        selectedItems[index] = SaleItem(
-                          temporaryItemName: name,
-                          temporaryItemPrice: price,
-                          quantity: quantity,
-                        );
-                      } else {
-                        // Add new item
-                        selectedItems.add(
-                          SaleItem(
+                    if (name.isNotEmpty &&
+                        price != null &&
+                        price > 0 &&
+                        quantity > 0) {
+                      setState(() {
+                        if (saleItem != null) {
+                          final index = selectedItems.indexOf(saleItem);
+                          selectedItems[index] = SaleItem(
                             temporaryItemName: name,
                             temporaryItemPrice: price,
                             quantity: quantity,
-                          ),
-                        );
-                      }
-                    });
-                    Navigator.pop(context);
-                  }
-                },
-                child: Text(saleItem != null ? 'Update' : 'Add'),
+                          );
+                        } else {
+                          selectedItems.add(
+                            SaleItem(
+                              temporaryItemName: name,
+                              temporaryItemPrice: price,
+                              quantity: quantity,
+                            ),
+                          );
+                        }
+                      });
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: Text(
+                    saleItem != null ? 'Update' : 'Add',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -1385,27 +1685,85 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
   void _showSelectedItemsBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
       ),
       builder:
           (context) => Container(
-            padding: EdgeInsets.all(20.w),
+            padding: EdgeInsets.all(24.r),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Selected Items', style: AppTextStyles.headingMedium),
-                SizedBox(height: 16.h),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8.r),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4A90E2).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Icon(
+                        Icons.shopping_cart,
+                        color: const Color(0xFF4A90E2),
+                        size: 20.r,
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Text(
+                      'Selected Items',
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20.h),
                 ...selectedItems
                     .map(
-                      (sItem) => ListTile(
-                        title: Text(sItem.itemName),
-                        subtitle: Text(
-                          '₹${sItem.basePrice} × ${sItem.quantity}',
+                      (sItem) => Container(
+                        margin: EdgeInsets.only(bottom: 12.h),
+                        padding: EdgeInsets.all(12.r),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9FA),
+                          borderRadius: BorderRadius.circular(12.r),
                         ),
-                        trailing: Text(
-                          '₹${sItem.totalPrice.toStringAsFixed(2)}',
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    sItem.itemName,
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  Text(
+                                    '₹${sItem.unitPrice.toStringAsFixed(0)} × ${sItem.quantity}',
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              '₹${sItem.totalPrice.toStringAsFixed(0)}',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF4A90E2),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     )

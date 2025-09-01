@@ -26,7 +26,6 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   final _partyNameController = TextEditingController();
   final _partyAddressController = TextEditingController();
   final _purchasePriceController = TextEditingController();
-  final _totalPaymentController = TextEditingController();
   final _paidAmountController = TextEditingController();
   final _nameFocusNode = FocusNode();
   final _priceFocusNode = FocusNode();
@@ -34,8 +33,9 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   final _partyNameFocusNode = FocusNode();
   final _partyAddressFocusNode = FocusNode();
   final _purchasePriceFocusNode = FocusNode();
-  final _totalPaymentFocusNode = FocusNode();
   final _paidAmountFocusNode = FocusNode();
+
+  late bool isEditing;
 
   @override
   void initState() {
@@ -48,6 +48,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
     // Update total payment display when qty or purchase price changes
     _quantityController.addListener(_onPriceOrQtyChanged);
     _purchasePriceController.addListener(_onPriceOrQtyChanged);
+    isEditing = widget.item != null;
   }
 
   void _onPriceOrQtyChanged() {
@@ -62,121 +63,88 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.item != null;
-
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: Text(
-          isEditing ? 'Edit Item' : 'Add Item',
-          style: AppTextStyles.appBarTitle,
-        ),
+        backgroundColor: Color(0xFFFDB462),
         elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(16.r),
-              bottomRight: Radius.circular(16.r),
-            ),
+        title: Text(
+          isEditing ? 'EDIT ITEM' : 'ADD ITEM',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
+        centerTitle: true,
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textOnPrimary,
+            Icons.arrow_back_ios,
+            color: Colors.black,
             size: 20.sp,
           ),
           onPressed: () => Navigator.pop(context),
         ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24.r),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(24.w),
+          padding: EdgeInsets.all(16.w),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Card
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.all(12.r),
-                  decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
-                    borderRadius: BorderRadius.circular(20.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.shadowBlue,
-                        blurRadius: 15.r,
-                        spreadRadius: 2.r,
-                        offset: Offset(0, 4.h),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(16.r),
-                        decoration: BoxDecoration(
-                          gradient: AppColors.lightGradient,
-                          borderRadius: BorderRadius.circular(16.r),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.shadowBlueStrong,
-                              blurRadius: 10.r,
-                              offset: Offset(0, 4.h),
-                            ),
-                          ],
-                        ),
-                        child: Icon(
-                          Icons.inventory_2,
-                          size: 35.sp,
-                          color: AppColors.textOnPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-                      Text(
-                        isEditing ? 'Edit Item Details' : 'Add New Item',
-                        style: AppTextStyles.headingMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        isEditing
-                            ? 'Update your inventory item information'
-                            : 'Fill in the details to add item to ${widget.shop.name}',
-                        style: AppTextStyles.bodySmall,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20.h),
-
                 // Item Information Card
                 Container(
-                  padding: EdgeInsets.all(24.w),
+                  width: double.infinity,
+                  padding: EdgeInsets.all(20.w),
                   decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
-                    borderRadius: BorderRadius.circular(20.r),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16.r),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.shadowBlue,
-                        blurRadius: 15.r,
-                        spreadRadius: 2.r,
-                        offset: Offset(0, 4.h),
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10.r,
+                        offset: Offset(0, 2.h),
                       ),
                     ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Item Information',
-                        style: AppTextStyles.headingMedium,
+                      Row(
+                        children: [
+                          Container(
+                            width: 40.w,
+                            height: 40.h,
+                            decoration: BoxDecoration(
+                              color: Color(0xFFFDB462),
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                            child: Icon(
+                              Icons.inventory_2_outlined,
+                              color: Colors.black,
+                              size: 20.sp,
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Text(
+                            'Item Information',
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: 24.h),
 
                       // Item Name Field
                       _buildInputField(
@@ -250,55 +218,75 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: 20.h),
+                SizedBox(height: 16.h),
 
-                // Purchase Details (optional on create; hidden on edit unless needed)
-                Container(
-                  padding: EdgeInsets.all(24.w),
+                // Purchase Details Card
+                isEditing ? SizedBox() : Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(20.w),
                   decoration: BoxDecoration(
-                    color: AppColors.cardBackground,
-                    borderRadius: BorderRadius.circular(20.r),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16.r),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.shadowBlue,
-                        blurRadius: 15.r,
-                        spreadRadius: 2.r,
-                        offset: Offset(0, 4.h),
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10.r,
+                        offset: Offset(0, 2.h),
                       ),
                     ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Purchase Details',
-                        style: AppTextStyles.headingMedium,
+                      Row(
+                        children: [
+                          Container(
+                            width: 40.w,
+                            height: 40.h,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade400,
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                            child: Icon(
+                              Icons.shopping_cart_outlined,
+                              color: Colors.white,
+                              size: 20.sp,
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Text(
+                            'Purchase Details',
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 20.h),
+                      SizedBox(height: 24.h),
+
                       _buildInputField(
                         controller: _partyNameController,
                         focusNode: _partyNameFocusNode,
-                        label: 'Party Name (Supplier)',
-                        hint: 'Enter supplier name',
+                        label: 'Supplier Name',
+                        hint: 'Enter supplier name (optional)',
                         icon: Icons.person_outline,
-                        validator: (value) {
-                          // optional, allow empty
-                          return null;
-                        },
+                        validator: (value) => null,
                       ),
                       SizedBox(height: 16.h),
+
                       _buildInputField(
                         controller: _partyAddressController,
                         focusNode: _partyAddressFocusNode,
-                        label: 'Party Address',
-                        hint: 'Enter supplier address',
+                        label: 'Supplier Address',
+                        hint: 'Enter supplier address (optional)',
                         icon: Icons.location_on_outlined,
-                        validator: (value) {
-                          return null;
-                        },
                         maxLines: 2,
+                        validator: (value) => null,
                       ),
                       SizedBox(height: 16.h),
+
                       Row(
                         children: [
                           Expanded(
@@ -313,7 +301,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return null; // optional
+                                  return null;
                                 }
                                 if (double.tryParse(value) == null ||
                                     double.parse(value) < 0) {
@@ -325,84 +313,73 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                           ),
                           SizedBox(width: 16.w),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Total Payment (Invoice)',
-                                  style: AppTextStyles.bodyMedium.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                                SizedBox(height: 36.h),
-                                Row(
-                                  children: [
-                                    Container(
-                                      margin: EdgeInsets.only(right: 8.w),
-                                      padding: EdgeInsets.all(8.w),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.blueTinted,
-                                        borderRadius: BorderRadius.circular(
-                                          8.r,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons.receipt_long,
-                                        color: AppColors.primaryBlue,
-                                        size: 18.sp,
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        '₹${_calculateTotalPayment().toStringAsFixed(2)}',
-                                        style: AppTextStyles.headingMedium,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                            child: _buildInputField(
+                              controller: _paidAmountController,
+                              focusNode: _paidAmountFocusNode,
+                              label: 'Paid Amount',
+                              hint: '0.00',
+                              icon: Icons.payments_outlined,
+                              keyboardType: TextInputType.numberWithOptions(
+                                decimal: true,
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) return null;
+                                final v = double.tryParse(value);
+                                if (v == null || v < 0) return 'Invalid amount';
+                                return null;
+                              },
                             ),
                           ),
                         ],
                       ),
                       SizedBox(height: 16.h),
-                      _buildInputField(
-                        controller: _paidAmountController,
-                        focusNode: _paidAmountFocusNode,
-                        label: 'Paid Amount',
-                        hint: '0.00',
-                        icon: Icons.payments_outlined,
-                        keyboardType: TextInputType.numberWithOptions(
-                          decimal: true,
+
+                      // Total Payment Display
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(16.w),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFFDB462).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: Color(0xFFFDB462).withOpacity(0.3),
+                            width: 1.w,
+                          ),
                         ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) return null;
-                          final v = double.tryParse(value);
-                          if (v == null || v < 0) return 'Invalid amount';
-                          return null;
-                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Total Payment',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Text(
+                              '₹${_calculateTotalPayment().toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 20.h),
+                SizedBox(height: 32.h),
 
-                // Action Buttons
+                // Save Button
                 Container(
                   width: double.infinity,
                   height: 56.h,
                   decoration: BoxDecoration(
-                    gradient: AppColors.accentGradient,
-                    borderRadius: BorderRadius.circular(16.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.shadowBlueFAB,
-                        blurRadius: 15.r,
-                        offset: Offset(0, 6.h),
-                      ),
-                    ],
+                    color: Colors.black,
+                    borderRadius: BorderRadius.circular(28.r),
                   ),
                   child: ElevatedButton(
                     onPressed: _saveItem,
@@ -410,46 +387,44 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r),
+                        borderRadius: BorderRadius.circular(28.r),
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          isEditing ? Icons.update : Icons.add_box,
-                          color: AppColors.textOnPrimary,
-                          size: 24.sp,
-                        ),
-                        SizedBox(width: 12.w),
-                        Text(
-                          isEditing ? 'Update Item' : 'Add Item',
-                          style: AppTextStyles.buttonLarge,
-                        ),
-                      ],
+                    child: Text(
+                      isEditing ? 'UPDATE ITEM' : 'ADD ITEM',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
                 ),
                 SizedBox(height: 16.h),
 
                 // Cancel Button
-                SizedBox(
+                Container(
                   width: double.infinity,
                   height: 56.h,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(28.r),
+                  ),
                   child: TextButton(
                     onPressed: () => Navigator.pop(context),
                     style: TextButton.styleFrom(
-                      backgroundColor: AppColors.surfaceLight,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r),
+                        borderRadius: BorderRadius.circular(28.r),
                       ),
                     ),
                     child: Text(
-                      'Cancel',
+                      'CANCEL',
                       style: TextStyle(
-                        color: AppColors.textSecondary,
+                        color: Colors.black54,
                         fontSize: 16.sp,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
@@ -477,22 +452,22 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
       children: [
         Text(
           label,
-          style: AppTextStyles.bodyMedium.copyWith(
+          style: TextStyle(
+            fontSize: 14.sp,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Colors.black87,
           ),
         ),
         SizedBox(height: 8.h),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.backgroundLight,
+            color: Color(0xFFF8F9FA),
             borderRadius: BorderRadius.circular(12.r),
             border: Border.all(
-              color:
-                  focusNode.hasFocus
-                      ? AppColors.primaryBlue
-                      : Colors.transparent,
-              width: 2.w,
+              color: focusNode.hasFocus
+                  ? Color(0xFFFDB462)
+                  : Colors.grey.shade300,
+              width: 1.w,
             ),
           ),
           child: TextFormField(
@@ -501,22 +476,30 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
             focusNode: focusNode,
             keyboardType: keyboardType,
             maxLines: maxLines,
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: Colors.black87,
+              fontWeight: FontWeight.w500,
             ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: AppTextStyles.bodyLarge.copyWith(
-                color: AppColors.textHint,
+              hintStyle: TextStyle(
+                fontSize: 16.sp,
+                color: Colors.grey.shade500,
               ),
               prefixIcon: Container(
                 margin: EdgeInsets.all(12.w),
-                padding: EdgeInsets.all(8.w),
+                width: 24.w,
+                height: 24.h,
                 decoration: BoxDecoration(
-                  color: AppColors.blueTinted,
+                  color: Color(0xFFFDB462).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
-                child: Icon(icon, color: AppColors.primaryBlue, size: 20.sp),
+                child: Icon(
+                  icon,
+                  color: Color(0xFFFDB462),
+                  size: 18.sp,
+                ),
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
@@ -532,18 +515,18 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(color: AppColors.error, width: 1.w),
+                borderSide: BorderSide(color: Colors.red.shade400, width: 1.w),
               ),
               focusedErrorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12.r),
-                borderSide: BorderSide(color: AppColors.error, width: 2.w),
+                borderSide: BorderSide(color: Colors.red.shade400, width: 1.w),
               ),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16.w,
                 vertical: 16.h,
               ),
               errorStyle: TextStyle(
-                color: AppColors.error,
+                color: Colors.red.shade400,
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w500,
               ),
@@ -575,7 +558,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Item updated successfully!'),
-            backgroundColor: AppColors.success,
+            backgroundColor: Colors.green.shade400,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.r),
@@ -599,7 +582,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
           _purchasePriceController.text,
         );
         final totalPayment =
-            (unitPurchasePrice != null ? unitPurchasePrice * qty : 0.0);
+        (unitPurchasePrice != null ? unitPurchasePrice * qty : 0.0);
         final paidAmount = double.tryParse(_paidAmountController.text) ?? 0.0;
         if (qty > 0 && unitPurchasePrice != null) {
           shopProvider.recordPurchase(
@@ -616,7 +599,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Item added successfully!'),
-            backgroundColor: AppColors.success,
+            backgroundColor: Colors.green.shade400,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.r),

@@ -15,26 +15,22 @@ class ItemDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
+      backgroundColor: const Color(0xFFF5F3F0),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFFDB462),
+        elevation: 0,
         title: Text(
           item.name,
-          style: AppTextStyles.appBarTitle,
-        ),
-        elevation: 0,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(16.r),
-              bottomRight: Radius.circular(16.r),
-            ),
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
           ),
         ),
         leading: IconButton(
           icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: AppColors.textOnPrimary,
+            Icons.arrow_back_ios,
+            color: Colors.black87,
             size: 20.sp,
           ),
           onPressed: () => Navigator.pop(context),
@@ -42,77 +38,91 @@ class ItemDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(
-              Icons.edit,
-              color: AppColors.textOnPrimary,
+              Icons.edit_outlined,
+              color: Colors.black87,
               size: 22.sp,
             ),
             onPressed: () {
               Navigator.push(context, MaterialPageRoute(
-                builder: (context) => AddEditItemScreen(shop: shop, item: item)
+                  builder: (context) => AddEditItemScreen(shop: shop, item: item)
               ));
             },
           ),
         ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(24.r),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(24.w),
+          padding: EdgeInsets.all(20.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header Card with Item Icon
+              // Header Card with Item Info
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(20.r),
+                padding: EdgeInsets.all(24.w),
                 decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
+                  color: const Color(0xFFFDB462),
                   borderRadius: BorderRadius.circular(20.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.shadowBlue,
+                      color: Colors.black.withOpacity(0.08),
                       blurRadius: 15.r,
-                      spreadRadius: 2.r,
                       offset: Offset(0, 4.h),
                     ),
                   ],
                 ),
-                child: Column(
+                child: Row(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(16.r),
+                      width: 60.w,
+                      height: 60.h,
                       decoration: BoxDecoration(
-                        gradient: AppColors.lightGradient,
+                        color: Colors.black87,
                         borderRadius: BorderRadius.circular(16.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.shadowBlueStrong,
-                            blurRadius: 10.r,
-                            offset: Offset(0, 4.h),
-                          ),
-                        ],
                       ),
                       child: Icon(
                         Icons.inventory_2,
-                        size: 40.sp,
-                        color: AppColors.textOnPrimary,
+                        color: const Color(0xFFFDB462),
+                        size: 30.sp,
                       ),
                     ),
-                    SizedBox(height: 16.h),
-                    Text(
-                      item.name,
-                      style: AppTextStyles.headingLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                    SizedBox(height: 8.h),
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                      decoration: BoxDecoration(
-                        color: AppColors.blueTinted,
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: Text(
-                        'From ${shop.name}',
-                        style: AppTextStyles.bodySmall,
+                    SizedBox(width: 20.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          Text(
+                            'From ${shop.name}',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Text(
+                            '${item.quantity} pcs',
+                            style: TextStyle(
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -123,46 +133,30 @@ class ItemDetailScreen extends StatelessWidget {
               // Item Information Card
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(24.w),
+                padding: EdgeInsets.all(20.w),
                 decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
-                  borderRadius: BorderRadius.circular(20.r),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.shadowBlue,
-                      blurRadius: 15.r,
-                      spreadRadius: 2.r,
-                      offset: Offset(0, 4.h),
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10.r,
+                      offset: Offset(0, 2.h),
                     ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(8.w),
-                          decoration: BoxDecoration(
-                            color: AppColors.blueTinted,
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                          child: Icon(
-                            Icons.info_outline,
-                            color: AppColors.primaryBlue,
-                            size: 20.sp,
-                          ),
-                        ),
-                        SizedBox(width: 12.w),
-                        Text(
-                          'Item Information',
-                          style: AppTextStyles.headingMedium,
-                        ),
-                      ],
+                    Text(
+                      'Item Information',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
                     ),
-                    SizedBox(height: 20.h),
-
-                    // Information Grid
+                    SizedBox(height: 16.h),
                     _buildInfoGrid(),
                   ],
                 ),
@@ -173,14 +167,13 @@ class ItemDetailScreen extends StatelessWidget {
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppColors.cardBackground,
-                  borderRadius: BorderRadius.circular(20.r),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16.r),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.shadowBlue,
-                      blurRadius: 15.r,
-                      spreadRadius: 2.r,
-                      offset: Offset(0, 4.h),
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10.r,
+                      offset: Offset(0, 2.h),
                     ),
                   ],
                 ),
@@ -188,36 +181,31 @@ class ItemDetailScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(24.w),
+                      padding: EdgeInsets.all(20.w),
                       child: Row(
                         children: [
-                          Container(
-                            padding: EdgeInsets.all(8.w),
-                            decoration: BoxDecoration(
-                              color: AppColors.blueTinted,
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                            child: Icon(
-                              Icons.history,
-                              color: AppColors.primaryBlue,
-                              size: 20.sp,
-                            ),
-                          ),
-                          SizedBox(width: 12.w),
                           Text(
                             'Stock History',
-                            style: AppTextStyles.headingMedium,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
                           ),
-                          Spacer(),
+                          const Spacer(),
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                             decoration: BoxDecoration(
-                              color: AppColors.blueTinted,
+                              color: Colors.grey[100],
                               borderRadius: BorderRadius.circular(12.r),
                             ),
                             child: Text(
                               '${item.stockEntries.length} entries',
-                              style: AppTextStyles.bodySmall,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ],
@@ -241,28 +229,24 @@ class ItemDetailScreen extends StatelessWidget {
   Widget _buildInfoGrid() {
     return Column(
       children: [
-        IntrinsicHeight(
-          child: Row(
-            children: [
-              Expanded(child: _buildInfoCard('Price', '₹${item.price.toStringAsFixed(2)}', Icons.currency_rupee_rounded, AppColors.success)),
-              SizedBox(width: 12.w),
-              Expanded(child: _buildInfoCard('Stock', item.quantity.toString(), Icons.inventory, AppColors.primaryBlue)),
-            ],
-          ),
+        Row(
+          children: [
+            Expanded(child: _buildInfoCard('Price', '₹${item.price.toStringAsFixed(2)}', Icons.currency_rupee_rounded, Colors.green[600]!)),
+            SizedBox(width: 12.w),
+            Expanded(child: _buildInfoCard('Stock', item.quantity.toString(), Icons.inventory, Colors.blue[600]!)),
+          ],
         ),
         SizedBox(height: 12.h),
-        IntrinsicHeight(
-          child: Row(
-            children: [
-              Expanded(child: _buildInfoCard('Total Value', '₹${(item.price * item.quantity).toStringAsFixed(2)}', Icons.account_balance_wallet, AppColors.warning)),
-              SizedBox(width: 12.w),
-              Expanded(child: _buildInfoCard('Created', _formatDate(item.createdDate), Icons.calendar_today, AppColors.textSecondary)),
-            ],
-          ),
+        Row(
+          children: [
+            Expanded(child: _buildInfoCard('Total Value', '₹${(item.price * item.quantity).toStringAsFixed(2)}', Icons.account_balance_wallet, Colors.orange[600]!)),
+            SizedBox(width: 12.w),
+            Expanded(child: _buildInfoCard('Created', _formatDate(item.createdDate), Icons.calendar_today, Colors.grey[600]!)),
+          ],
         ),
         if (item.lastUpdated != null) ...[
           SizedBox(height: 12.h),
-          _buildInfoCard('Last Updated', _formatDate(item.lastUpdated!), Icons.update, AppColors.textSecondary, fullWidth: true),
+          _buildInfoCard('Last Updated', _formatDate(item.lastUpdated!), Icons.update, Colors.grey[600]!, fullWidth: true),
         ],
       ],
     );
@@ -273,7 +257,7 @@ class ItemDetailScreen extends StatelessWidget {
       width: fullWidth ? double.infinity : null,
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: AppColors.backgroundLight,
+        color: Colors.grey[50],
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: color.withOpacity(0.2),
@@ -293,8 +277,10 @@ class ItemDetailScreen extends StatelessWidget {
               SizedBox(width: 8.w),
               Text(
                 label,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -302,9 +288,10 @@ class ItemDetailScreen extends StatelessWidget {
           SizedBox(height: 8.h),
           Text(
             value,
-            style: AppTextStyles.bodyLarge.copyWith(
+            style: TextStyle(
+              fontSize: 16.sp,
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: Colors.black87,
             ),
           ),
         ],
@@ -320,24 +307,31 @@ class ItemDetailScreen extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(20.w),
             decoration: BoxDecoration(
-              color: AppColors.blueTinted,
+              color: Colors.grey[100],
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.history_outlined,
               size: 40.sp,
-              color: AppColors.primaryBlue,
+              color: Colors.grey[400],
             ),
           ),
           SizedBox(height: 16.h),
           Text(
             'No Stock History',
-            style: AppTextStyles.emptyStateTitle.copyWith(fontSize: 18.sp),
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
             'Stock movements will appear here when inventory changes are made',
-            style: AppTextStyles.emptyStateSubtitle.copyWith(fontSize: 14.sp),
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.grey[500],
+            ),
             textAlign: TextAlign.center,
           ),
         ],
@@ -347,102 +341,77 @@ class ItemDetailScreen extends StatelessWidget {
 
   Widget _buildStockHistoryList() {
     return ListView.separated(
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       shrinkWrap: true,
       padding: EdgeInsets.only(bottom: 16.h),
       itemCount: item.stockEntries.length,
-      separatorBuilder: (context, index) => Container(
-        margin: EdgeInsets.symmetric(horizontal: 24.w),
+      separatorBuilder: (context, index) => Divider(
+        color: Colors.grey[200],
         height: 1.h,
-        color: AppColors.surfaceLight,
+        indent: 20.w,
+        endIndent: 20.w,
       ),
       itemBuilder: (context, index) {
         final entry = item.stockEntries.reversed.toList()[index];
         final isAddition = entry.type == 'addition';
 
-        return Container(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
           child: Row(
             children: [
+              // Date Section
               Container(
-                width: 48.w,
-                height: 48.h,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isAddition
-                        ? [AppColors.success, AppColors.success.withOpacity(0.8)]
-                        : [AppColors.error, AppColors.error.withOpacity(0.8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(12.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: (isAddition ? AppColors.success : AppColors.error).withOpacity(0.3),
-                      blurRadius: 8.r,
-                      offset: Offset(0, 2.h),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  isAddition ? Icons.add : Icons.remove,
-                  color: Colors.white,
-                  size: 24.sp,
-                ),
-              ),
-              SizedBox(width: 16.w),
-              Expanded(
+                width: 80.w,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Text(
-                          '${isAddition ? '+' : '-'}${entry.quantity}',
-                          style: AppTextStyles.bodyLarge.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: isAddition ? AppColors.success : AppColors.error,
-                          ),
-                        ),
-                        SizedBox(width: 8.w),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                          decoration: BoxDecoration(
-                            color: isAddition
-                                ? AppColors.success.withOpacity(0.1)
-                                : AppColors.error.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6.r),
-                          ),
-                          child: Text(
-                            isAddition ? 'Added' : 'Removed',
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.w600,
-                              color: isAddition ? AppColors.success : AppColors.error,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4.h),
                     Text(
-                      entry.note ?? 'No note provided',
-                      style: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      _formatDateTime(entry.dateTime),
+                      _formatDateShort(entry.dateTime),
                       style: TextStyle(
                         fontSize: 12.sp,
-                        color: AppColors.textHint,
+                        color: Colors.grey[600],
                         fontWeight: FontWeight.w500,
                       ),
                     ),
+                    Text(
+                      _formatTime(entry.dateTime),
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        color: Colors.grey[500],
+                      ),
+                    ),
                   ],
+                ),
+              ),
+
+              SizedBox(width: 16.w),
+
+              // Action Badge
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: isAddition ? Colors.green[100] : Colors.red[100],
+                  borderRadius: BorderRadius.circular(16.r),
+                ),
+                child: Text(
+                  isAddition ? 'Added' : 'Out',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w600,
+                    color: isAddition ? Colors.green[700] : Colors.red[700],
+                  ),
+                ),
+              ),
+
+              const Spacer(),
+
+              // Quantity
+              Text(
+                '${entry.quantity} pcs',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black87,
                 ),
               ),
             ],
@@ -458,6 +427,16 @@ class ItemDetailScreen extends StatelessWidget {
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
     return '${date.day} ${months[date.month]} ${date.year}';
+  }
+
+  String _formatDateShort(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  }
+
+  String _formatTime(DateTime date) {
+    final hour = date.hour == 0 ? 12 : (date.hour > 12 ? date.hour - 12 : date.hour);
+    final period = date.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:${date.minute.toString().padLeft(2, '0')}$period';
   }
 
   String _formatDateTime(DateTime date) {

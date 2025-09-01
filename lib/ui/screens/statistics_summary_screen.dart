@@ -34,6 +34,13 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
   Map<String, ItemStatistics> _itemStats = {};
   bool _isLoading = true;
 
+  // Modern color scheme matching the uploaded images
+  final Color primaryYellow = const Color(0xFFFDB462);
+  final Color lightYellow = const Color(0xFFF8F9FA);
+  final Color darkGray = const Color(0xFF2D3436);
+  final Color lightGray = const Color(0xFFF8F9FA);
+  final Color cardShadowColor = const Color(0x0F000000);
+
   @override
   void initState() {
     super.initState();
@@ -63,17 +70,16 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
         final saleWithItems = SaleOrder(
           id: sale.id,
           shopId: sale.shopId,
-          items:
-              saleItems
-                  .map(
-                    (item) => SaleItem(
-                      temporaryItemName: item['item_name'],
-                      temporaryItemPrice: item['price']?.toDouble(),
-                      quantity: item['quantity'] ?? 0,
-                      unitPrice: item['price']?.toDouble() ?? 0.0,
-                    ),
-                  )
-                  .toList(),
+          items: saleItems
+              .map(
+                (item) => SaleItem(
+              temporaryItemName: item['item_name'],
+              temporaryItemPrice: item['price']?.toDouble(),
+              quantity: item['quantity'] ?? 0,
+              unitPrice: item['price']?.toDouble() ?? 0.0,
+            ),
+          )
+              .toList(),
           additionalCharges: sale.additionalCharges,
           customerName: sale.customerName,
           customerPhone: sale.customerPhone,
@@ -96,9 +102,9 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading data: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading data: $e')),
+        );
       }
     }
   }
@@ -140,15 +146,14 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
       for (var saleItem in sale.items) {
         // Find the item by name since sale items might not have item IDs
         final item = _items.firstWhere(
-          (item) => item.name == saleItem.itemName,
-          orElse:
-              () => InventoryItem(
-                id: '',
-                name: saleItem.itemName,
-                price: saleItem.unitPrice,
-                quantity: 0,
-                createdDate: DateTime.now(),
-              ),
+              (item) => item.name == saleItem.itemName,
+          orElse: () => InventoryItem(
+            id: '',
+            name: saleItem.itemName,
+            price: saleItem.unitPrice,
+            quantity: 0,
+            createdDate: DateTime.now(),
+          ),
         );
 
         if (item.id.isNotEmpty && stats.containsKey(item.id)) {
@@ -195,154 +200,74 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: lightYellow,
       appBar: AppBar(
-        title: Text('Statistics Summary - ${widget.shopName}'),
-        backgroundColor: AppColors.primaryBlue,
-        foregroundColor: Colors.white,
+        title: Text(
+          'Statistics Summary',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: darkGray,
+          ),
+        ),
+        backgroundColor: primaryYellow,
         elevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: darkGray),
+          onPressed: () => Navigator.pop(context),
+        ),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
-        ],
-      ),
-      body:
-          _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : Column(
-                children: [
-                  Container(
-                    color: AppColors.primaryBlue,
-                    child: TabBar(
-                      controller: _tabController,
-                      labelColor: Colors.white,
-                      unselectedLabelColor: Colors.white70,
-                      indicatorColor: Colors.white,
-                      tabs: const [
-                        Tab(text: 'Overview'),
-                        Tab(text: 'Item Details'),
-                        Tab(text: 'Charts'),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildOverviewTab(),
-                        _buildItemDetailsTab(),
-                        _buildChartsTab(),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-    );
-  }
-
-  Widget _buildOverviewTab() {
-    final totalItems = _items.length;
-    final totalPurchaseValue = _purchases.fold<double>(
-      0.0,
-      (sum, purchase) => sum + purchase.totalAmount,
-    );
-    final totalSaleValue = _sales.fold<double>(
-      0.0,
-      (sum, sale) => sum + sale.total,
-    );
-    final totalProfit = _itemStats.values.fold<double>(
-      0.0,
-      (sum, stat) => sum + stat.totalProfit,
-    );
-
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(16.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSummaryCard(
-            title: 'Total Items',
-            value: totalItems.toString(),
-            icon: Icons.inventory,
-            color: Colors.blue,
-          ),
-          SizedBox(height: 16.h),
-          _buildSummaryCard(
-            title: 'Total Purchase Value',
-            value: '₹${totalPurchaseValue.toStringAsFixed(2)}',
-            icon: Icons.shopping_cart,
-            color: Colors.orange,
-          ),
-          SizedBox(height: 16.h),
-          _buildSummaryCard(
-            title: 'Total Sale Value',
-            value: '₹${totalSaleValue.toStringAsFixed(2)}',
-            icon: Icons.point_of_sale,
-            color: Colors.green,
-          ),
-          SizedBox(height: 16.h),
-          _buildSummaryCard(
-            title: 'Total Profit',
-            value: '₹${totalProfit.toStringAsFixed(2)}',
-            icon: Icons.trending_up,
-            color: totalProfit >= 0 ? Colors.green : Colors.red,
-          ),
-          SizedBox(height: 24.h),
-          Text('Top Performing Items', style: AppTextStyles.headingMedium),
-          SizedBox(height: 16.h),
-          _buildTopItemsList(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+          Container(
+            margin: EdgeInsets.only(right: 16.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: IconButton(
+              icon: Icon(Icons.refresh, color: darkGray, size: 20.w),
+              onPressed: _loadData,
+            ),
           ),
         ],
       ),
-      child: Row(
+      body: _isLoading
+          ? Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(darkGray),
+        ),
+      )
+          : Column(
         children: [
           Container(
-            padding: EdgeInsets.all(12.w),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8.r),
+            color: primaryYellow,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: darkGray,
+              unselectedLabelColor: darkGray.withOpacity(0.6),
+              indicatorColor: darkGray,
+              indicatorWeight: 3.0,
+              labelStyle: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelStyle: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w400,
+              ),
+              tabs: const [
+                Tab(text: 'Overview'),
+                Tab(text: 'Item Details'),
+                Tab(text: 'Charts'),
+              ],
             ),
-            child: Icon(icon, color: color, size: 24.w),
           ),
-          SizedBox(width: 16.w),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: TabBarView(
+              controller: _tabController,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
-                ),
-                SizedBox(height: 4.h),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 20.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
+                _buildOverviewTab(),
+                _buildItemDetailsTab(),
+                _buildChartsTab(),
               ],
             ),
           ),
@@ -351,121 +276,339 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
     );
   }
 
-  Widget _buildTopItemsList() {
-    final topItems =
-        _itemStats.values.toList()
-          ..sort((a, b) => b.totalProfit.compareTo(a.totalProfit));
+  Widget _buildOverviewTab() {
+    final totalItems = _items.length;
+    final totalPurchaseValue = _purchases.fold<double>(
+      0.0,
+          (sum, purchase) => sum + purchase.totalAmount,
+    );
+    final totalSaleValue = _sales.fold<double>(
+      0.0,
+          (sum, sale) => sum + sale.total,
+    );
+    final totalProfit = _itemStats.values.fold<double>(
+      0.0,
+          (sum, stat) => sum + stat.totalProfit,
+    );
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: topItems.take(5).length,
-      itemBuilder: (context, index) {
-        final item = topItems[index];
-        return Card(
-          margin: EdgeInsets.only(bottom: 8.h),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor:
-                  item.totalProfit >= 0 ? Colors.green : Colors.red,
-              child: Icon(
-                item.totalProfit >= 0 ? Icons.trending_up : Icons.trending_down,
-                color: Colors.white,
-                size: 20.w,
+    return SingleChildScrollView(
+      padding: EdgeInsets.all(20.w),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top stats cards in a grid
+          Row(
+            children: [
+              Expanded(
+                child: _buildModernSummaryCard(
+                  title: 'Total Items',
+                  value: totalItems.toString(),
+                  icon: Icons.inventory_2_outlined,
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF667EEA),
+                      const Color(0xFF764BA2),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
               ),
-            ),
-            title: Text(
-              item.itemName,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text('Profit: ₹${item.totalProfit.toStringAsFixed(2)}'),
-            trailing: Text(
-              '${item.profitMargin.toStringAsFixed(1)}%',
-              style: TextStyle(
-                color: item.profitMargin >= 0 ? Colors.green : Colors.red,
-                fontWeight: FontWeight.bold,
+              SizedBox(width: 12.w),
+              Expanded(
+                child: _buildModernSummaryCard(
+                  title: 'Total Purchase',
+                  value: '₹${_formatCurrency(totalPurchaseValue)}',
+                  icon: Icons.shopping_cart_outlined,
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFFFF9A8B),
+                      const Color(0xFFFECADA),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
               ),
+            ],
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            children: [
+              Expanded(
+                child: _buildModernSummaryCard(
+                  title: 'Total Sales',
+                  value: '₹${_formatCurrency(totalSaleValue)}',
+                  icon: Icons.trending_up_outlined,
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF56CCF2),
+                      const Color(0xFF2F80ED),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: _buildModernSummaryCard(
+                  title: 'Net Profit',
+                  value: '₹${_formatCurrency(totalProfit)}',
+                  icon: totalProfit >= 0
+                      ? Icons.arrow_upward_outlined
+                      : Icons.arrow_downward_outlined,
+                  gradient: LinearGradient(
+                    colors: totalProfit >= 0
+                        ? [
+                      const Color(0xFF56FFA4),
+                      const Color(0xFF59BC86),
+                    ]
+                        : [
+                      const Color(0xFFFF6B6B),
+                      const Color(0xFFEE5A52),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: 32.h),
+
+          // Top performing items section
+          Text(
+            'Top Performing Items',
+            style: TextStyle(
+              fontSize: 18.sp,
+              fontWeight: FontWeight.w700,
+              color: darkGray,
             ),
           ),
-        );
-      },
+          SizedBox(height: 16.h),
+          _buildTopItemsList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernSummaryCard({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Gradient gradient,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: cardShadowColor,
+            spreadRadius: 0,
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 20.w,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withOpacity(0.8),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopItemsList() {
+    final topItems = _itemStats.values.toList()
+      ..sort((a, b) => b.totalProfit.compareTo(a.totalProfit));
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: cardShadowColor,
+            spreadRadius: 0,
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: topItems.take(5).map((item) {
+          final isPositive = item.totalProfit >= 0;
+          return Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: lightGray,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40.w,
+                  height: 40.w,
+                  decoration: BoxDecoration(
+                    color: isPositive
+                        ? const Color(0xFF56FFA4).withOpacity(0.1)
+                        : const Color(0xFFFF6B6B).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Icon(
+                    isPositive ? Icons.trending_up : Icons.trending_down,
+                    color: isPositive
+                        ? const Color(0xFF56FFA4)
+                        : const Color(0xFFFF6B6B),
+                    size: 20.w,
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.itemName,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: darkGray,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        'Profit: ₹${_formatCurrency(item.totalProfit)}',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: isPositive
+                        ? const Color(0xFF56FFA4).withOpacity(0.1)
+                        : const Color(0xFFFF6B6B).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Text(
+                    '${item.profitMargin.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w600,
+                      color: isPositive
+                          ? const Color(0xFF56FFA4)
+                          : const Color(0xFFFF6B6B),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
   Widget _buildItemDetailsTab() {
     return ListView.builder(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(20.w),
       itemCount: _itemStats.length,
       itemBuilder: (context, index) {
         final itemId = _itemStats.keys.elementAt(index);
         final stat = _itemStats[itemId]!;
 
-        return Card(
+        return Container(
           margin: EdgeInsets.only(bottom: 16.h),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16.r),
+            boxShadow: [
+              BoxShadow(
+                color: cardShadowColor,
+                spreadRadius: 0,
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
           child: ExpansionTile(
-            shape: const Border(), // Remove the default border lines
-            collapsedShape: const Border(), // Remove border when collapsed too
+            shape: const Border(),
+            collapsedShape: const Border(),
+            tilePadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            childrenPadding: EdgeInsets.all(16.w),
+            leading: Container(
+              width: 40.w,
+              height: 40.w,
+              decoration: BoxDecoration(
+                color: primaryYellow.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Icon(
+                Icons.inventory_2_outlined,
+                color: darkGray,
+                size: 20.w,
+              ),
+            ),
             title: Text(
               stat.itemName,
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Text('Current Stock: ${stat.currentQuantity}'),
-            children: [
-              Padding(
-                padding: EdgeInsets.all(16.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildStatRow(
-                      'Average Purchase Price',
-                      '₹${stat.averagePurchasePrice.toStringAsFixed(2)}',
-                    ),
-                    _buildStatRow(
-                      'Total Purchase Quantity',
-                      stat.totalPurchaseQuantity.toString(),
-                    ),
-                    _buildStatRow(
-                      'Total Purchase Amount',
-                      '₹${stat.totalPurchaseAmount.toStringAsFixed(2)}',
-                    ),
-                    _buildStatRow(
-                      'Average Sale Price',
-                      '₹${stat.averageSalePrice.toStringAsFixed(2)}',
-                    ),
-                    _buildStatRow(
-                      'Total Sale Quantity',
-                      stat.totalSaleQuantity.toString(),
-                    ),
-                    _buildStatRow(
-                      'Total Sale Amount',
-                      '₹${stat.totalSaleAmount.toStringAsFixed(2)}',
-                    ),
-                    _buildStatRow(
-                      'Total Profit/Loss',
-                      '₹${stat.totalProfit.toStringAsFixed(2)}',
-                      stat.totalProfit >= 0 ? Colors.green : Colors.red,
-                    ),
-                    _buildStatRow(
-                      'Profit Margin',
-                      '${stat.profitMargin.toStringAsFixed(1)}%',
-                      stat.profitMargin >= 0 ? Colors.green : Colors.red,
-                    ),
-
-                    SizedBox(height: 16.h),
-                    Text('Recent Sales', style: AppTextStyles.headingMedium),
-                    SizedBox(height: 8.h),
-                    _buildSalesHistory(stat.saleHistory),
-
-                    SizedBox(height: 16.h),
-                    Text(
-                      'Purchase History',
-                      style: AppTextStyles.headingMedium,
-                    ),
-                    SizedBox(height: 8.h),
-                    _buildPurchaseHistory(stat.purchaseHistory),
-                  ],
-                ),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14.sp,
+                color: darkGray,
               ),
+            ),
+            subtitle: Text(
+              'Stock: ${stat.currentQuantity} pcs',
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: Colors.grey[600],
+              ),
+            ),
+            children: [
+              _buildDetailedStats(stat),
             ],
           ),
         );
@@ -473,19 +616,181 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
     );
   }
 
-  Widget _buildStatRow(String label, String value, [Color? valueColor]) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4.h),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildDetailedStats(ItemStatistics stat) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Stats grid
+        Container(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            color: lightGray,
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatItem(
+                      'Avg Purchase',
+                      '₹${stat.averagePurchasePrice.toStringAsFixed(2)}',
+                      Icons.shopping_cart_outlined,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatItem(
+                      'Avg Sale',
+                      '₹${stat.averageSalePrice.toStringAsFixed(2)}',
+                      Icons.point_of_sale_outlined,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatItem(
+                      'Total Purchase',
+                      '${stat.totalPurchaseQuantity} pcs',
+                      Icons.input_outlined,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatItem(
+                      'Total Sale',
+                      '${stat.totalSaleQuantity} pcs',
+                      Icons.output_outlined,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatItem(
+                      'Total Profit',
+                      '₹${_formatCurrency(stat.totalProfit)}',
+                      stat.totalProfit >= 0
+                          ? Icons.trending_up_outlined
+                          : Icons.trending_down_outlined,
+                      valueColor: stat.totalProfit >= 0
+                          ? const Color(0xFF56FFA4)
+                          : const Color(0xFFFF6B6B),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatItem(
+                      'Profit Margin',
+                      '${stat.profitMargin.toStringAsFixed(1)}%',
+                      Icons.percent_outlined,
+                      valueColor: stat.profitMargin >= 0
+                          ? const Color(0xFF56FFA4)
+                          : const Color(0xFFFF6B6B),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        SizedBox(height: 20.h),
+
+        // Recent sales and purchases
+        Text(
+          'Recent Activity',
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w600,
+            color: darkGray,
+          ),
+        ),
+        SizedBox(height: 12.h),
+        _buildActivityTabs(stat),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(
+      String label,
+      String value,
+      IconData icon, {
+        Color? valueColor,
+      }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              icon,
+              size: 16.w,
+              color: Colors.grey[600],
+            ),
+            SizedBox(width: 4.w),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11.sp,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 4.h),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w700,
+            color: valueColor ?? darkGray,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActivityTabs(ItemStatistics stat) {
+    return DefaultTabController(
+      length: 2,
+      child: Column(
         children: [
-          Text(label, style: TextStyle(fontSize: 14.sp)),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-              color: valueColor,
+          Container(
+            decoration: BoxDecoration(
+              color: lightGray,
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: TabBar(
+              indicatorSize: TabBarIndicatorSize.tab,
+              indicator: BoxDecoration(
+                color: primaryYellow,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              labelColor: darkGray,
+              unselectedLabelColor: Colors.grey[600],
+              dividerColor: Colors.transparent,
+              labelStyle: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w600,
+              ),
+              tabs: const [
+                Tab(text: 'Sales'),
+                Tab(text: 'Purchases'),
+              ],
+            ),
+          ),
+          SizedBox(height: 12.h),
+          SizedBox(
+            height: 200.h,
+            child: TabBarView(
+              children: [
+                _buildSalesHistory(stat.saleHistory),
+                _buildPurchaseHistory(stat.purchaseHistory),
+              ],
             ),
           ),
         ],
@@ -495,206 +800,302 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
 
   Widget _buildSalesHistory(List<SaleRecord> sales) {
     if (sales.isEmpty) {
-      return Text('No sales recorded', style: TextStyle(color: Colors.grey));
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.receipt_outlined,
+              size: 40.w,
+              color: Colors.grey[400],
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'No sales recorded',
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 12.sp,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
-    return Column(
-      children:
-          sales
-              .take(5)
-              .map(
-                (sale) => Card(
-                  child: ListTile(
-                    title: Text('Bill: ${sale.billNumber}'),
-                    subtitle: Text(
-                      '${sale.quantity} × ₹${sale.price.toStringAsFixed(2)}',
-                    ),
-                    trailing: Text(
-                      '₹${sale.total.toStringAsFixed(2)}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
+    return ListView.builder(
+      itemCount: sales.take(5).length,
+      itemBuilder: (context, index) {
+        final sale = sales[index];
+        return Container(
+          margin: EdgeInsets.only(bottom: 8.h),
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(color: lightGray),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 32.w,
+                height: 32.w,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF56FFA4).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.r),
                 ),
-              )
-              .toList(),
+                child: Icon(
+                  Icons.receipt_outlined,
+                  size: 16.w,
+                  color: const Color(0xFF56FFA4),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Bill: ${sale.billNumber}',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                        color: darkGray,
+                      ),
+                    ),
+                    Text(
+                      '${sale.quantity} × ₹${sale.price.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '₹${sale.total.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF56FFA4),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildPurchaseHistory(List<Purchase> purchases) {
     if (purchases.isEmpty) {
-      return Text(
-        'No purchases recorded',
-        style: TextStyle(color: Colors.grey),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.shopping_cart_outlined,
+              size: 40.w,
+              color: Colors.grey[400],
+            ),
+            SizedBox(height: 8.h),
+            Text(
+              'No purchases recorded',
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 12.sp,
+              ),
+            ),
+          ],
+        ),
       );
     }
 
-    return Column(
-      children:
-          purchases
-              .take(5)
-              .map(
-                (purchase) => Card(
-                  child: ListTile(
-                    title: Text(purchase.partyName),
-                    subtitle: Text(
-                      '${purchase.quantity} × ₹${purchase.unitPurchasePrice.toStringAsFixed(2)}',
-                    ),
-                    trailing: Text(
-                      '₹${purchase.totalAmount.toStringAsFixed(2)}',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
+    return ListView.builder(
+      itemCount: purchases.take(5).length,
+      itemBuilder: (context, index) {
+        final purchase = purchases[index];
+        return Container(
+          margin: EdgeInsets.only(bottom: 8.h),
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8.r),
+            border: Border.all(color: lightGray),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 32.w,
+                height: 32.w,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF9A8B).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.r),
                 ),
-              )
-              .toList(),
+                child: Icon(
+                  Icons.shopping_cart_outlined,
+                  size: 16.w,
+                  color: const Color(0xFFFF9A8B),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      purchase.partyName,
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                        color: darkGray,
+                      ),
+                    ),
+                    Text(
+                      '${purchase.quantity} × ₹${purchase.unitPurchasePrice.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                '₹${purchase.totalAmount.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFFF9A8B),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
   Widget _buildChartsTab() {
     return SingleChildScrollView(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(20.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Profit/Loss by Item', style: AppTextStyles.headingMedium),
-          SizedBox(height: 8.h),
-          _buildChartLegend([
-            LegendItem(color: Colors.green, label: 'Profit'),
-            LegendItem(color: Colors.red, label: 'Loss'),
-          ]),
-          SizedBox(height: 16.h),
-          SizedBox(height: 300.h, child: _buildProfitLossChart()),
-
-          SizedBox(height: 32.h),
-          Text(
-            'Sales vs Purchase Comparison',
-            style: AppTextStyles.headingMedium,
+          // Profit/Loss Chart
+          _buildChartSection(
+            title: 'Profit/Loss by Item',
+            child: _buildProfitLossChart(),
+            legendItems: [
+              LegendItem(color: const Color(0xFF56FFA4), label: 'Profit'),
+              LegendItem(color: const Color(0xFFFF6B6B), label: 'Loss'),
+            ],
           ),
-          SizedBox(height: 8.h),
-          _buildChartLegend([
-            LegendItem(color: Colors.orange, label: 'Purchase Amount'),
-            LegendItem(color: Colors.green, label: 'Sale Amount'),
-          ]),
-          SizedBox(height: 16.h),
-          SizedBox(height: 300.h, child: _buildSalesVsPurchaseChart()),
 
           SizedBox(height: 32.h),
-          Text('Monthly Sales Trend', style: AppTextStyles.headingMedium),
-          SizedBox(height: 8.h),
-          _buildChartLegend([
-            LegendItem(color: AppColors.primaryBlue, label: 'Monthly Sales'),
-          ]),
-          SizedBox(height: 16.h),
-          SizedBox(height: 300.h, child: _buildMonthlyTrendChart()),
+
+          // Sales vs Purchase Chart
+          _buildChartSection(
+            title: 'Sales vs Purchase Comparison',
+            child: _buildSalesVsPurchaseChart(),
+            legendItems: [
+              LegendItem(color: const Color(0xFFFF9A8B), label: 'Purchase Amount'),
+              LegendItem(color: const Color(0xFF56CCF2), label: 'Sale Amount'),
+            ],
+          ),
+
+          SizedBox(height: 32.h),
+
+          // Monthly Trend Chart
+          _buildChartSection(
+            title: 'Monthly Sales Trend',
+            child: _buildMonthlyTrendChart(),
+            legendItems: [
+              LegendItem(color: const Color(0xFF667EEA), label: 'Monthly Sales'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChartSection({
+    required String title,
+    required Widget child,
+    required List<LegendItem> legendItems,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: cardShadowColor,
+            spreadRadius: 0,
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w700,
+              color: darkGray,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          _buildModernChartLegend(legendItems),
+          SizedBox(height: 20.h),
+          SizedBox(height: 250.h, child: child),
         ],
       ),
     );
   }
 
   Widget _buildProfitLossChart() {
-    final profitableItems =
-        _itemStats.values.where((item) => item.totalProfit > 0).toList();
-    final lossItems =
-        _itemStats.values.where((item) => item.totalProfit < 0).toList();
-
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: _itemStats.values.fold<double>(
-          0.0,
-          (max, item) =>
-              item.totalProfit.abs() > max ? item.totalProfit.abs() : max,
-        ),
-        barTouchData: BarTouchData(enabled: false),
-        titlesData: FlTitlesData(
-          show: true,
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                if (value.toInt() < _itemStats.length) {
-                  final item = _itemStats.values.elementAt(value.toInt());
-                  return Padding(
-                    padding: EdgeInsets.only(top: 8.h),
-                    child: Text(
-                      item.itemName.length > 8
-                          ? '${item.itemName.substring(0, 8)}...'
-                          : item.itemName,
-                      style: TextStyle(fontSize: 10.sp),
-                    ),
-                  );
-                }
-                return const Text('');
-              },
-            ),
-          ),
-          leftTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              reservedSize: 60.w,
-              getTitlesWidget: (value, meta) {
-                return Text(
-                  '₹${value.toInt()}',
-                  style: TextStyle(fontSize: 10.sp),
-                );
-              },
-            ),
-          ),
-        ),
-        borderData: FlBorderData(show: false),
-        barGroups:
-            _itemStats.values.toList().asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              return BarChartGroupData(
-                x: index,
-                barRods: [
-                  BarChartRodData(
-                    toY: item.totalProfit,
-                    color: item.totalProfit >= 0 ? Colors.green : Colors.red,
-                    width: 20.w,
-                    borderRadius: BorderRadius.circular(4.r),
-                  ),
-                ],
-              );
-            }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildSalesVsPurchaseChart() {
     final items = _itemStats.values.toList();
+    if (items.isEmpty) return _buildEmptyChart();
 
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
         maxY: items.fold<double>(
           0.0,
-          (max, item) =>
-              (item.totalSaleAmount > max ? item.totalSaleAmount : max) >
-                      (item.totalPurchaseAmount > max
-                          ? item.totalPurchaseAmount
-                          : max)
-                  ? (item.totalSaleAmount > max ? item.totalSaleAmount : max)
-                  : (item.totalPurchaseAmount > max
-                      ? item.totalPurchaseAmount
-                      : max),
+              (max, item) =>
+          item.totalProfit.abs() > max ? item.totalProfit.abs() : max,
         ),
-        barTouchData: BarTouchData(enabled: false),
+        minY: items.fold<double>(
+          0.0,
+              (min, item) => item.totalProfit < min ? item.totalProfit : min,
+        ),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            tooltipBgColor: darkGray.withOpacity(0.9),
+            tooltipRoundedRadius: 8.r,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final item = items[group.x.toInt()];
+              return BarTooltipItem(
+                '${item.itemName}\n₹${item.totalProfit.toStringAsFixed(2)}',
+                TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.sp,
+                ),
+              );
+            },
+          ),
+        ),
         titlesData: FlTitlesData(
           show: true,
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -704,10 +1105,14 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
                   return Padding(
                     padding: EdgeInsets.only(top: 8.h),
                     child: Text(
-                      item.itemName.length > 8
-                          ? '${item.itemName.substring(0, 8)}...'
+                      item.itemName.length > 6
+                          ? '${item.itemName.substring(0, 6)}...'
                           : item.itemName,
-                      style: TextStyle(fontSize: 10.sp),
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   );
                 }
@@ -718,39 +1123,159 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 60.w,
+              reservedSize: 50.w,
               getTitlesWidget: (value, meta) {
                 return Text(
-                  '₹${value.toInt()}',
-                  style: TextStyle(fontSize: 10.sp),
+                  '₹${_formatCurrency(value)}',
+                  style: TextStyle(
+                    fontSize: 9.sp,
+                    color: Colors.grey[600],
+                  ),
                 );
               },
             ),
           ),
         ),
         borderData: FlBorderData(show: false),
-        barGroups:
-            items.asMap().entries.map((entry) {
-              final index = entry.key;
-              final item = entry.value;
-              return BarChartGroupData(
-                x: index,
-                barRods: [
-                  BarChartRodData(
-                    toY: item.totalPurchaseAmount,
-                    color: Colors.orange,
-                    width: 15.w,
-                    borderRadius: BorderRadius.circular(4.r),
-                  ),
-                  BarChartRodData(
-                    toY: item.totalSaleAmount,
-                    color: Colors.green,
-                    width: 15.w,
-                    borderRadius: BorderRadius.circular(4.r),
-                  ),
-                ],
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: null,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: Colors.grey[200]!,
+              strokeWidth: 1,
+            );
+          },
+        ),
+        barGroups: items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          return BarChartGroupData(
+            x: index,
+            barRods: [
+              BarChartRodData(
+                toY: item.totalProfit,
+                color: item.totalProfit >= 0
+                    ? const Color(0xFF56FFA4)
+                    : const Color(0xFFFF6B6B),
+                width: 16.w,
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildSalesVsPurchaseChart() {
+    final items = _itemStats.values.toList();
+    if (items.isEmpty) return _buildEmptyChart();
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: items.fold<double>(
+          0.0,
+              (max, item) => [item.totalSaleAmount, item.totalPurchaseAmount, max]
+              .reduce((a, b) => a > b ? a : b),
+        ),
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            tooltipBgColor: darkGray.withOpacity(0.9),
+            tooltipRoundedRadius: 8.r,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              final item = items[group.x.toInt()];
+              final isPurchase = rodIndex == 0;
+              return BarTooltipItem(
+                '${item.itemName}\n${isPurchase ? 'Purchase' : 'Sale'}: ₹${isPurchase ? item.totalPurchaseAmount.toStringAsFixed(2) : item.totalSaleAmount.toStringAsFixed(2)}',
+                TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.sp,
+                ),
               );
-            }).toList(),
+            },
+          ),
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                if (value.toInt() < items.length) {
+                  final item = items[value.toInt()];
+                  return Padding(
+                    padding: EdgeInsets.only(top: 8.h),
+                    child: Text(
+                      item.itemName.length > 6
+                          ? '${item.itemName.substring(0, 6)}...'
+                          : item.itemName,
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  );
+                }
+                return const Text('');
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 50.w,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  '₹${_formatCurrency(value)}',
+                  style: TextStyle(
+                    fontSize: 9.sp,
+                    color: Colors.grey[600],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: Colors.grey[200]!,
+              strokeWidth: 1,
+            );
+          },
+        ),
+        barGroups: items.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          return BarChartGroupData(
+            x: index,
+            barRods: [
+              BarChartRodData(
+                toY: item.totalPurchaseAmount,
+                color: const Color(0xFFFF9A8B),
+                width: 12.w,
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+              BarChartRodData(
+                toY: item.totalSaleAmount,
+                color: const Color(0xFF56CCF2),
+                width: 12.w,
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+            ],
+          );
+        }).toList(),
       ),
     );
   }
@@ -766,17 +1291,24 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
 
     final sortedMonths = monthlySales.keys.toList()..sort();
 
+    if (sortedMonths.isEmpty) return _buildEmptyChart();
+
     return LineChart(
       LineChartData(
-        gridData: FlGridData(show: true),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: Colors.grey[200]!,
+              strokeWidth: 1,
+            );
+          },
+        ),
         titlesData: FlTitlesData(
           show: true,
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -787,7 +1319,11 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
                     padding: EdgeInsets.only(top: 8.h),
                     child: Text(
                       month.substring(5), // Show only month
-                      style: TextStyle(fontSize: 10.sp),
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   );
                 }
@@ -798,80 +1334,146 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
-              reservedSize: 60.w,
+              reservedSize: 50.w,
               getTitlesWidget: (value, meta) {
                 return Text(
-                  '₹${value.toInt()}',
-                  style: TextStyle(fontSize: 10.sp),
+                  '₹${_formatCurrency(value)}',
+                  style: TextStyle(
+                    fontSize: 9.sp,
+                    color: Colors.grey[600],
+                  ),
                 );
               },
             ),
           ),
         ),
-        borderData: FlBorderData(show: true),
+        borderData: FlBorderData(
+          show: true,
+          border: Border.all(color: Colors.grey[200]!),
+        ),
         lineBarsData: [
           LineChartBarData(
-            spots:
-                sortedMonths.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final month = entry.value;
-                  return FlSpot(index.toDouble(), monthlySales[month]!);
-                }).toList(),
+            spots: sortedMonths.asMap().entries.map((entry) {
+              final index = entry.key;
+              final month = entry.value;
+              return FlSpot(index.toDouble(), monthlySales[month]!);
+            }).toList(),
             isCurved: true,
-            color: AppColors.primaryBlue,
+            gradient: LinearGradient(
+              colors: [
+                const Color(0xFF667EEA),
+                const Color(0xFF764BA2),
+              ],
+            ),
             barWidth: 3.w,
-            dotData: FlDotData(show: true),
+            isStrokeCapRound: true,
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) {
+                return FlDotCirclePainter(
+                  radius: 4.w,
+                  color: Colors.white,
+                  strokeWidth: 2.w,
+                  strokeColor: const Color(0xFF667EEA),
+                );
+              },
+            ),
+            belowBarData: BarAreaData(
+              show: true,
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF667EEA).withOpacity(0.1),
+                  Colors.transparent,
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildChartLegend(List<LegendItem> items) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
+  Widget _buildEmptyChart() {
+    return Center(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children:
-            items
-                .map(
-                  (item) => Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 16.w,
-                          height: 16.w,
-                          decoration: BoxDecoration(
-                            color: item.color,
-                            borderRadius: BorderRadius.circular(4.r),
-                          ),
-                        ),
-                        SizedBox(width: 8.w),
-                        Text(
-                          item.label,
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
+        children: [
+          Icon(
+            Icons.bar_chart_outlined,
+            size: 48.w,
+            color: Colors.grey[400],
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            'No data available',
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
+
+  Widget _buildModernChartLegend(List<LegendItem> items) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+      decoration: BoxDecoration(
+        color: lightGray,
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: items
+            .map(
+              (item) => Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8.w),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 12.w,
+                  height: 12.w,
+                  decoration: BoxDecoration(
+                    color: item.color,
+                    borderRadius: BorderRadius.circular(3.r),
+                  ),
+                ),
+                SizedBox(width: 6.w),
+                Text(
+                  item.label,
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: darkGray,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+            .toList(),
+      ),
+    );
+  }
+
+  String _formatCurrency(double value) {
+    if (value >= 100000) {
+      return '${(value / 100000).toStringAsFixed(1)}L';
+    } else if (value >= 1000) {
+      return '${(value / 1000).toStringAsFixed(1)}K';
+    } else {
+      return value.toStringAsFixed(0);
+    }
+  }
 }
 
+// Keep existing classes unchanged
 class ItemStatistics {
   final String itemId;
   final String itemName;
