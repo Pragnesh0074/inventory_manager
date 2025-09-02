@@ -811,6 +811,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
               ),
               SizedBox(height: 8.h),
               TextField(
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
                 controller: _paidAmountController,
                 keyboardType: TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
@@ -1266,7 +1267,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
           ),
           SizedBox(width: 8.w),
           Text(
-            'Custom GST:',
+            'GST:',
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.w500,
@@ -1276,6 +1277,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
           SizedBox(width: 12.w),
           Expanded(
             child: TextField(
+              onTapOutside: (_) => FocusScope.of(context).unfocus(),
               controller: _gstController,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               style: TextStyle(
