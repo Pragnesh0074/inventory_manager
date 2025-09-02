@@ -12,10 +12,17 @@ class ShopProvider with ChangeNotifier {
   Shop? _currentShop;
   final DatabaseHelper _databaseHelper = DatabaseHelper();
   bool _isLoading = false;
+  int _idCounter = 0; // Add counter for unique IDs
 
   List<Shop> get shops => _shops;
   Shop? get currentShop => _currentShop;
   bool get isLoading => _isLoading;
+
+  // Generate unique ID with timestamp and counter
+  String _generateUniqueId() {
+    _idCounter++;
+    return '${DateTime.now().millisecondsSinceEpoch}_$_idCounter';
+  }
 
   // Initialize and load data from database
   Future<void> initializeData() async {
@@ -95,7 +102,7 @@ class ShopProvider with ChangeNotifier {
         existingItem.lastUpdated = DateTime.now();
 
         final stockEntry = StockEntry(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: _generateUniqueId(),
           quantity: item.quantity,
           type: 'addition',
           dateTime: DateTime.now(),
@@ -109,7 +116,7 @@ class ShopProvider with ChangeNotifier {
       } else {
         // Add new item
         final stockEntry = StockEntry(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: _generateUniqueId(),
           quantity: item.quantity,
           type: 'addition',
           dateTime: DateTime.now(),
@@ -173,7 +180,7 @@ class ShopProvider with ChangeNotifier {
 
         // Add stock entry
         final stockEntry = StockEntry(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: _generateUniqueId(),
           quantity: quantity,
           type: 'sale',
           dateTime: DateTime.now(),
@@ -184,7 +191,7 @@ class ShopProvider with ChangeNotifier {
 
         // Add transaction
         final transaction = Transaction(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          id: _generateUniqueId(),
           itemId: itemId,
           itemName: item.name,
           quantity: quantity,
@@ -219,7 +226,7 @@ class ShopProvider with ChangeNotifier {
 
       // Add stock entry
       final stockEntry = StockEntry(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: _generateUniqueId(),
         quantity: quantity,
         type: 'addition',
         dateTime: DateTime.now(),
@@ -262,7 +269,7 @@ class ShopProvider with ChangeNotifier {
       }
 
       final stockEntry = StockEntry(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: _generateUniqueId(),
         quantity: quantity,
         type: 'addition',
         dateTime: DateTime.now(),
@@ -280,7 +287,7 @@ class ShopProvider with ChangeNotifier {
 
       // Create purchase record
       final purchase = Purchase(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: _generateUniqueId(),
         shopId: shopId,
         itemId: item.id,
         itemName: item.name,
@@ -382,7 +389,7 @@ class ShopProvider with ChangeNotifier {
           // Handle temporary items - no inventory update needed
           // Add transaction for tracking
           final transaction = Transaction(
-            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            id: _generateUniqueId(),
             itemId: 'temp_${DateTime.now().millisecondsSinceEpoch}',
             itemName: saleItem.itemName,
             quantity: saleItem.quantity,
@@ -407,7 +414,7 @@ class ShopProvider with ChangeNotifier {
 
             // Add stock entry
             final stockEntry = StockEntry(
-              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              id: _generateUniqueId(),
               quantity: saleItem.quantity,
               type: 'sale',
               dateTime: DateTime.now(),
@@ -418,7 +425,7 @@ class ShopProvider with ChangeNotifier {
 
             // Add individual transaction for tracking
             final transaction = Transaction(
-              id: DateTime.now().millisecondsSinceEpoch.toString(),
+              id: _generateUniqueId(),
               itemId: saleItem.item!.id,
               itemName: saleItem.itemName,
               quantity: saleItem.quantity,

@@ -29,9 +29,9 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
   String _generateBillNumber(SaleOrder saleOrder) {
     final dt = saleOrder.dateTime;
     final idSuffix =
-    saleOrder.id.length > 6
-        ? saleOrder.id.substring(saleOrder.id.length - 6)
-        : saleOrder.id;
+        saleOrder.id.length > 6
+            ? saleOrder.id.substring(saleOrder.id.length - 6)
+            : saleOrder.id;
     return 'BILL${dt.year}${dt.month.toString().padLeft(2, '0')}${dt.day.toString().padLeft(2, '0')}$idSuffix';
   }
 
@@ -99,7 +99,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 color: const Color(0xFF6C5CE7),
                 size: 18.sp,
               ),
-              onPressed: isProcessing ? null : () => _generatePDFBill(subtotal, tax, total),
+              onPressed:
+                  isProcessing
+                      ? null
+                      : () => _generatePDFBill(subtotal, tax, total),
             ),
           ),
         ],
@@ -152,16 +155,16 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                   SizedBox(height: 4.h),
                   Text(
                     widget.shop.address,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 16.h),
                   // Bill number badge
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 8.h,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF5E6A8),
                       borderRadius: BorderRadius.circular(20.r),
@@ -178,10 +181,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                   SizedBox(height: 8.h),
                   Text(
                     _formatDateTime(widget.saleOrder.dateTime),
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -201,7 +201,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                   SizedBox(height: 20.h),
 
                   // Customer Info
-                  if (saleOrder.customerName.isNotEmpty || saleOrder.customerPhone.isNotEmpty)
+                  if (saleOrder.customerName.isNotEmpty ||
+                      saleOrder.customerPhone.isNotEmpty)
                     _buildCustomerInfoCard(),
 
                   SizedBox(height: 16.h),
@@ -273,7 +274,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
               ),
             ],
           ),
-          if (saleOrder.customerName.isNotEmpty || saleOrder.customerPhone.isNotEmpty) ...[
+          if (saleOrder.customerName.isNotEmpty ||
+              saleOrder.customerPhone.isNotEmpty) ...[
             SizedBox(height: 12.h),
             if (saleOrder.customerName.isNotEmpty)
               Text(
@@ -287,10 +289,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
             if (saleOrder.customerPhone.isNotEmpty)
               Text(
                 saleOrder.customerPhone,
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
               ),
           ],
         ],
@@ -337,7 +336,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 ),
                 const Spacer(),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 4.h,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5E6A8),
                     borderRadius: BorderRadius.circular(8.r),
@@ -354,10 +356,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
               ],
             ),
           ),
-          Container(
-            height: 1,
-            color: Colors.grey.withOpacity(0.2),
-          ),
+          Container(height: 1, color: Colors.grey.withOpacity(0.2)),
           ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -425,7 +424,10 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 4.h,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF6C5CE7).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8.r),
@@ -542,7 +544,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
         .fold(0.0, (sum, item) => sum + item.totalPrice);
     final additionalChargesTotal = widget.saleOrder.additionalCharges.fold(
       0.0,
-          (sum, charge) => sum + charge.totalAmount,
+      (sum, charge) => sum + charge.totalAmount,
     );
 
     return Container(
@@ -587,25 +589,53 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
             padding: EdgeInsets.all(16.w),
             child: Column(
               children: [
-                _buildSummaryRow('Items Count:', '${widget.saleOrder.totalQuantity} items', false),
+                _buildSummaryRow(
+                  'Items Count:',
+                  '${widget.saleOrder.totalQuantity} items',
+                  false,
+                ),
                 SizedBox(height: 8.h),
-                _buildSummaryRow('Inventory Items:', '₹${inventoryItemsSubtotal.toStringAsFixed(2)}', false),
+                _buildSummaryRow(
+                  'Inventory Items:',
+                  '₹${inventoryItemsSubtotal.toStringAsFixed(2)}',
+                  false,
+                ),
                 if (temporaryItemsSubtotal > 0) ...[
                   SizedBox(height: 8.h),
-                  _buildSummaryRow('Temporary Items:', '₹${temporaryItemsSubtotal.toStringAsFixed(2)}', false),
+                  _buildSummaryRow(
+                    'Temporary Items:',
+                    '₹${temporaryItemsSubtotal.toStringAsFixed(2)}',
+                    false,
+                  ),
                 ],
                 if (additionalChargesTotal > 0) ...[
                   SizedBox(height: 8.h),
-                  _buildSummaryRow('Additional Charges:', '₹${additionalChargesTotal.toStringAsFixed(2)}', false),
+                  _buildSummaryRow(
+                    'Additional Charges:',
+                    '₹${additionalChargesTotal.toStringAsFixed(2)}',
+                    false,
+                  ),
                 ],
                 SizedBox(height: 8.h),
-                _buildSummaryRow('Subtotal:', '₹${subtotal.toStringAsFixed(2)}', false),
+                _buildSummaryRow(
+                  'Subtotal:',
+                  '₹${subtotal.toStringAsFixed(2)}',
+                  false,
+                ),
                 SizedBox(height: 8.h),
-                _buildSummaryRow('GST (18%):', '₹${tax.toStringAsFixed(2)}', false),
+                _buildSummaryRow(
+                  'GST (${subtotal > 0 ? (tax / subtotal * 100).toStringAsFixed(1) : widget.shop.gstPercentage.toStringAsFixed(1)}%):',
+                  '₹${tax.toStringAsFixed(2)}',
+                  false,
+                ),
                 SizedBox(height: 12.h),
                 Container(height: 1, color: Colors.grey.withOpacity(0.3)),
                 SizedBox(height: 12.h),
-                _buildSummaryRow('Total Amount:', '₹${total.toStringAsFixed(2)}', true),
+                _buildSummaryRow(
+                  'Total Amount:',
+                  '₹${total.toStringAsFixed(2)}',
+                  true,
+                ),
               ],
             ),
           ),
@@ -644,7 +674,8 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
       width: double.infinity,
       height: 50.h,
       child: ElevatedButton(
-        onPressed: isProcessing ? null : () => _generatePDFBill(subtotal, tax, total),
+        onPressed:
+            isProcessing ? null : () => _generatePDFBill(subtotal, tax, total),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF6C5CE7),
           foregroundColor: Colors.white,
@@ -670,10 +701,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
             SizedBox(width: 8.w),
             Text(
               isProcessing ? 'Generating...' : 'Generate PDF Bill',
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -698,55 +726,59 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
       'Dec',
     ];
     final hour =
-    dateTime.hour == 0
-        ? 12
-        : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
+        dateTime.hour == 0
+            ? 12
+            : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
     final period = dateTime.hour >= 12 ? 'PM' : 'AM';
     return '${dateTime.day} ${months[dateTime.month]} ${dateTime.year} at $hour:${dateTime.minute.toString().padLeft(2, '0')} $period';
   }
 
   Future<void> _generatePDFBill(
-      double subtotal,
-      double tax,
-      double total,
-      ) async {
+    double subtotal,
+    double tax,
+    double total,
+  ) async {
     try {
       setState(() => isProcessing = true);
 
       // Try to find the item from the shop inventory; if missing, construct a minimal item
       final saleOrder = widget.saleOrder;
       final saleItems =
-      saleOrder.items.map((item) {
-        if (item.isTemporaryItem) {
-          // Handle temporary items
-          return multi_sale.SaleItem(
-            temporaryItemName: item.temporaryItemName,
-            temporaryItemPrice: item.temporaryItemPrice,
-            quantity: item.quantity,
-          );
-        } else {
-          // Handle inventory items
-          InventoryItem? inventoryItem;
-          try {
-            inventoryItem = widget.shop.inventory.firstWhere(
+          saleOrder.items.map((item) {
+            if (item.isTemporaryItem) {
+              // Handle temporary items
+              return multi_sale.SaleItem(
+                temporaryItemName: item.temporaryItemName,
+                temporaryItemPrice: item.temporaryItemPrice,
+                quantity: item.quantity,
+              );
+            } else {
+              // Handle inventory items
+              InventoryItem? inventoryItem;
+              try {
+                inventoryItem = widget.shop.inventory.firstWhere(
                   (i) => i.id == item.item?.id,
-            );
-          } catch (_) {
-            inventoryItem = InventoryItem(
-              id: item.item?.id ?? '',
-              name: item.itemName,
-              price: item.unitPrice,
-              quantity: 0,
-              createdDate: item.item?.createdDate ?? DateTime.now(),
-              lastUpdated: item.item?.lastUpdated ?? DateTime.now(),
-            );
-          }
-          return multi_sale.SaleItem(
-            item: inventoryItem,
-            quantity: item.quantity,
-          );
-        }
-      }).toList();
+                );
+              } catch (_) {
+                inventoryItem = InventoryItem(
+                  id: item.item?.id ?? '',
+                  name: item.itemName,
+                  price: item.unitPrice,
+                  quantity: 0,
+                  createdDate: item.item?.createdDate ?? DateTime.now(),
+                  lastUpdated: item.item?.lastUpdated ?? DateTime.now(),
+                );
+              }
+              return multi_sale.SaleItem(
+                item: inventoryItem,
+                quantity: item.quantity,
+              );
+            }
+          }).toList();
+
+      // Calculate the GST percentage from the existing sale data
+      final calculatedGSTPercentage =
+          subtotal > 0 ? (tax / subtotal) * 100 : widget.shop.gstPercentage;
 
       final pdfService = PDFService();
       final filePath = await pdfService.generateBill(
@@ -754,23 +786,24 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
         billNumber: _generateBillNumber(saleOrder),
         dateTime: saleOrder.dateTime,
         customerName:
-        saleOrder.customerName.isEmpty
-            ? 'Walk-in Customer'
-            : saleOrder.customerName,
+            saleOrder.customerName.isEmpty
+                ? 'Walk-in Customer'
+                : saleOrder.customerName,
         customerPhone: saleOrder.customerPhone,
         saleItems: saleItems,
         additionalCharges:
-        saleOrder.additionalCharges
-            .map(
-              (charge) => order_models.AdditionalCharge(
-            name: charge.name,
-            amount: charge.amount,
-          ),
-        )
-            .toList(),
+            saleOrder.additionalCharges
+                .map(
+                  (charge) => order_models.AdditionalCharge(
+                    name: charge.name,
+                    amount: charge.amount,
+                  ),
+                )
+                .toList(),
         subtotal: subtotal,
         tax: tax,
         total: total,
+        customGSTPercentage: calculatedGSTPercentage,
         context: context,
       );
 

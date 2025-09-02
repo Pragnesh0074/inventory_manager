@@ -34,6 +34,8 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
   String? billNumber;
   DateTime? saleDateTime;
   final TextEditingController _paidAmountController = TextEditingController();
+  final TextEditingController _gstController = TextEditingController();
+  double _customGSTPercentage = 18.0;
 
   // Modern color scheme matching the uploaded images
   final Color primaryYellow = const Color(0xFFFDB462);
@@ -46,6 +48,8 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
   void initState() {
     super.initState();
     _generateBillNumber();
+    _customGSTPercentage = widget.shop.gstPercentage;
+    _gstController.text = _customGSTPercentage.toString();
   }
 
   void _generateBillNumber() {
@@ -121,7 +125,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
           (sum, charge) => sum + (charge?.totalAmount ?? 0.0),
     );
     final subtotal = itemsSubtotal + additionalChargesTotal;
-    final tax = subtotal * 0.18; // 18% GST
+    final tax = subtotal * (_customGSTPercentage / 100); // Use custom GST percentage
     final total = subtotal + tax;
     final totalItems = widget.saleItems.fold(
       0,
@@ -747,7 +751,9 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                 SizedBox(height: 8.h),
                 _buildSummaryRow('Subtotal:', '₹${subtotal.toStringAsFixed(2)}', false),
                 SizedBox(height: 8.h),
-                _buildSummaryRow('GST (18%):', '₹${tax.toStringAsFixed(2)}', false),
+                _buildSummaryRow('GST (${_customGSTPercentage.toStringAsFixed(1)}%):', '₹${tax.toStringAsFixed(2)}', false),
+                SizedBox(height: 8.h),
+                _buildGSTEditRow(),
               ],
             ),
           ),
@@ -1062,7 +1068,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             (sum, charge) => sum + charge.totalAmount,
       );
       final subtotal = itemsSubtotal + additionalChargesTotal;
-      final tax = subtotal * 0.18;
+      final tax = subtotal * (_customGSTPercentage / 100);
       final total = subtotal + tax;
       final paidAmount = double.tryParse(_paidAmountController.text) ?? 0.0;
 
@@ -1173,7 +1179,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             (sum, charge) => sum + charge.totalAmount,
       );
       final subtotal = itemsSubtotal + additionalChargesTotal;
-      final tax = subtotal * 0.18;
+      final tax = subtotal * (_customGSTPercentage / 100);
       final total = subtotal + tax;
 
       final pdfService = PDFService();
@@ -1190,6 +1196,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
         subtotal: subtotal,
         tax: tax,
         total: total,
+        customGSTPercentage: _customGSTPercentage,
         context: context,
       );
 
@@ -1240,5 +1247,115 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
         });
       }
     }
+  }
+
+  Widget _buildGSTEditRow() {
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.edit,
+            size: 16.r,
+            color: Colors.grey[600],
+          ),
+          SizedBox(width: 8.w),
+          Text(
+            'Custom GST:',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w500,
+              color: darkGray,
+            ),
+          ),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: TextField(
+              controller: _gstController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: darkGray,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Enter GST %',
+                hintStyle: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey[400],
+                ),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 8.h,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6.r),
+                  borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6.r),
+                  borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6.r),
+                  borderSide: BorderSide(color: primaryYellow, width: 2),
+                ),
+                suffixText: '%',
+                suffixStyle: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              onChanged: (value) {
+                final gst = double.tryParse(value);
+                if (gst != null && gst >= 0 && gst <= 100) {
+                  setState(() {
+                    _customGSTPercentage = gst;
+                  });
+                }
+              },
+            ),
+          ),
+          SizedBox(width: 8.w),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(6.r),
+            ),
+            child: IconButton(
+              onPressed: () {
+                setState(() {
+                  _customGSTPercentage = widget.shop.gstPercentage;
+                  _gstController.text = _customGSTPercentage.toString();
+                });
+              },
+              icon: Icon(
+                Icons.refresh,
+                size: 16.r,
+                color: Colors.grey[600],
+              ),
+              padding: EdgeInsets.all(8.w),
+              constraints: BoxConstraints(
+                minWidth: 32.w,
+                minHeight: 32.h,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _paidAmountController.dispose();
+    _gstController.dispose();
+    super.dispose();
   }
 }

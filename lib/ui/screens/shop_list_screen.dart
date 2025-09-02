@@ -6,6 +6,8 @@ import '../../providers/shop_provider.dart';
 import 'add_edit_shop_screen.dart';
 import 'inventory_screen.dart';
 import 'statistics_summary_screen.dart';
+import 'customer_list_screen.dart';
+import 'supplier_list_screen.dart';
 
 class ShopListScreen extends StatelessWidget {
   const ShopListScreen({super.key});
@@ -360,6 +362,36 @@ class ShopListScreen extends StatelessWidget {
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
                                             ),
+                                            SizedBox(height: 8.h),
+                                            Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 10.w,
+                                                vertical: 4.h,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: const Color(0xFFFF6B6B).withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(12.r),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.percent,
+                                                    size: 14.r,
+                                                    color: const Color(0xFFFF6B6B),
+                                                  ),
+                                                  SizedBox(width: 4.w),
+                                                  Text(
+                                                    'GST: ${shop.gstPercentage.toStringAsFixed(1)}%',
+                                                    style: TextStyle(
+                                                      fontSize: 12.sp,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: const Color(0xFFFF6B6B),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                             SizedBox(height: 12.h),
                                             Row(
                                               children: [
@@ -526,6 +558,68 @@ class ShopListScreen extends StatelessWidget {
                                                   ),
                                                 ),
                                                 PopupMenuItem(
+                                                  value: 'customers',
+                                                  child: Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                          vertical: 4.h,
+                                                        ),
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.people_outline,
+                                                          size: 18,
+                                                          color: const Color(
+                                                            0xFF4A90E2,
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 12.w),
+                                                        Text(
+                                                          'Customers',
+                                                          style: TextStyle(
+                                                            fontSize: 14.sp,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color:
+                                                                Colors.black87,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                PopupMenuItem(
+                                                  value: 'suppliers',
+                                                  child: Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                          vertical: 4.h,
+                                                        ),
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          Icons.business_outlined,
+                                                          size: 18,
+                                                          color: const Color(
+                                                            0xFF4A90E2,
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: 12.w),
+                                                        Text(
+                                                          'Suppliers',
+                                                          style: TextStyle(
+                                                            fontSize: 14.sp,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color:
+                                                                Colors.black87,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                PopupMenuItem(
                                                   value: 'delete',
                                                   child: Container(
                                                     padding:
@@ -567,6 +661,10 @@ class ShopListScreen extends StatelessWidget {
                                                 context,
                                                 shop,
                                               );
+                                            } else if (value == 'customers') {
+                                              _navigateToCustomers(context, shop);
+                                            } else if (value == 'suppliers') {
+                                              _navigateToSuppliers(context, shop);
                                             } else if (value == 'delete') {
                                               _showDeleteDialog(context, shop);
                                             }
@@ -726,6 +824,20 @@ class ShopListScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => AddEditShopScreen(shop: shop)),
+    );
+  }
+
+  void _navigateToCustomers(BuildContext context, Shop shop) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CustomerListScreen(shop: shop)),
+    );
+  }
+
+  void _navigateToSuppliers(BuildContext context, Shop shop) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SupplierListScreen(shop: shop)),
     );
   }
 

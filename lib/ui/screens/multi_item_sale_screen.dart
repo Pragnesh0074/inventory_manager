@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shop.dart';
 import '../../models/sale_order.dart' as order_models;
+import '../../models/customer.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
+import '../../database/database_helper.dart';
 import 'sale_summary_screen.dart';
 
 class SaleItem {
@@ -65,6 +68,150 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
   final TextEditingController _customerNameController = TextEditingController();
   final TextEditingController _customerPhoneController =
       TextEditingController();
+
+  List<Customer> customerSuggestions = [];
+  bool showCustomerSuggestions = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCustomerSuggestions();
+    _customerNameController.addListener(_onCustomerNameChanged);
+  }
+
+  Future<void> _loadCustomerSuggestions() async {
+    try {
+      final dbHelper = DatabaseHelper();
+      final customers = await dbHelper.getCustomers(widget.shop.id);
+      setState(() {
+        customerSuggestions = customers;
+      });
+    } catch (e) {
+      // Handle error silently
+    }
+  }
+
+  void _onCustomerNameChanged() {
+    final query = _customerNameController.text.toLowerCase();
+    if (query.isEmpty) {
+      setState(() {
+        showCustomerSuggestions = false;
+      });
+      return;
+    }
+
+    final filtered =
+        customerSuggestions
+            .where(
+              (customer) =>
+                  customer.name.toLowerCase().contains(query) ||
+                  customer.phone.contains(query),
+            )
+            .toList();
+
+    setState(() {
+      showCustomerSuggestions = filtered.isNotEmpty;
+    });
+  }
+
+  Future<void> _saveCustomerIfNew() async {
+    final customerName = _customerNameController.text.trim();
+    final customerPhone = _customerPhoneController.text.trim();
+
+    if (customerName.isNotEmpty && customerPhone.isNotEmpty) {
+      try {
+        final dbHelper = DatabaseHelper();
+
+        // Check if customer already exists
+        var existingCustomer = await dbHelper.getCustomerByPhone(
+          widget.shop.id,
+          customerPhone,
+        );
+
+        if (existingCustomer == null) {
+          // Create new customer
+          final newCustomer = Customer(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            shopId: widget.shop.id,
+            name: customerName,
+            phone: customerPhone,
+            createdAt: DateTime.now(),
+            lastUpdated: DateTime.now(),
+          );
+
+          await dbHelper.insertCustomer(newCustomer);
+
+          // Refresh customer suggestions
+          await _loadCustomerSuggestions();
+
+          // Show success message
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('New customer "$customerName" saved!'),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        } else {
+          // Show message that customer already exists
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Customer "$customerName" already exists!'),
+                backgroundColor: Colors.orange,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          String errorMessage = 'Error saving customer';
+          if (e.toString().contains('created_at')) {
+            errorMessage =
+                'Database needs to be updated. Please restart the app and try again.';
+          } else {
+            errorMessage = 'Error saving customer: $e';
+          }
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Restart App',
+                textColor: Colors.white,
+                onPressed: () {
+                  // This will close the app, user needs to manually restart
+                  SystemNavigator.pop();
+                },
+              ),
+            ),
+          );
+        }
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please enter both customer name and phone number'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
+
+  void _selectCustomer(Customer customer) {
+    setState(() {
+      _customerNameController.text = customer.name;
+      _customerPhoneController.text = customer.phone;
+      showCustomerSuggestions = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -339,6 +486,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                   label: 'Customer Name',
                   hint: 'Enter name (optional)',
                   icon: Icons.person_outline,
+                  showSuggestions: true,
                 ),
               ),
               SizedBox(width: 12.w),
@@ -349,6 +497,33 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                   hint: 'Enter phone (optional)',
                   icon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
+                ),
+              ),
+            ],
+          ),
+          if (showCustomerSuggestions) _buildCustomerSuggestions(),
+          SizedBox(height: 16.h),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: _saveCustomerIfNew,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 12.h),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                  ),
+                  icon: Icon(Icons.save, size: 18.r),
+                  label: Text(
+                    'Save Customer',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -364,6 +539,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
     required String hint,
     required IconData icon,
     TextInputType? keyboardType,
+    bool showSuggestions = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -402,6 +578,52 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCustomerSuggestions() {
+    final query = _customerNameController.text.toLowerCase();
+    final filtered =
+        customerSuggestions
+            .where(
+              (customer) =>
+                  customer.name.toLowerCase().contains(query) ||
+                  customer.phone.contains(query),
+            )
+            .toList();
+
+    return Container(
+      margin: EdgeInsets.only(top: 8.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: filtered.length,
+        itemBuilder: (context, index) {
+          final customer = filtered[index];
+          return ListTile(
+            leading: Icon(Icons.person, color: AppColors.primaryBlue),
+            title: Text(
+              customer.name,
+              style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
+            ),
+            subtitle: Text(
+              customer.phone,
+              style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
+            ),
+            onTap: () => _selectCustomer(customer),
+          );
+        },
+      ),
     );
   }
 
@@ -1777,6 +1999,9 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
   void _proceedToSale() {
     if (selectedItems.isEmpty) return;
 
+    final customerName = _customerNameController.text.trim();
+    final customerPhone = _customerPhoneController.text.trim();
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -1785,8 +2010,8 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
               shop: widget.shop,
               saleItems: List.from(selectedItems),
               additionalCharges: List.from(additionalCharges),
-              customerName: _customerNameController.text.trim(),
-              customerPhone: _customerPhoneController.text.trim(),
+              customerName: customerName,
+              customerPhone: customerPhone,
             ),
       ),
     );
@@ -1794,6 +2019,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
 
   @override
   void dispose() {
+    _customerNameController.removeListener(_onCustomerNameChanged);
     _customerNameController.dispose();
     _customerPhoneController.dispose();
     super.dispose();

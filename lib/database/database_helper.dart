@@ -7,6 +7,8 @@ import '../models/stock_entry.dart';
 import '../models/transaction.dart' as trans;
 import '../models/purchase.dart';
 import '../models/sale_order.dart' as order_models;
+import '../models/customer.dart';
+import '../models/supplier.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -25,7 +27,7 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'inventory_management.db');
     return await openDatabase(
       path,
-      version: 3,
+      version: 6,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -38,7 +40,8 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         address TEXT NOT NULL,
-        created_date TEXT NOT NULL
+        created_date TEXT NOT NULL,
+        gst_percentage REAL NOT NULL DEFAULT 18.0
       )
     ''');
 
@@ -123,6 +126,36 @@ class DatabaseHelper {
         FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
       )
     ''');
+
+    // Create customers table
+    await db.execute('''
+      CREATE TABLE customers(
+        id TEXT PRIMARY KEY,
+        shop_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        address TEXT,
+        email TEXT,
+        created_at TEXT NOT NULL,
+        last_updated TEXT NOT NULL,
+        FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
+      )
+    ''');
+
+    // Create suppliers table
+    await db.execute('''
+      CREATE TABLE suppliers(
+        id TEXT PRIMARY KEY,
+        shop_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        address TEXT,
+        phone TEXT,
+        email TEXT,
+        created_at TEXT NOT NULL,
+        last_updated TEXT NOT NULL,
+        FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
+      )
+    ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -163,6 +196,82 @@ class DatabaseHelper {
           total REAL NOT NULL,
           bill_number TEXT NOT NULL,
           paid_amount REAL NOT NULL,
+          FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
+        )
+      ''');
+    }
+    if (oldVersion < 4) {
+      // Add gst_percentage column to shops table
+      await db.execute(
+        'ALTER TABLE shops ADD COLUMN gst_percentage REAL DEFAULT 18.0',
+      );
+    }
+    if (oldVersion < 5) {
+      // Create customers table
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS customers(
+          id TEXT PRIMARY KEY,
+          shop_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          address TEXT,
+          email TEXT,
+          created_at TEXT NOT NULL,
+          last_updated TEXT NOT NULL,
+          FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
+        )
+      ''');
+
+      // Create suppliers table
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS suppliers(
+          id TEXT PRIMARY KEY,
+          shop_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          address TEXT,
+          phone TEXT,
+          email TEXT,
+          created_at TEXT NOT NULL,
+          last_updated TEXT NOT NULL,
+          FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
+        )
+      ''');
+    }
+    if (oldVersion < 6) {
+      // Force recreate customers and suppliers tables to ensure correct structure
+      try {
+        await db.execute('DROP TABLE IF EXISTS customers');
+        await db.execute('DROP TABLE IF EXISTS suppliers');
+      } catch (e) {
+        // Ignore errors if tables don't exist
+      }
+
+      // Create customers table with correct structure
+      await db.execute('''
+        CREATE TABLE customers(
+          id TEXT PRIMARY KEY,
+          shop_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          address TEXT,
+          email TEXT,
+          created_at TEXT NOT NULL,
+          last_updated TEXT NOT NULL,
+          FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
+        )
+      ''');
+
+      // Create suppliers table with correct structure
+      await db.execute('''
+        CREATE TABLE suppliers(
+          id TEXT PRIMARY KEY,
+          shop_id TEXT NOT NULL,
+          name TEXT NOT NULL,
+          address TEXT,
+          phone TEXT,
+          email TEXT,
+          created_at TEXT NOT NULL,
+          last_updated TEXT NOT NULL,
           FOREIGN KEY (shop_id) REFERENCES shops (id) ON DELETE CASCADE
         )
       ''');
@@ -535,6 +644,120 @@ class DatabaseHelper {
       where: 'order_id = ? AND type = ?',
       whereArgs: [orderId, 'sale'],
       orderBy: 'date_time ASC',
+    );
+  }
+
+  // Customer operations
+  Future<int> insertCustomer(Customer customer) async {
+    final db = await database;
+    return await db.insert('customers', customer.toMap());
+  }
+
+  Future<List<Customer>> getCustomers(String shopId) async {
+    final db = await database;
+    final maps = await db.query(
+      'customers',
+      where: 'shop_id = ?',
+      whereArgs: [shopId],
+      orderBy: 'name ASC',
+    );
+    return maps.map((m) => Customer.fromMap(m)).toList();
+  }
+
+  Future<Customer?> getCustomerByName(String shopId, String name) async {
+    final db = await database;
+    final maps = await db.query(
+      'customers',
+      where: 'shop_id = ? AND name = ?',
+      whereArgs: [shopId, name],
+      limit: 1,
+    );
+    if (maps.isNotEmpty) {
+      return Customer.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  Future<Customer?> getCustomerByPhone(String shopId, String phone) async {
+    final db = await database;
+    final maps = await db.query(
+      'customers',
+      where: 'shop_id = ? AND phone = ?',
+      whereArgs: [shopId, phone],
+      limit: 1,
+    );
+    if (maps.isNotEmpty) {
+      return Customer.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  Future<int> updateCustomer(Customer customer) async {
+    final db = await database;
+    return await db.update(
+      'customers',
+      customer.toMap(),
+      where: 'id = ?',
+      whereArgs: [customer.id],
+    );
+  }
+
+  Future<int> deleteCustomer(String customerId) async {
+    final db = await database;
+    return await db.delete(
+      'customers',
+      where: 'id = ?',
+      whereArgs: [customerId],
+    );
+  }
+
+  // Supplier operations
+  Future<int> insertSupplier(Supplier supplier) async {
+    final db = await database;
+    return await db.insert('suppliers', supplier.toMap());
+  }
+
+  Future<List<Supplier>> getSuppliers(String shopId) async {
+    final db = await database;
+    final maps = await db.query(
+      'suppliers',
+      where: 'shop_id = ?',
+      whereArgs: [shopId],
+      orderBy: 'name ASC',
+    );
+    return maps.map((m) => Supplier.fromMap(m)).toList();
+  }
+
+  Future<Supplier?> getSupplierByName(String shopId, String name) async {
+    final db = await database;
+    final maps = await db.query(
+      'suppliers',
+      where: 'shop_id = ? AND name = ?',
+      whereArgs: [shopId, name],
+      limit: 1,
+    );
+    if (maps.isNotEmpty) {
+      return Supplier.fromMap(maps.first);
+    }
+    return null;
+  }
+
+  Future<int> updateSupplier(Supplier supplier) async {
+    final db = await database;
+    return await db.update(
+      'suppliers',
+      supplier.toMap(),
+      where: 'id = ?',
+      whereArgs: [supplier.id],
+    );
+  }
+
+  Future<int> deleteSupplier(String supplierId) async {
+    final db = await database;
+    return await db.delete(
+      'suppliers',
+      where: 'id = ?',
+      whereArgs: [supplierId],
     );
   }
 }

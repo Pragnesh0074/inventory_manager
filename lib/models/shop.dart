@@ -8,6 +8,7 @@ class Shop {
   final String name;
   final String address;
   final DateTime createdDate;
+  final double gstPercentage;
   List<InventoryItem> inventory;
   List<Transaction> transactions;
   List<SaleOrder> saleOrders;
@@ -17,6 +18,7 @@ class Shop {
     required this.name,
     required this.address,
     required this.createdDate,
+    this.gstPercentage = 18.0,
     List<InventoryItem>? inventory,
     List<Transaction>? transactions,
     List<SaleOrder>? saleOrders,
@@ -30,6 +32,7 @@ class Shop {
       'name': name,
       'address': address,
       'created_date': createdDate.toIso8601String(),
+      'gst_percentage': gstPercentage,
       'inventory': inventory.map((item) => item.toJson()).toList(),
       'transactions': transactions.map((trans) => trans.toJson()).toList(),
       'sale_orders': saleOrders.map((order) => order.toJson()).toList(),
@@ -42,6 +45,7 @@ class Shop {
       name: json['name'],
       address: json['address'],
       createdDate: DateTime.parse(json['created_date'] ?? json['createdDate']),
+      gstPercentage: json['gst_percentage']?.toDouble() ?? 18.0,
       inventory:
           json['inventory'] != null
               ? (json['inventory'] as List)
@@ -70,6 +74,7 @@ class Shop {
       'name': name,
       'address': address,
       'created_date': createdDate.toIso8601String(),
+      'gst_percentage': gstPercentage,
     };
   }
 
@@ -79,6 +84,7 @@ class Shop {
       name: map['name'],
       address: map['address'],
       createdDate: DateTime.parse(map['created_date']),
+      gstPercentage: map['gst_percentage']?.toDouble() ?? 18.0,
     );
   }
 }

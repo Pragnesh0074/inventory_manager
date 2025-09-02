@@ -23,6 +23,7 @@ class PDFService {
     required double subtotal,
     required double tax,
     required double total,
+    required double customGSTPercentage,
     required BuildContext context,
   }) async {
     // Check and request permissions first
@@ -62,7 +63,7 @@ class PDFService {
             ],
 
             // Summary
-            _buildSummary(subtotal, tax, total),
+            _buildSummary(shop, subtotal, tax, total, customGSTPercentage),
             pw.SizedBox(height: 30),
 
             // Footer
@@ -269,7 +270,7 @@ class PDFService {
     );
   }
 
-  pw.Widget _buildSummary(double subtotal, double tax, double total) {
+  pw.Widget _buildSummary(Shop shop, double subtotal, double tax, double total, double customGSTPercentage) {
     return pw.Column(
       children: [
         pw.Container(
@@ -287,7 +288,7 @@ class PDFService {
               ),
               pw.SizedBox(height: 8),
               _buildSummaryRow(
-                'GST (18%):',
+                'GST (${customGSTPercentage.toStringAsFixed(1)}%):',
                 tax.toStringAsFixed(2),
                 false,
               ),

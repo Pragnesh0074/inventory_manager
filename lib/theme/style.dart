@@ -47,9 +47,7 @@ class AppTextStyles {
     fontWeight: FontWeight.w500,
   );
 
-  static TextStyle buttonMedium = TextStyle(
-    fontWeight: FontWeight.w500,
-  );
+  static TextStyle buttonMedium = TextStyle(fontWeight: FontWeight.w500);
 
   // Card Content Styles
   static TextStyle cardTitle = TextStyle(
@@ -70,9 +68,7 @@ class AppTextStyles {
   );
 
   // Menu Item Styles
-  static TextStyle menuItem = TextStyle(
-    fontWeight: FontWeight.w500,
-  );
+  static TextStyle menuItem = TextStyle(fontWeight: FontWeight.w500);
 
   static TextStyle menuItemPrimary = TextStyle(
     color: AppColors.primaryBlue,

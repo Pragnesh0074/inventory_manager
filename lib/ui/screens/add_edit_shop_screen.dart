@@ -207,6 +207,10 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
                           return null;
                         },
                       ),
+
+                      SizedBox(height: 24.h),
+
+
                     ],
                   ),
                 ),
@@ -410,6 +414,7 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
           id: widget.shop!.id,
           name: _nameController.text.trim(),
           address: _addressController.text.trim(),
+          gstPercentage: widget.shop!.gstPercentage,
           createdDate: widget.shop!.createdDate,
           inventory: widget.shop!.inventory,
           transactions: widget.shop!.transactions,
@@ -458,6 +463,7 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           name: _nameController.text.trim(),
           address: _addressController.text.trim(),
+          gstPercentage: 18.0,
           createdDate: DateTime.now(),
         );
         shopProvider.addShop(newShop);
