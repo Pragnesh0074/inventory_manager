@@ -19,6 +19,7 @@ class SaleItem {
   int quantity;
   double? temporaryPrice; // Temporary price override for this sale
 
+
   SaleItem({
     this.item,
     this.temporaryItemName,
@@ -71,6 +72,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
 
   List<Customer> customerSuggestions = [];
   bool showCustomerSuggestions = false;
+  bool customerSaved = false;
 
   @override
   void initState() {
@@ -93,6 +95,13 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
 
   void _onCustomerNameChanged() {
     final query = _customerNameController.text.toLowerCase();
+
+    if (customerSaved) {
+      setState(() {
+        customerSaved = false;
+      });
+    }
+
     if (query.isEmpty) {
       setState(() {
         showCustomerSuggestions = false;
@@ -154,6 +163,9 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
               ),
             );
           }
+          setState(() {
+            customerSaved = true;
+          });
         } else {
           // Show message that customer already exists
           if (mounted) {
@@ -210,6 +222,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
       _customerNameController.text = customer.name;
       _customerPhoneController.text = customer.phone;
       showCustomerSuggestions = false;
+      customerSaved = true;
     });
   }
 
@@ -503,6 +516,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
           ),
           if (showCustomerSuggestions) _buildCustomerSuggestions(),
           SizedBox(height: 16.h),
+          if (!customerSaved)
           Row(
             children: [
               Expanded(

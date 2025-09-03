@@ -39,6 +39,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
   final _paidAmountFocusNode = FocusNode();
 
   late bool isEditing;
+  bool supplierSaved = false;
 
   List<Supplier> supplierSuggestions = [];
   bool showSupplierSuggestions = false;
@@ -76,6 +77,11 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
 
   void _onPartyNameChanged() {
     final query = _partyNameController.text.toLowerCase();
+    if (supplierSaved) {
+      setState(() {
+        supplierSaved = false;
+      });
+    }
     if (query.isEmpty) {
       setState(() {
         showSupplierSuggestions = false;
@@ -100,6 +106,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
         _partyAddressController.text = supplier.address!;
       }
       showSupplierSuggestions = false;
+      supplierSaved = true;
     });
   }
 
@@ -221,6 +228,9 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                 duration: const Duration(seconds: 2),
               ),
             );
+            setState(() {
+              supplierSaved = true;
+            });
           }
         } else {
           if (mounted) {
@@ -497,6 +507,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
                             validator: (value) => null,
                           ),
                           SizedBox(height: 16.h),
+                          if(!supplierSaved)
                           Row(
                             children: [
                               Expanded(
