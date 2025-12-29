@@ -18,7 +18,7 @@ class SaleItem {
   final double? temporaryItemPrice; // Price for temporary items
   int quantity;
   double? temporaryPrice; // Temporary price override for this sale
-
+  String? description; // Optional description for this sale
 
   SaleItem({
     this.item,
@@ -26,6 +26,7 @@ class SaleItem {
     this.temporaryItemPrice,
     this.quantity = 1,
     this.temporaryPrice,
+    this.description,
   }) : assert(
          (item != null) ||
              (temporaryItemName != null && temporaryItemPrice != null),
@@ -517,31 +518,31 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
           if (showCustomerSuggestions) _buildCustomerSuggestions(),
           SizedBox(height: 16.h),
           if (!customerSaved)
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _saveCustomerIfNew,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _saveCustomerIfNew,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryBlue,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
                     ),
-                  ),
-                  icon: Icon(Icons.save, size: 18.r),
-                  label: Text(
-                    'Save Customer',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
+                    icon: Icon(Icons.save, size: 18.r),
+                    label: Text(
+                      'Save Customer',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );
@@ -1349,7 +1350,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                       borderRadius: BorderRadius.circular(6.r),
                     ),
                     child: Text(
-                      'Edit Price',
+                      'Edit Details',
                       style: TextStyle(
                         fontSize: 10.sp,
                         fontWeight: FontWeight.w500,
@@ -1453,17 +1454,21 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
 
   void _updateQuantity(InventoryItem item, int newQuantity) {
     setState(() {
-      if (newQuantity <= 0) {
-        selectedItems.removeWhere((sItem) => sItem.item?.id == item.id);
-      } else if (newQuantity <= item.quantity) {
-        final existingIndex = selectedItems.indexWhere(
-          (sItem) => sItem.item?.id == item.id,
-        );
-        if (existingIndex >= 0) {
-          selectedItems[existingIndex].quantity = newQuantity;
+      final index = selectedItems.indexWhere((si) => si.item?.id == item.id);
+      if (index != -1) {
+        if (newQuantity <= 0) {
+          selectedItems.removeAt(index);
         } else {
-          selectedItems.add(SaleItem(item: item, quantity: newQuantity));
+          final existingItem = selectedItems[index];
+          selectedItems[index] = SaleItem(
+            item: item,
+            quantity: newQuantity,
+            temporaryPrice: existingItem.temporaryPrice,
+            description: existingItem.description,
+          );
         }
+      } else if (newQuantity > 0) {
+        selectedItems.add(SaleItem(item: item, quantity: newQuantity));
       }
     });
   }
@@ -1496,6 +1501,9 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
     final TextEditingController priceController = TextEditingController(
       text: saleItem.unitPrice.toStringAsFixed(2),
     );
+    final TextEditingController descriptionController = TextEditingController(
+      text: saleItem.description ?? '',
+    );
 
     showDialog(
       context: context,
@@ -1509,7 +1517,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Edit Price',
+                  'Edit Price & Description',
                   style: TextStyle(
                     fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
@@ -1556,6 +1564,26 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                     ),
                   ),
                 ),
+                SizedBox(height: 16.h),
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  ),
+                  child: TextField(
+                    onTapOutside: (_) => FocusScope.of(context).unfocus,
+                    controller: descriptionController,
+                    maxLines: 2,
+                    style: TextStyle(fontSize: 14.sp, color: Colors.black87),
+                    decoration: InputDecoration(
+                      labelText: 'Description (Optional)',
+                      hintText: 'Add item description for bill',
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.all(16.r),
+                    ),
+                  ),
+                ),
               ],
             ),
             actions: [
@@ -1570,6 +1598,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                 onPressed: () {
                   setState(() {
                     saleItem.temporaryPrice = null;
+                    saleItem.description = null;
                   });
                   Navigator.pop(context);
                 },
@@ -1593,6 +1622,10 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                     if (newPrice != null && newPrice > 0) {
                       setState(() {
                         saleItem.temporaryPrice = newPrice;
+                        saleItem.description =
+                            descriptionController.text.trim().isEmpty
+                                ? null
+                                : descriptionController.text.trim();
                       });
                       Navigator.pop(context);
                     }
@@ -1748,6 +1781,9 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
     final TextEditingController quantityController = TextEditingController(
       text: saleItem?.quantity.toString() ?? '1',
     );
+    final TextEditingController descriptionController = TextEditingController(
+      text: saleItem?.description ?? '',
+    );
 
     showDialog(
       context: context,
@@ -1765,81 +1801,103 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                 color: Colors.black87,
               ),
             ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8F9FA),
-                    borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                  ),
-                  child: TextField(
-                    onTapOutside: (_) => FocusScope.of(context).unfocus,
-                    controller: nameController,
-                    style: TextStyle(fontSize: 16.sp),
-                    decoration: InputDecoration(
-                      labelText: 'Item Name',
-                      hintText: 'Enter item name',
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.all(16.r),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F9FA),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    ),
+                    child: TextField(
+                      onTapOutside: (_) => FocusScope.of(context).unfocus,
+                      controller: nameController,
+                      style: TextStyle(fontSize: 16.sp),
+                      decoration: InputDecoration(
+                        labelText: 'Item Name',
+                        hintText: 'Enter item name',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.all(16.r),
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(height: 16.h),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
-                          borderRadius: BorderRadius.circular(12.r),
-                          border: Border.all(
-                            color: Colors.grey.withOpacity(0.2),
+                  SizedBox(height: 16.h),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8F9FA),
+                            borderRadius: BorderRadius.circular(12.r),
+                            border: Border.all(
+                              color: Colors.grey.withOpacity(0.2),
+                            ),
                           ),
-                        ),
-                        child: TextField(
-                          onTapOutside: (_) => FocusScope.of(context).unfocus,
-                          controller: priceController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          style: TextStyle(fontSize: 16.sp),
-                          decoration: InputDecoration(
-                            labelText: 'Price',
-                            prefixText: '₹',
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.all(16.r),
+                          child: TextField(
+                            onTapOutside: (_) => FocusScope.of(context).unfocus,
+                            controller: priceController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            style: TextStyle(fontSize: 16.sp),
+                            decoration: InputDecoration(
+                              labelText: 'Price',
+                              prefixText: '₹',
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.all(16.r),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
-                          borderRadius: BorderRadius.circular(12.r),
-                          border: Border.all(
-                            color: Colors.grey.withOpacity(0.2),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8F9FA),
+                            borderRadius: BorderRadius.circular(12.r),
+                            border: Border.all(
+                              color: Colors.grey.withOpacity(0.2),
+                            ),
                           ),
-                        ),
-                        child: TextField(
-                          onTapOutside: (_) => FocusScope.of(context).unfocus,
-                          controller: quantityController,
-                          keyboardType: TextInputType.number,
-                          style: TextStyle(fontSize: 16.sp),
-                          decoration: InputDecoration(
-                            labelText: 'Quantity',
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.all(16.r),
+                          child: TextField(
+                            onTapOutside: (_) => FocusScope.of(context).unfocus,
+                            controller: quantityController,
+                            keyboardType: TextInputType.number,
+                            style: TextStyle(fontSize: 16.sp),
+                            decoration: InputDecoration(
+                              labelText: 'Quantity',
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.all(16.r),
+                            ),
                           ),
                         ),
                       ),
+                    ],
+                  ),
+                  SizedBox(height: 16.h),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8F9FA),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
                     ),
-                  ],
-                ),
-              ],
+                    child: TextField(
+                      onTapOutside: (_) => FocusScope.of(context).unfocus,
+                      controller: descriptionController,
+                      maxLines: 2,
+                      style: TextStyle(fontSize: 14.sp),
+                      decoration: InputDecoration(
+                        labelText: 'Description (Optional)',
+                        hintText: 'Add item description for bill',
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.all(16.r),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -1877,6 +1935,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                     final name = nameController.text.trim();
                     final price = double.tryParse(priceController.text);
                     final quantity = int.tryParse(quantityController.text) ?? 1;
+                    final description = descriptionController.text.trim();
 
                     if (name.isNotEmpty &&
                         price != null &&
@@ -1889,6 +1948,8 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                             temporaryItemName: name,
                             temporaryItemPrice: price,
                             quantity: quantity,
+                            description:
+                                description.isEmpty ? null : description,
                           );
                         } else {
                           selectedItems.add(
@@ -1896,6 +1957,8 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
                               temporaryItemName: name,
                               temporaryItemPrice: price,
                               quantity: quantity,
+                              description:
+                                  description.isEmpty ? null : description,
                             ),
                           );
                         }

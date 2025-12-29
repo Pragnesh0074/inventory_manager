@@ -145,6 +145,7 @@ class _PurchasesListScreenState extends State<PurchasesListScreen> {
           ),
         ),
         centerTitle: true,
+        
       ),
       body: FutureBuilder<List<Purchase>>(
         future: _futurePurchases,

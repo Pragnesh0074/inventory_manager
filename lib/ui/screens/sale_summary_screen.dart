@@ -55,7 +55,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
   void _generateBillNumber() {
     final now = saleDateTime ?? DateTime.now();
     billNumber =
-    'BILL${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}${now.millisecondsSinceEpoch.toString().substring(8)}';
+        'BILL${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}${now.millisecondsSinceEpoch.toString().substring(8)}';
     saleDateTime ??= now;
   }
 
@@ -118,18 +118,19 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
   Widget build(BuildContext context) {
     final itemsSubtotal = widget.saleItems.fold(
       0.0,
-          (sum, item) => sum + item.totalPrice,
+      (sum, item) => sum + item.totalPrice,
     );
     final additionalChargesTotal = widget.additionalCharges.fold(
       0.0,
-          (sum, charge) => sum + (charge?.totalAmount ?? 0.0),
+      (sum, charge) => sum + (charge?.totalAmount ?? 0.0),
     );
     final subtotal = itemsSubtotal + additionalChargesTotal;
-    final tax = subtotal * (_customGSTPercentage / 100); // Use custom GST percentage
+    final tax =
+        subtotal * (_customGSTPercentage / 100); // Use custom GST percentage
     final total = subtotal + tax;
     final totalItems = widget.saleItems.fold(
       0,
-          (sum, item) => sum + item.quantity,
+      (sum, item) => sum + item.quantity,
     );
 
     return Scaffold(
@@ -150,9 +151,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(24.r),
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.r)),
         ),
       ),
       body: SingleChildScrollView(
@@ -210,10 +209,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             padding: EdgeInsets.all(16.w),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  primaryYellow,
-                  primaryYellow.withOpacity(0.8),
-                ],
+                colors: [primaryYellow, primaryYellow.withOpacity(0.8)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -273,10 +269,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
               decoration: BoxDecoration(
                 color: lightGray,
                 borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(
-                  color: Colors.grey[300]!,
-                  width: 1,
-                ),
+                border: Border.all(color: Colors.grey[300]!, width: 1),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -380,11 +373,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                   color: primaryYellow.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
-                child: Icon(
-                  Icons.person_outline,
-                  color: darkGray,
-                  size: 20.sp,
-                ),
+                child: Icon(Icons.person_outline, color: darkGray, size: 20.sp),
               ),
               SizedBox(width: 12.w),
               Text(
@@ -412,11 +401,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
   Widget _buildInfoRow(String label, String value, IconData icon) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 16.sp,
-          color: Colors.grey[600],
-        ),
+        Icon(icon, size: 16.sp, color: Colors.grey[600]),
         SizedBox(width: 8.w),
         Text(
           '$label: ',
@@ -482,7 +467,10 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                 ),
                 Spacer(),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 6.h,
+                  ),
                   decoration: BoxDecoration(
                     color: lightGray,
                     borderRadius: BorderRadius.circular(15.r),
@@ -503,11 +491,12 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
             itemCount: widget.saleItems.length,
-            separatorBuilder: (context, index) => Container(
-              margin: EdgeInsets.symmetric(horizontal: 20.w),
-              height: 1.h,
-              color: lightGray,
-            ),
+            separatorBuilder:
+                (context, index) => Container(
+                  margin: EdgeInsets.symmetric(horizontal: 20.w),
+                  height: 1.h,
+                  color: lightGray,
+                ),
             itemBuilder: (context, index) {
               final saleItem = widget.saleItems[index];
               return Container(
@@ -527,23 +516,37 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                               color: darkGray,
                             ),
                           ),
+                          if (saleItem.description != null &&
+                              saleItem.description!.isNotEmpty) ...[
+                            SizedBox(height: 2.h),
+                            Text(
+                              saleItem.description!,
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: Colors.grey[600],
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
                           SizedBox(height: 4.h),
                           Row(
                             children: [
                               Icon(
                                 Icons.currency_rupee,
                                 size: 12.sp,
-                                color: saleItem.isPriceModified
-                                    ? Colors.orange[600]
-                                    : Colors.grey[600],
+                                color:
+                                    saleItem.isPriceModified
+                                        ? Colors.orange[600]
+                                        : Colors.grey[600],
                               ),
                               Text(
                                 '${saleItem.unitPrice.toStringAsFixed(2)} each',
                                 style: TextStyle(
                                   fontSize: 12.sp,
-                                  color: saleItem.isPriceModified
-                                      ? Colors.orange[600]
-                                      : Colors.grey[600],
+                                  color:
+                                      saleItem.isPriceModified
+                                          ? Colors.orange[600]
+                                          : Colors.grey[600],
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -553,7 +556,10 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                       ),
                     ),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 6.h,
+                      ),
                       decoration: BoxDecoration(
                         color: primaryYellow.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(15.r),
@@ -636,11 +642,12 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
             shrinkWrap: true,
             physics: NeverScrollableScrollPhysics(),
             itemCount: widget.additionalCharges.length,
-            separatorBuilder: (context, index) => Container(
-              margin: EdgeInsets.symmetric(horizontal: 20.w),
-              height: 1.h,
-              color: lightGray,
-            ),
+            separatorBuilder:
+                (context, index) => Container(
+                  margin: EdgeInsets.symmetric(horizontal: 20.w),
+                  height: 1.h,
+                  color: lightGray,
+                ),
             itemBuilder: (context, index) {
               final charge = widget.additionalCharges[index];
               return Container(
@@ -677,13 +684,13 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
   }
 
   Widget _buildBillSummaryCard(
-      double itemsSubtotal,
-      double additionalChargesTotal,
-      double subtotal,
-      double tax,
-      double total,
-      int totalItems,
-      ) {
+    double itemsSubtotal,
+    double additionalChargesTotal,
+    double subtotal,
+    double tax,
+    double total,
+    int totalItems,
+  ) {
     return Container(
       padding: EdgeInsets.all(24.w),
       decoration: BoxDecoration(
@@ -706,10 +713,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                 padding: EdgeInsets.all(12.w),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF667EEA),
-                      const Color(0xFF764BA2),
-                    ],
+                    colors: [const Color(0xFF667EEA), const Color(0xFF764BA2)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -743,15 +747,31 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
               children: [
                 _buildSummaryRow('Items Count:', '$totalItems items', false),
                 SizedBox(height: 8.h),
-                _buildSummaryRow('Items Subtotal:', '₹${itemsSubtotal.toStringAsFixed(2)}', false),
+                _buildSummaryRow(
+                  'Items Subtotal:',
+                  '₹${itemsSubtotal.toStringAsFixed(2)}',
+                  false,
+                ),
                 if (additionalChargesTotal > 0) ...[
                   SizedBox(height: 8.h),
-                  _buildSummaryRow('Additional Charges:', '₹${additionalChargesTotal.toStringAsFixed(2)}', false),
+                  _buildSummaryRow(
+                    'Additional Charges:',
+                    '₹${additionalChargesTotal.toStringAsFixed(2)}',
+                    false,
+                  ),
                 ],
                 SizedBox(height: 8.h),
-                _buildSummaryRow('Subtotal:', '₹${subtotal.toStringAsFixed(2)}', false),
+                _buildSummaryRow(
+                  'Subtotal:',
+                  '₹${subtotal.toStringAsFixed(2)}',
+                  false,
+                ),
                 SizedBox(height: 8.h),
-                _buildSummaryRow('GST (${_customGSTPercentage.toStringAsFixed(1)}%):', '₹${tax.toStringAsFixed(2)}', false),
+                _buildSummaryRow(
+                  'GST (${_customGSTPercentage.toStringAsFixed(1)}%):',
+                  '₹${tax.toStringAsFixed(2)}',
+                  false,
+                ),
                 SizedBox(height: 8.h),
                 _buildGSTEditRow(),
               ],
@@ -878,10 +898,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
           height: 56.h,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                const Color(0xFF27AE60),
-                const Color(0xFF2ECC71),
-              ],
+              colors: [const Color(0xFF27AE60), const Color(0xFF2ECC71)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -904,48 +921,49 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                 borderRadius: BorderRadius.circular(16.r),
               ),
             ),
-            child: isProcessing
-                ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 20.w,
-                  height: 20.h,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2.w,
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Text(
-                  'Processing...',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            )
-                : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.check_circle_outline,
-                  color: Colors.white,
-                  size: 24.sp,
-                ),
-                SizedBox(width: 12.w),
-                Text(
-                  'Complete Sale',
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
+            child:
+                isProcessing
+                    ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 20.w,
+                          height: 20.h,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.w,
+                          ),
+                        ),
+                        SizedBox(width: 12.w),
+                        Text(
+                          'Processing...',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    )
+                    : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.white,
+                          size: 24.sp,
+                        ),
+                        SizedBox(width: 12.w),
+                        Text(
+                          'Complete Sale',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
           ),
         ),
         SizedBox(height: 12.h),
@@ -957,10 +975,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16.r),
-            border: Border.all(
-              color: const Color(0xFF3498DB),
-              width: 2,
-            ),
+            border: Border.all(color: const Color(0xFF3498DB), width: 2),
             boxShadow: [
               BoxShadow(
                 color: cardShadowColor,
@@ -1044,9 +1059,10 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
       'Nov',
       'Dec',
     ];
-    final hour = dateTime.hour == 0
-        ? 12
-        : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
+    final hour =
+        dateTime.hour == 0
+            ? 12
+            : (dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour);
     final period = dateTime.hour >= 12 ? 'PM' : 'AM';
     return '${dateTime.day} ${months[dateTime.month]} ${dateTime.year} at $hour:${dateTime.minute.toString().padLeft(2, '0')} $period';
   }
@@ -1062,11 +1078,11 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
       // Calculate totals
       final itemsSubtotal = widget.saleItems.fold(
         0.0,
-            (sum, item) => sum + item.totalPrice,
+        (sum, item) => sum + item.totalPrice,
       );
       final additionalChargesTotal = widget.additionalCharges.fold(
         0.0,
-            (sum, charge) => sum + charge.totalAmount,
+        (sum, charge) => sum + charge.totalAmount,
       );
       final subtotal = itemsSubtotal + additionalChargesTotal;
       final tax = subtotal * (_customGSTPercentage / 100);
@@ -1077,28 +1093,32 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
       final saleOrder = order_models.SaleOrder(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         shopId: widget.shop.id,
-        items: widget.saleItems
-            .map(
-              (item) => order_models.SaleItem(
-            item: item.item,
-            temporaryItemName: item.temporaryItemName,
-            temporaryItemPrice: item.temporaryItemPrice,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-          ),
-        )
-            .toList(),
-        additionalCharges: widget.additionalCharges
-            .map(
-              (charge) => order_models.AdditionalCharge(
-            name: charge?.name ?? '',
-            amount: charge?.amount ?? 0.0,
-          ),
-        )
-            .toList(),
-        customerName: widget.customerName.isEmpty
-            ? 'Walk-in Customer'
-            : widget.customerName,
+        items:
+            widget.saleItems
+                .map(
+                  (item) => order_models.SaleItem(
+                    item: item.item,
+                    temporaryItemName: item.temporaryItemName,
+                    temporaryItemPrice: item.temporaryItemPrice,
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    description: item.description,
+                  ),
+                )
+                .toList(),
+        additionalCharges:
+            widget.additionalCharges
+                .map(
+                  (charge) => order_models.AdditionalCharge(
+                    name: charge?.name ?? '',
+                    amount: charge?.amount ?? 0.0,
+                  ),
+                )
+                .toList(),
+        customerName:
+            widget.customerName.isEmpty
+                ? 'Walk-in Customer'
+                : widget.customerName,
         customerPhone: widget.customerPhone,
         dateTime: saleDateTime!,
         subtotal: subtotal,
@@ -1133,7 +1153,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
 
         // Navigate back to inventory screen
         Navigator.of(context).popUntil(
-              (route) => route.isFirst || route.settings.name == '/inventory',
+          (route) => route.isFirst || route.settings.name == '/inventory',
         );
       }
     } catch (e) {
@@ -1173,11 +1193,11 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
 
       final itemsSubtotal = widget.saleItems.fold(
         0.0,
-            (sum, item) => sum + item.totalPrice,
+        (sum, item) => sum + item.totalPrice,
       );
       final additionalChargesTotal = widget.additionalCharges.fold(
         0.0,
-            (sum, charge) => sum + charge.totalAmount,
+        (sum, charge) => sum + charge.totalAmount,
       );
       final subtotal = itemsSubtotal + additionalChargesTotal;
       final tax = subtotal * (_customGSTPercentage / 100);
@@ -1188,9 +1208,10 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
         shop: widget.shop,
         billNumber: billNumber!,
         dateTime: saleDateTime!,
-        customerName: widget.customerName.isEmpty
-            ? 'Walk-in Customer'
-            : widget.customerName,
+        customerName:
+            widget.customerName.isEmpty
+                ? 'Walk-in Customer'
+                : widget.customerName,
         customerPhone: widget.customerPhone,
         saleItems: widget.saleItems,
         additionalCharges: widget.additionalCharges,
@@ -1260,11 +1281,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.edit,
-            size: 16.r,
-            color: Colors.grey[600],
-          ),
+          Icon(Icons.edit, size: 16.r, color: Colors.grey[600]),
           SizedBox(width: 8.w),
           Text(
             'GST:',
@@ -1287,10 +1304,7 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
               ),
               decoration: InputDecoration(
                 hintText: 'Enter GST %',
-                hintStyle: TextStyle(
-                  fontSize: 12.sp,
-                  color: Colors.grey[400],
-                ),
+                hintStyle: TextStyle(fontSize: 12.sp, color: Colors.grey[400]),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 12.w,
                   vertical: 8.h,
@@ -1337,16 +1351,9 @@ class _SaleSummaryScreenState extends State<SaleSummaryScreen> {
                   _gstController.text = _customGSTPercentage.toString();
                 });
               },
-              icon: Icon(
-                Icons.refresh,
-                size: 16.r,
-                color: Colors.grey[600],
-              ),
+              icon: Icon(Icons.refresh, size: 16.r, color: Colors.grey[600]),
               padding: EdgeInsets.all(8.w),
-              constraints: BoxConstraints(
-                minWidth: 32.w,
-                minHeight: 32.h,
-              ),
+              constraints: BoxConstraints(minWidth: 32.w, minHeight: 32.h),
             ),
           ),
         ],

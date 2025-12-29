@@ -207,18 +207,44 @@ class PDFService {
           ],
         ),
         // Data Rows
-        ...saleItems
-            .map(
-              (saleItem) => pw.TableRow(
-                children: [
-                  _buildTableCell(saleItem.itemName),
-                  _buildTableCell(saleItem.unitPrice.toStringAsFixed(2)),
-                  _buildTableCell(saleItem.quantity.toStringAsFixed(2)),
-                  _buildTableCell(saleItem.totalPrice.toStringAsFixed(2)),
-                ],
+        ...saleItems.map(
+          (saleItem) => pw.TableRow(
+            children: [
+              pw.Container(
+                padding: const pw.EdgeInsets.all(8),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      saleItem.itemName,
+                      style: pw.TextStyle(
+                        fontSize: 11,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColor.fromHex('#000000'),
+                      ),
+                    ),
+                    if (saleItem.description != null &&
+                        saleItem.description!.isNotEmpty)
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.only(top: 3),
+                        child: pw.Text(
+                          saleItem.description!,
+                          style: pw.TextStyle(
+                            fontSize: 9,
+                            fontStyle: pw.FontStyle.italic,
+                            color: PdfColor.fromHex('#888888'),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            )
-            ,
+              _buildTableCell(saleItem.unitPrice.toStringAsFixed(2)),
+              _buildTableCell(saleItem.quantity.toStringAsFixed(2)),
+              _buildTableCell(saleItem.totalPrice.toStringAsFixed(2)),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -270,7 +296,13 @@ class PDFService {
     );
   }
 
-  pw.Widget _buildSummary(Shop shop, double subtotal, double tax, double total, double customGSTPercentage) {
+  pw.Widget _buildSummary(
+    Shop shop,
+    double subtotal,
+    double tax,
+    double total,
+    double customGSTPercentage,
+  ) {
     return pw.Column(
       children: [
         pw.Container(
@@ -281,11 +313,7 @@ class PDFService {
           ),
           child: pw.Column(
             children: [
-              _buildSummaryRow(
-                'Subtotal:',
-                subtotal.toStringAsFixed(2),
-                false,
-              ),
+              _buildSummaryRow('Subtotal:', subtotal.toStringAsFixed(2), false),
               pw.SizedBox(height: 8),
               _buildSummaryRow(
                 'GST (${customGSTPercentage.toStringAsFixed(1)}%):',
@@ -295,11 +323,7 @@ class PDFService {
               pw.SizedBox(height: 15),
               pw.Container(height: 1, color: PdfColor.fromHex('#DDD')),
               pw.SizedBox(height: 15),
-              _buildSummaryRow(
-                'Total Amount:',
-                total.toStringAsFixed(2),
-                true,
-              ),
+              _buildSummaryRow('Total Amount:', total.toStringAsFixed(2), true),
             ],
           ),
         ),

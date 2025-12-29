@@ -412,6 +412,18 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                             ],
                           ],
                         ),
+                        if (item.description != null &&
+                            item.description!.isNotEmpty) ...[
+                          SizedBox(height: 2.h),
+                          Text(
+                            item.description!,
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              color: Colors.grey[600],
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
                         SizedBox(height: 2.h),
                         Text(
                           '₹${item.unitPrice.toStringAsFixed(2)} each',
@@ -751,6 +763,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
                 temporaryItemName: item.temporaryItemName,
                 temporaryItemPrice: item.temporaryItemPrice,
                 quantity: item.quantity,
+                description: item.description,
               );
             } else {
               // Handle inventory items
@@ -772,6 +785,7 @@ class _SaleDetailScreenState extends State<SaleDetailScreen> {
               return multi_sale.SaleItem(
                 item: inventoryItem,
                 quantity: item.quantity,
+                description: item.description,
               );
             }
           }).toList();

@@ -52,9 +52,6 @@ class SalesListScreen extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.r)),
-        ),
       ),
       body: Consumer<ShopProvider>(
         builder: (context, shopProvider, child) {

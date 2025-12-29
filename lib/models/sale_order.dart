@@ -7,6 +7,7 @@ class SaleItem {
   final int quantity;
   final double unitPrice;
   final double totalPrice;
+  final String? description; // Optional description for this sale
 
   SaleItem({
     this.item,
@@ -14,6 +15,7 @@ class SaleItem {
     this.temporaryItemPrice,
     required this.quantity,
     required this.unitPrice,
+    this.description,
   }) : totalPrice = unitPrice * quantity,
        assert(
          (item != null) ||
@@ -37,6 +39,7 @@ class SaleItem {
       'quantity': quantity,
       'unit_price': unitPrice,
       'total_price': totalPrice,
+      'description': description,
     };
   }
 
@@ -49,12 +52,14 @@ class SaleItem {
         temporaryItemPrice: map['temporary_item_price']?.toDouble() ?? 0.0,
         quantity: map['quantity'] ?? 0,
         unitPrice: map['unit_price']?.toDouble() ?? 0.0,
+        description: map['description'],
       );
     } else {
       return SaleItem(
         item: item,
         quantity: map['quantity'] ?? 0,
         unitPrice: map['unit_price']?.toDouble() ?? 0.0,
+        description: map['description'],
       );
     }
   }
