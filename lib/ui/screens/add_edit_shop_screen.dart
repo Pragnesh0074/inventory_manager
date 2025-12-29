@@ -19,8 +19,10 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
+  final _gstController = TextEditingController();
   final _nameFocusNode = FocusNode();
   final _addressFocusNode = FocusNode();
+  final _gstFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -28,11 +30,15 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
     if (widget.shop != null) {
       _nameController.text = widget.shop!.name;
       _addressController.text = widget.shop!.address;
+      _gstController.text = widget.shop!.gstPercentage.toString();
+    } else {
+      _gstController.text = '18.0'; // Default GST percentage
     }
 
     // Add focus listeners to trigger UI updates
     _nameFocusNode.addListener(() => setState(() {}));
     _addressFocusNode.addListener(() => setState(() {}));
+    _gstFocusNode.addListener(() => setState(() {}));
   }
 
   @override
@@ -210,7 +216,31 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
 
                       SizedBox(height: 24.h),
 
+                      _buildInputField(
+                        controller: _gstController,
+                        focusNode: _gstFocusNode,
+                        label: 'GST Percentage (%)',
+                        hint: 'Enter GST percentage (e.g., 18.0)',
+                        icon: Icons.percent_outlined,
+                        keyboardType: TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter GST percentage';
+                          }
+                          final gst = double.tryParse(value);
+                          if (gst == null) {
+                            return 'Please enter a valid number';
+                          }
+                          if (gst < 0 || gst > 100) {
+                            return 'GST must be between 0 and 100';
+                          }
+                          return null;
+                        },
+                      ),
 
+                      SizedBox(height: 24.h),
                     ],
                   ),
                 ),
@@ -309,6 +339,7 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
     required String hint,
     required IconData icon,
     int maxLines = 1,
+    TextInputType? keyboardType,
     String? Function(String?)? validator,
   }) {
     final isFocused = focusNode.hasFocus;
@@ -328,28 +359,32 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
         SizedBox(height: 12.h),
         Container(
           decoration: BoxDecoration(
-            color: isFocused ? const Color(0xFFF0F8FF) : const Color(0xFFF8F9FA),
+            color:
+                isFocused ? const Color(0xFFF0F8FF) : const Color(0xFFF8F9FA),
             borderRadius: BorderRadius.circular(16.r),
             border: Border.all(
-              color: isFocused
-                  ? const Color(0xFF4A90E2)
-                  : Colors.grey.withOpacity(0.2),
+              color:
+                  isFocused
+                      ? const Color(0xFF4A90E2)
+                      : Colors.grey.withOpacity(0.2),
               width: isFocused ? 2.w : 1.w,
             ),
-            boxShadow: isFocused
-                ? [
-              BoxShadow(
-                color: const Color(0xFF4A90E2).withOpacity(0.1),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ]
-                : null,
+            boxShadow:
+                isFocused
+                    ? [
+                      BoxShadow(
+                        color: const Color(0xFF4A90E2).withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ]
+                    : null,
           ),
           child: TextFormField(
             controller: controller,
             focusNode: focusNode,
             maxLines: maxLines,
+            keyboardType: keyboardType,
             style: TextStyle(
               fontSize: 16.sp,
               color: Colors.black87,
@@ -367,16 +402,18 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
                 width: 40.w,
                 height: 40.h,
                 decoration: BoxDecoration(
-                  color: isFocused
-                      ? const Color(0xFF4A90E2).withOpacity(0.1)
-                      : const Color(0xFFFFE5B8),
+                  color:
+                      isFocused
+                          ? const Color(0xFF4A90E2).withOpacity(0.1)
+                          : const Color(0xFFFFE5B8),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Icon(
                   icon,
-                  color: isFocused
-                      ? const Color(0xFF4A90E2)
-                      : const Color(0xFFFF9500),
+                  color:
+                      isFocused
+                          ? const Color(0xFF4A90E2)
+                          : const Color(0xFFFF9500),
                   size: 20.r,
                 ),
               ),
@@ -414,7 +451,7 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
           id: widget.shop!.id,
           name: _nameController.text.trim(),
           address: _addressController.text.trim(),
-          gstPercentage: widget.shop!.gstPercentage,
+          gstPercentage: double.tryParse(_gstController.text) ?? 18.0,
           createdDate: widget.shop!.createdDate,
           inventory: widget.shop!.inventory,
           transactions: widget.shop!.transactions,
@@ -432,11 +469,7 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
-                  child: Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 16.r,
-                  ),
+                  child: Icon(Icons.check, color: Colors.white, size: 16.r),
                 ),
                 SizedBox(width: 12.w),
                 Text(
@@ -463,7 +496,7 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           name: _nameController.text.trim(),
           address: _addressController.text.trim(),
-          gstPercentage: 18.0,
+          gstPercentage: double.tryParse(_gstController.text) ?? 18.0,
           createdDate: DateTime.now(),
         );
         shopProvider.addShop(newShop);
@@ -479,11 +512,7 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
-                  child: Icon(
-                    Icons.check,
-                    color: Colors.white,
-                    size: 16.r,
-                  ),
+                  child: Icon(Icons.check, color: Colors.white, size: 16.r),
                 ),
                 SizedBox(width: 12.w),
                 Text(
@@ -515,8 +544,10 @@ class _AddEditShopScreenState extends State<AddEditShopScreen> {
   void dispose() {
     _nameController.dispose();
     _addressController.dispose();
+    _gstController.dispose();
     _nameFocusNode.dispose();
     _addressFocusNode.dispose();
+    _gstFocusNode.dispose();
     super.dispose();
   }
 }

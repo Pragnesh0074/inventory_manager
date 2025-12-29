@@ -312,6 +312,7 @@ class DatabaseHelper {
       'name': shop.name,
       'address': shop.address,
       'created_date': shop.createdDate.toIso8601String(),
+      'gst_percentage': shop.gstPercentage,
     });
   }
 
@@ -323,6 +324,7 @@ class DatabaseHelper {
         'name': shop.name,
         'address': shop.address,
         'created_date': shop.createdDate.toIso8601String(),
+        'gst_percentage': shop.gstPercentage,
       },
       where: 'id = ?',
       whereArgs: [shop.id],

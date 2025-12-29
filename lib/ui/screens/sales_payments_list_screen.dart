@@ -4,8 +4,6 @@ import 'package:provider/provider.dart';
 import '../../models/shop.dart';
 import '../../models/sale_order.dart';
 import '../../providers/shop_provider.dart';
-import '../../theme/color.dart';
-import '../../theme/style.dart';
 
 class SalesPaymentsListScreen extends StatefulWidget {
   final Shop shop;
@@ -76,6 +74,9 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
           ),
         ),
         centerTitle: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.r)),
+        ),
       ),
       body: FutureBuilder<List<SaleOrder>>(
         future: _futureOrders,
@@ -91,49 +92,109 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
           final orders = snapshot.data ?? [];
 
           if (orders.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80.w,
-                    height: 80.w,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+            return Container(
+              color: Colors.white,
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(40.w),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Decorative circles in background
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Outer circle
+                          Container(
+                            width: 200.w,
+                            height: 200.w,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.withOpacity(0.1),
+                            ),
+                          ),
+                          // Middle circle
+                          Container(
+                            width: 150.w,
+                            height: 150.w,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.grey.withOpacity(0.15),
+                            ),
+                          ),
+                          // Icon container
+                          Container(
+                            width: 100.w,
+                            height: 100.w,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white,
+                                  Colors.white.withOpacity(0.9),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.payments_outlined,
+                              size: 50.sp,
+                              color: const Color(0xFFFDB462),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 40.h),
+                      Text(
+                        'No Payment Records',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 28.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                          letterSpacing: 0.5,
                         ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.payment,
-                      size: 40.sp,
-                      color: Colors.grey[400],
-                    ),
+                      ),
+                      SizedBox(height: 12.h),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 32.w),
+                        child: Text(
+                          'Payment records will appear here once you complete sales',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w400,
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 32.h),
+                      // Decorative element
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildFeatureItem(
+                            Icons.account_balance_wallet,
+                            'Track',
+                          ),
+                          SizedBox(width: 24.w),
+                          _buildFeatureItem(Icons.history, 'History'),
+                          SizedBox(width: 24.w),
+                          _buildFeatureItem(Icons.insights, 'Insights'),
+                        ],
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 20.h),
-                  Text(
-                    'No sales payments yet',
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'Payment records will appear here',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.grey[600],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                ),
               ),
             );
           }
@@ -267,11 +328,7 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8.r),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20.sp,
-            ),
+            child: Icon(icon, color: color, size: 20.sp),
           ),
           SizedBox(height: 12.h),
           Text(
@@ -312,10 +369,7 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: Colors.grey.withOpacity(0.2),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -357,10 +411,7 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
               SizedBox(height: 4.h),
               Text(
                 'Bill #${o.billNumber} • ${o.formattedDate}',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
               ),
             ],
           ),
@@ -370,9 +421,10 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                 decoration: BoxDecoration(
-                  color: isCleared
-                      ? const Color(0xFF00B894).withOpacity(0.1)
-                      : const Color(0xFFE17055).withOpacity(0.1),
+                  color:
+                      isCleared
+                          ? const Color(0xFF00B894).withOpacity(0.1)
+                          : const Color(0xFFE17055).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Text(
@@ -380,7 +432,10 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
                   style: TextStyle(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.w600,
-                    color: isCleared ? const Color(0xFF00B894) : const Color(0xFFE17055),
+                    color:
+                        isCleared
+                            ? const Color(0xFF00B894)
+                            : const Color(0xFFE17055),
                   ),
                 ),
               ),
@@ -403,10 +458,28 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: _buildInfoItem('Total', '₹${o.total.toStringAsFixed(2)}')),
-                      Expanded(child: _buildInfoItem('Paid', '₹${o.paidAmount.toStringAsFixed(2)}')),
-                      Expanded(child: _buildInfoItem('Remaining', '₹${remaining.toStringAsFixed(2)}',
-                          textColor: isCleared ? const Color(0xFF00B894) : const Color(0xFFE17055))),
+                      Expanded(
+                        child: _buildInfoItem(
+                          'Total',
+                          '₹${o.total.toStringAsFixed(2)}',
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildInfoItem(
+                          'Paid',
+                          '₹${o.paidAmount.toStringAsFixed(2)}',
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildInfoItem(
+                          'Remaining',
+                          '₹${remaining.toStringAsFixed(2)}',
+                          textColor:
+                              isCleared
+                                  ? const Color(0xFF00B894)
+                                  : const Color(0xFFE17055),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -467,57 +540,72 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Column(
-                        children: items.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final m = entry.value;
-                          return Container(
-                            padding: EdgeInsets.all(12.w),
-                            decoration: BoxDecoration(
-                              border: index < items.length - 1
-                                  ? Border(bottom: BorderSide(color: Colors.grey.withOpacity(0.2)))
-                                  : null,
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    m['item_name'] as String,
-                                    style: TextStyle(
-                                      fontSize: 13.sp,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
+                        children:
+                            items.asMap().entries.map((entry) {
+                              final index = entry.key;
+                              final m = entry.value;
+                              return Container(
+                                padding: EdgeInsets.all(12.w),
+                                decoration: BoxDecoration(
+                                  border:
+                                      index < items.length - 1
+                                          ? Border(
+                                            bottom: BorderSide(
+                                              color: Colors.grey.withOpacity(
+                                                0.2,
+                                              ),
+                                            ),
+                                          )
+                                          : null,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        m['item_name'] as String,
+                                        style: TextStyle(
+                                          fontSize: 13.sp,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF6C5CE7).withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(4.r),
-                                  ),
-                                  child: Text(
-                                    '×${m['quantity']}',
-                                    style: TextStyle(
-                                      fontSize: 10.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF6C5CE7),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 6.w,
+                                        vertical: 2.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFF6C5CE7,
+                                        ).withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '×${m['quantity']}',
+                                        style: TextStyle(
+                                          fontSize: 10.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF6C5CE7),
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    SizedBox(width: 12.w),
+                                    Text(
+                                      '₹${(m['total_amount'] as num).toStringAsFixed(2)}',
+                                      style: TextStyle(
+                                        fontSize: 13.sp,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF00B894),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                SizedBox(width: 12.w),
-                                Text(
-                                  '₹${(m['total_amount'] as num).toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontSize: 13.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF00B894),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
+                              );
+                            }).toList(),
                       ),
                     ),
                   ],
@@ -534,7 +622,10 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
                   style: TextButton.styleFrom(
                     backgroundColor: const Color(0xFF6C5CE7).withOpacity(0.1),
                     foregroundColor: const Color(0xFF6C5CE7),
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 12.w,
+                      vertical: 8.h,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.r),
                     ),
@@ -587,128 +678,144 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
     );
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        title: Text(
-          'Update Payment',
-          style: TextStyle(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Customer: ${o.customerName.isNotEmpty ? o.customerName : 'Walk-in Customer'}',
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.r),
+            ),
+            title: Text(
+              'Update Payment',
               style: TextStyle(
-                fontSize: 14.sp,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              'Bill #${o.billNumber}',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'Total Amount: ₹${o.total.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: Colors.grey[600],
-              ),
-            ),
-            SizedBox(height: 16.h),
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(
-                labelText: 'Paid Amount',
-                hintText: 'Max: ₹${o.total.toStringAsFixed(2)}',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: Colors.grey.withOpacity(0.3)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide(color: const Color(0xFF6C5CE7)),
-                ),
-                labelStyle: TextStyle(color: Colors.grey[600]),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final v = double.tryParse(controller.text) ?? o.paidAmount;
-              if (v > o.total) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Paid amount (₹${v.toStringAsFixed(2)}) cannot exceed total amount (₹${o.total.toStringAsFixed(2)})',
-                    ),
-                    backgroundColor: const Color(0xFFE17055),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                  ),
-                );
-                return;
-              }
-              await Provider.of<ShopProvider>(
-                context,
-                listen: false,
-              ).updateSaleOrderPayment(orderId: o.id, paidAmount: v);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Payment updated successfully'),
-                  backgroundColor: const Color(0xFF00B894),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                ),
-              );
-              _refresh();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6C5CE7),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-            ),
-            child: Text(
-              'Save',
-              style: TextStyle(
+                fontSize: 18.sp,
                 fontWeight: FontWeight.w600,
+                color: Colors.black87,
               ),
             ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Customer: ${o.customerName.isNotEmpty ? o.customerName : 'Walk-in Customer'}',
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  'Bill #${o.billNumber}',
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Total Amount: ₹${o.total.toStringAsFixed(2)}',
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                ),
+                SizedBox(height: 16.h),
+                TextField(
+                  controller: controller,
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Paid Amount',
+                    hintText: 'Max: ₹${o.total.toStringAsFixed(2)}',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(
+                        color: Colors.grey.withOpacity(0.3),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                      borderSide: BorderSide(color: const Color(0xFF6C5CE7)),
+                    ),
+                    labelStyle: TextStyle(color: Colors.grey[600]),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Cancel',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final v = double.tryParse(controller.text) ?? o.paidAmount;
+                  if (v > o.total) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Paid amount (₹${v.toStringAsFixed(2)}) cannot exceed total amount (₹${o.total.toStringAsFixed(2)})',
+                        ),
+                        backgroundColor: const Color(0xFFE17055),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+                  await Provider.of<ShopProvider>(
+                    context,
+                    listen: false,
+                  ).updateSaleOrderPayment(orderId: o.id, paidAmount: v);
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Payment updated successfully'),
+                      backgroundColor: const Color(0xFF00B894),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                  );
+                  _refresh();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6C5CE7),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+                child: Text(
+                  'Save',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+    );
+  }
+
+  Widget _buildFeatureItem(IconData icon, String label) {
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFDB462).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Icon(icon, size: 20.sp, color: const Color(0xFFFDB462)),
+        ),
+        SizedBox(height: 8.h),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: Colors.grey[700],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -52,59 +52,118 @@ class SalesListScreen extends StatelessWidget {
           ),
         ),
         centerTitle: true,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.r)),
+        ),
       ),
       body: Consumer<ShopProvider>(
         builder: (context, shopProvider, child) {
           final currentShop = shopProvider.shops.firstWhere(
-                (s) => s.id == shop.id,
+            (s) => s.id == shop.id,
           );
 
           final saleOrders = shopProvider.getSaleOrders(shop.id);
 
           if (saleOrders.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 80.w,
-                    height: 80.w,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+            return Container(
+              color: Colors.white,
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(40.w),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Decorative circles in background
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Outer circle
+                          Container(
+                            width: 200.w,
+                            height: 200.w,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.1),
+                            ),
+                          ),
+                          // Middle circle
+                          Container(
+                            width: 150.w,
+                            height: 150.w,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(0.15),
+                            ),
+                          ),
+                          // Icon container
+                          Container(
+                            width: 100.w,
+                            height: 100.w,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white,
+                                  Colors.white.withOpacity(0.9),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.receipt_long_outlined,
+                              size: 50.sp,
+                              color: const Color(0xFFFDB462),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 40.h),
+                      Text(
+                        'No Sales Yet',
+                        style: TextStyle(
+                          fontSize: 28.sp,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                          letterSpacing: 0.5,
                         ),
-                      ],
-                    ),
-                    child: Icon(
-                      Icons.receipt_long,
-                      size: 40.sp,
-                      color: Colors.grey[400],
-                    ),
+                      ),
+                      SizedBox(height: 12.h),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 32.w),
+                        child: Text(
+                          'Start creating sales to see them appear here',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w400,
+                            height: 1.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 32.h),
+                      // Decorative element
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _buildFeatureItem(Icons.speed, 'Quick'),
+                          SizedBox(width: 24.w),
+                          _buildFeatureItem(Icons.check_circle_outline, 'Easy'),
+                          SizedBox(width: 24.w),
+                          _buildFeatureItem(Icons.trending_up, 'Track'),
+                        ],
+                      ),
+                    ],
                   ),
-                  SizedBox(height: 20.h),
-                  Text(
-                    'No sales yet',
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    'Sales will appear here once you complete a sale',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.grey[600],
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                ),
               ),
             );
           }
@@ -187,10 +246,15 @@ class SalesListScreen extends StatelessWidget {
                         child: ListView.separated(
                           padding: EdgeInsets.symmetric(horizontal: 16.w),
                           itemCount: saleOrders.length,
-                          separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                          separatorBuilder:
+                              (context, index) => SizedBox(height: 12.h),
                           itemBuilder: (context, index) {
                             final saleOrder = saleOrders[index];
-                            return _buildSaleOrderCard(context, currentShop, saleOrder);
+                            return _buildSaleOrderCard(
+                              context,
+                              currentShop,
+                              saleOrder,
+                            );
                           },
                         ),
                       ),
@@ -234,11 +298,7 @@ class SalesListScreen extends StatelessWidget {
               color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8.r),
             ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 20.sp,
-            ),
+            child: Icon(icon, color: color, size: 20.sp),
           ),
           SizedBox(height: 12.h),
           Text(
@@ -272,16 +332,17 @@ class SalesListScreen extends StatelessWidget {
   }
 
   Widget _buildSaleOrderCard(
-      BuildContext context,
-      Shop shop,
-      SaleOrder saleOrder,
-      ) {
+    BuildContext context,
+    Shop shop,
+    SaleOrder saleOrder,
+  ) {
     return InkWell(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => SaleDetailScreen(shop: shop, saleOrder: saleOrder),
+            builder:
+                (context) => SaleDetailScreen(shop: shop, saleOrder: saleOrder),
           ),
         );
       },
@@ -291,10 +352,7 @@ class SalesListScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(
-            color: Colors.grey.withOpacity(0.2),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -374,7 +432,8 @@ class SalesListScreen extends StatelessWidget {
             ),
 
             // Customer info (if available)
-            if (saleOrder.customerName.isNotEmpty || saleOrder.customerPhone.isNotEmpty) ...[
+            if (saleOrder.customerName.isNotEmpty ||
+                saleOrder.customerPhone.isNotEmpty) ...[
               SizedBox(height: 12.h),
               Container(
                 padding: EdgeInsets.all(10.w),
@@ -435,10 +494,7 @@ class SalesListScreen extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 8.w,
-                    vertical: 4.h,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
                     color: const Color(0xFF6C5CE7).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6.r),
@@ -457,6 +513,30 @@ class SalesListScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFeatureItem(IconData icon, String label) {
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.all(12.w),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFDB462).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Icon(icon, size: 20.sp, color: const Color(0xFFFDB462)),
+        ),
+        SizedBox(height: 8.h),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: Colors.grey[700],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 }
