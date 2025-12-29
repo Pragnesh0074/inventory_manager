@@ -6,8 +6,6 @@ import 'package:provider/provider.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shop.dart';
 import '../../providers/shop_provider.dart';
-import '../../theme/color.dart';
-import '../../theme/style.dart';
 import 'add_edit_item_screen.dart';
 import 'item_detail_screen.dart';
 import 'monthly_summary_screen.dart';
@@ -30,11 +28,32 @@ class _InventoryScreenState extends State<InventoryScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _isSearching = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _showInitialLoader();
+  }
+
+  void _showInitialLoader() {
+    setState(() {
+      _isLoading = true;
+    });
+
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
   }
 
   void _onSearchChanged(String query) {
@@ -67,290 +86,329 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF5F7FA),
-      appBar: AppBar(
-        backgroundColor: Color(0xFFFDB462),
-        elevation: 0,
-        title: Text(
-          'INVENTORY',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18.sp,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 0.5,
-          ),
-        ),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          // Search Icon Button
-          if (!_isSearching)
-            IconButton(
-              icon: Icon(Icons.search, color: Colors.black, size: 24.sp),
-              onPressed: () {
-                setState(() {
-                  _isSearching = true;
-                });
-                // Focus search field after a short delay
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  FocusScope.of(context).requestFocus(FocusNode());
-                });
-              },
-            ),
-          // Search Text Field
-          if (_isSearching)
-            Expanded(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 8.w),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+    return PopScope(
+      canPop: !_isLoading,
+      child: Stack(
+        children: [
+          Scaffold(
+            backgroundColor: Color(0xFFF5F7FA),
+            appBar: AppBar(
+              backgroundColor: Color(0xFFFDB462),
+              elevation: 0,
+              title: Text(
+                'INVENTORY',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.5,
                 ),
-                child: TextField(
-                  controller: _searchController,
-                  onChanged: _onSearchChanged,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: 'Search items...',
-                    hintStyle: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 14.sp,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: Colors.grey[600],
-                      size: 20.sp,
-                    ),
-                    suffixIcon:
-                        _searchQuery.isNotEmpty
-                            ? IconButton(
-                              icon: Icon(
-                                Icons.clear,
-                                color: Colors.grey[600],
-                                size: 20.sp,
-                              ),
-                              onPressed: _clearSearch,
-                            )
-                            : null,
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 12.h,
+              ),
+              centerTitle: true,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: Colors.black, size: 24.sp),
+                onPressed: () => Navigator.pop(context),
+              ),
+              actions: [
+                // Search Icon Button
+                if (!_isSearching)
+                  IconButton(
+                    icon: Icon(Icons.search, color: Colors.black, size: 24.sp),
+                    onPressed: () {
+                      setState(() {
+                        _isSearching = true;
+                      });
+                      // Focus search field after a short delay
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        FocusScope.of(context).requestFocus(FocusNode());
+                      });
+                    },
+                  ),
+                // Search Text Field
+                if (_isSearching)
+                  Expanded(
+                    child: Container(
+                      margin: EdgeInsets.symmetric(horizontal: 8.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        onChanged: _onSearchChanged,
+                        autofocus: true,
+                        decoration: InputDecoration(
+                          hintText: 'Search items...',
+                          hintStyle: TextStyle(
+                            color: Colors.grey[400],
+                            fontSize: 14.sp,
+                          ),
+                          prefixIcon: Icon(
+                            Icons.search,
+                            color: Colors.grey[600],
+                            size: 20.sp,
+                          ),
+                          suffixIcon:
+                              _searchQuery.isNotEmpty
+                                  ? IconButton(
+                                    icon: Icon(
+                                      Icons.clear,
+                                      color: Colors.grey[600],
+                                      size: 20.sp,
+                                    ),
+                                    onPressed: _clearSearch,
+                                  )
+                                  : null,
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 12.h,
+                          ),
+                        ),
+                        style: TextStyle(fontSize: 14.sp, color: Colors.black87),
+                      ),
                     ),
                   ),
-                  style: TextStyle(fontSize: 14.sp, color: Colors.black87),
+                // Close Search Button
+                if (_isSearching)
+                  IconButton(
+                    icon: Icon(Icons.close, color: Colors.black, size: 24.sp),
+                    onPressed: _clearSearch,
+                  ),
+              ],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.r)),
+              ),
+            ),
+            body: Consumer<ShopProvider>(
+              builder: (context, shopProvider, child) {
+                final currentShop = shopProvider.shops.firstWhere(
+                  (s) => s.id == widget.shop.id,
+                );
+
+                if (currentShop.inventory.isEmpty) {
+                  return _buildEmptyState(context, currentShop);
+                }
+
+                final filteredInventory = _getFilteredInventory(
+                  currentShop.inventory,
+                );
+
+                if (filteredInventory.isEmpty && _searchQuery.isNotEmpty) {
+                  return _buildNoSearchResults();
+                }
+
+                return Column(
+                  children: [
+                    _buildSummaryCards(currentShop),
+                    SizedBox(height: 8.h),
+                    // Search Results Info
+                    if (_searchQuery.isNotEmpty) ...[
+                      Container(
+                        margin: EdgeInsets.symmetric(horizontal: 16.w),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDB462).withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.search, size: 16.sp, color: Colors.black),
+                            SizedBox(width: 8.w),
+                            Text(
+                              '${filteredInventory.length} result${filteredInventory.length == 1 ? '' : 's'} for "$_searchQuery"',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: Colors.black,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const Spacer(),
+                            TextButton(
+                              onPressed: _clearSearch,
+                              child: Text(
+                                'Clear',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                    ],
+                    Expanded(
+                      child: ListView.separated(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 8.h,
+                        ),
+                        itemCount: filteredInventory.length,
+                        separatorBuilder: (context, index) => SizedBox(height: 12.h),
+                        itemBuilder: (context, index) {
+                          final item = filteredInventory[index];
+                          return _buildInventoryCard(context, currentShop, item);
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+            floatingActionButton: Container(
+              decoration: BoxDecoration(
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(20.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 15,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton.extended(
+                onPressed:
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MultiItemSaleScreen(shop: widget.shop),
+                      ),
+                    ),
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: Text(
+                  'CREATE SALE',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
                 ),
               ),
             ),
-          // Close Search Button
-          if (_isSearching)
-            IconButton(
-              icon: Icon(Icons.close, color: Colors.black, size: 24.sp),
-              onPressed: _clearSearch,
+            bottomNavigationBar: Container(
+              height: 80.h,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFDB462),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20.r),
+                  topRight: Radius.circular(20.r),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10.r,
+                    offset: Offset(0, -2.h),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildBottomNavItem(
+                    Icons.receipt_long,
+                    'Sales',
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SalesListScreen(shop: widget.shop),
+                      ),
+                    ),
+                  ),
+                  _buildBottomNavItem(
+                    Icons.add_box_sharp,
+                    'Add Item',
+                    () => _navigateToAddItem(context, widget.shop),
+                  ),
+                  _buildBottomNavItem(
+                    Icons.analytics,
+                    'Summary',
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MonthlySummaryScreen(shop: widget.shop),
+                      ),
+                    ),
+                  ),
+                  _buildBottomNavItem(
+                    Icons.shopping_bag,
+                    'Purchases',
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PurchasesListScreen(shop: widget.shop),
+                      ),
+                    ),
+                  ),
+                  _buildBottomNavItem(
+                    Icons.account_balance_wallet,
+                    'Payments',
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => SalesPaymentsListScreen(shop: widget.shop),
+                      ),
+                    ),
+                  ),
+                  _buildBottomNavItem(
+                    Icons.more_horiz,
+                    'More',
+                    () => _showMoreOptions(context, widget.shop),
+                  ),
+                ],
+              ),
             ),
-        ],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.r)),
-        ),
-      ),
-      body: Consumer<ShopProvider>(
-        builder: (context, shopProvider, child) {
-          final currentShop = shopProvider.shops.firstWhere(
-            (s) => s.id == widget.shop.id,
-          );
-
-          if (currentShop.inventory.isEmpty) {
-            return _buildEmptyState(context, currentShop);
-          }
-
-          final filteredInventory = _getFilteredInventory(
-            currentShop.inventory,
-          );
-
-          if (filteredInventory.isEmpty && _searchQuery.isNotEmpty) {
-            return _buildNoSearchResults();
-          }
-
-          return Column(
-            children: [
-              _buildSummaryCards(currentShop),
-              SizedBox(height: 8.h),
-              // Search Results Info
-              if (_searchQuery.isNotEmpty) ...[
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 16.w),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 8.h,
-                  ),
+          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black.withOpacity(0.5),
+              child: Center(
+                child: Container(
+                  padding: EdgeInsets.all(24.w),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFDB462).withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(12.r),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16.r),
                   ),
-                  child: Row(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.search, size: 16.sp, color: Colors.black),
-                      SizedBox(width: 8.w),
-                      Text(
-                        '${filteredInventory.length} result${filteredInventory.length == 1 ? '' : 's'} for "$_searchQuery"',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500,
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFFFDB462),
                         ),
                       ),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: _clearSearch,
-                        child: Text(
-                          'Clear',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.black,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      SizedBox(height: 16.h),
+                      Text(
+                        'Loading...',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.black87,
                         ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: 8.h),
-              ],
-              Expanded(
-                child: ListView.separated(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 8.h,
-                  ),
-                  itemCount: filteredInventory.length,
-                  separatorBuilder: (context, index) => SizedBox(height: 12.h),
-                  itemBuilder: (context, index) {
-                    final item = filteredInventory[index];
-                    return _buildInventoryCard(context, currentShop, item);
-                  },
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          color: Colors.black,
-          borderRadius: BorderRadius.circular(20.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 15,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          onPressed:
-              () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MultiItemSaleScreen(shop: widget.shop),
-                ),
-              ),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: Text(
-            'CREATE SALE',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ),
-      ),
-      bottomNavigationBar: Container(
-        height: 80.h,
-        decoration: BoxDecoration(
-          color: const Color(0xFFFDB462),
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20.r),
-            topRight: Radius.circular(20.r),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10.r,
-              offset: Offset(0, -2.h),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildBottomNavItem(
-              Icons.receipt_long,
-              'Sales',
-              () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SalesListScreen(shop: widget.shop),
-                ),
               ),
             ),
-            _buildBottomNavItem(
-              Icons.add_box_sharp,
-              'Add Item',
-              () => _navigateToAddItem(context, widget.shop),
-            ),
-            _buildBottomNavItem(
-              Icons.analytics,
-              'Summary',
-              () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MonthlySummaryScreen(shop: widget.shop),
-                ),
-              ),
-            ),
-            _buildBottomNavItem(
-              Icons.shopping_bag,
-              'Purchases',
-              () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => PurchasesListScreen(shop: widget.shop),
-                ),
-              ),
-            ),
-            _buildBottomNavItem(
-              Icons.account_balance_wallet,
-              'Payments',
-              () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder:
-                      (context) => SalesPaymentsListScreen(shop: widget.shop),
-                ),
-              ),
-            ),
-            _buildBottomNavItem(
-              Icons.more_horiz,
-              'More',
-              () => _showMoreOptions(context, widget.shop),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
