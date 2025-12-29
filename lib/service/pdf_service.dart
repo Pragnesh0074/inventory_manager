@@ -194,22 +194,42 @@ class PDFService {
 
   pw.Widget _buildItemsTable(List<SaleItem> saleItems) {
     return pw.Table(
-      border: pw.TableBorder.all(color: PdfColor.fromHex('#E0E0E0')),
+      border: pw.TableBorder.all(
+        color: PdfColor.fromHex('#E0E0E0'),
+        width: 0.5,
+      ),
+      columnWidths: {
+        0: const pw.FlexColumnWidth(3), // Item Name & Description
+        1: const pw.FlexColumnWidth(1.5), // Unit Price
+        2: const pw.FlexColumnWidth(1.2), // GST %
+        3: const pw.FlexColumnWidth(1.5), // Price + GST
+        4: const pw.FlexColumnWidth(1), // Qty
+        5: const pw.FlexColumnWidth(1.8), // Total
+      },
       children: [
         // Header Row
         pw.TableRow(
-          decoration: pw.BoxDecoration(color: PdfColor.fromHex('#F5F5F5')),
+          decoration: pw.BoxDecoration(color: PdfColor.fromHex('#1976D2')),
           children: [
-            _buildTableCell('Item Name', isHeader: true),
-            _buildTableCell('Unit Price', isHeader: true),
-            _buildTableCell('Qty', isHeader: true),
-            _buildTableCell('Total', isHeader: true),
+            _buildTableHeaderCell('Item Details'),
+            _buildTableHeaderCell('Unit Price'),
+            _buildTableHeaderCell('GST %'),
+            _buildTableHeaderCell('Price + GST'),
+            _buildTableHeaderCell('Qty'),
+            _buildTableHeaderCell('Total'),
           ],
         ),
         // Data Rows
-        ...saleItems.map(
-          (saleItem) => pw.TableRow(
+        ...saleItems.map((saleItem) {
+          // Calculate GST for this item (assuming same GST % for all items)
+          final gstPercentage = 18.0; // You can make this dynamic
+          final unitPriceBeforeGST =
+              saleItem.unitPrice / (1 + gstPercentage / 100);
+          final totalPrice = saleItem.unitPrice * saleItem.quantity;
+
+          return pw.TableRow(
             children: [
+              // Item Name & Description
               pw.Container(
                 padding: const pw.EdgeInsets.all(8),
                 child: pw.Column(
@@ -218,7 +238,7 @@ class PDFService {
                     pw.Text(
                       saleItem.itemName,
                       style: pw.TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
                         color: PdfColor.fromHex('#000000'),
                       ),
@@ -230,22 +250,82 @@ class PDFService {
                         child: pw.Text(
                           saleItem.description!,
                           style: pw.TextStyle(
-                            fontSize: 9,
+                            fontSize: 8,
                             fontStyle: pw.FontStyle.italic,
-                            color: PdfColor.fromHex('#888888'),
+                            color: PdfColor.fromHex('#666666'),
                           ),
                         ),
                       ),
                   ],
                 ),
               ),
-              _buildTableCell(saleItem.unitPrice.toStringAsFixed(2)),
-              _buildTableCell(saleItem.quantity.toStringAsFixed(2)),
-              _buildTableCell(saleItem.totalPrice.toStringAsFixed(2)),
+              // Unit Price (before GST)
+              _buildTableDataCell(
+                'Rs. ${unitPriceBeforeGST.toStringAsFixed(2)}',
+                align: pw.TextAlign.right,
+              ),
+              // GST %
+              _buildTableDataCell(
+                '${gstPercentage.toStringAsFixed(0)}%',
+                align: pw.TextAlign.center,
+              ),
+              // Price + GST
+              _buildTableDataCell(
+                'Rs. ${saleItem.unitPrice.toStringAsFixed(2)}',
+                align: pw.TextAlign.right,
+                isBold: true,
+              ),
+              // Quantity
+              _buildTableDataCell(
+                saleItem.quantity.toStringAsFixed(0),
+                align: pw.TextAlign.center,
+              ),
+              // Total
+              _buildTableDataCell(
+                'Rs. ${totalPrice.toStringAsFixed(2)}',
+                align: pw.TextAlign.right,
+                isBold: true,
+                color: PdfColor.fromHex('#1976D2'),
+              ),
             ],
-          ),
-        ),
+          );
+        }),
       ],
+    );
+  }
+
+  pw.Widget _buildTableHeaderCell(String text) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(8),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          fontSize: 9,
+          fontWeight: pw.FontWeight.bold,
+          color: PdfColor.fromHex('#FFFFFF'),
+        ),
+        textAlign: pw.TextAlign.center,
+      ),
+    );
+  }
+
+  pw.Widget _buildTableDataCell(
+    String text, {
+    pw.TextAlign align = pw.TextAlign.left,
+    bool isBold = false,
+    PdfColor? color,
+  }) {
+    return pw.Container(
+      padding: const pw.EdgeInsets.all(8),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(
+          fontSize: 9,
+          fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
+          color: color ?? PdfColor.fromHex('#333333'),
+        ),
+        textAlign: align,
+      ),
     );
   }
 
@@ -269,7 +349,7 @@ class PDFService {
               (charge) => pw.TableRow(
                 children: [
                   _buildTableCell(charge.name),
-                  _buildTableCell('₹${charge.amount.toStringAsFixed(2)}'),
+                  _buildTableCell('Rs. ${charge.amount.toStringAsFixed(2)}'),
                 ],
               ),
             )
@@ -303,28 +383,77 @@ class PDFService {
     double total,
     double customGSTPercentage,
   ) {
-    return pw.Column(
+    return pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Container(
-          padding: pw.EdgeInsets.all(15),
-          decoration: pw.BoxDecoration(
-            color: PdfColor.fromHex('#F8F9FA'),
-            borderRadius: pw.BorderRadius.circular(8),
+        // Left side - Terms & Conditions
+        pw.Expanded(
+          flex: 3,
+          child: pw.Container(
+            padding: const pw.EdgeInsets.all(12),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColor.fromHex('#E0E0E0')),
+              borderRadius: pw.BorderRadius.circular(8),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text(
+                  'Terms & Conditions',
+                  style: pw.TextStyle(
+                    fontSize: 10,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColor.fromHex('#1976D2'),
+                  ),
+                ),
+                pw.SizedBox(height: 6),
+                pw.Text(
+                  '- Payment due within 30 days\n'
+                  '- Goods once sold will not be taken back\n'
+                  '- All disputes subject to local jurisdiction',
+                  style: pw.TextStyle(
+                    fontSize: 8,
+                    color: PdfColor.fromHex('#666666'),
+                  ),
+                ),
+              ],
+            ),
           ),
-          child: pw.Column(
-            children: [
-              _buildSummaryRow('Subtotal:', subtotal.toStringAsFixed(2), false),
-              pw.SizedBox(height: 8),
-              _buildSummaryRow(
-                'GST (${customGSTPercentage.toStringAsFixed(1)}%):',
-                tax.toStringAsFixed(2),
-                false,
-              ),
-              pw.SizedBox(height: 15),
-              pw.Container(height: 1, color: PdfColor.fromHex('#DDD')),
-              pw.SizedBox(height: 15),
-              _buildSummaryRow('Total Amount:', total.toStringAsFixed(2), true),
-            ],
+        ),
+        pw.SizedBox(width: 15),
+        // Right side - Bill Summary
+        pw.Expanded(
+          flex: 2,
+          child: pw.Container(
+            padding: const pw.EdgeInsets.all(12),
+            decoration: pw.BoxDecoration(
+              color: PdfColor.fromHex('#F8F9FA'),
+              borderRadius: pw.BorderRadius.circular(8),
+              border: pw.Border.all(color: PdfColor.fromHex('#E0E0E0')),
+            ),
+            child: pw.Column(
+              children: [
+                _buildSummaryRow(
+                  'Subtotal:',
+                  'Rs. ${subtotal.toStringAsFixed(2)}',
+                  false,
+                ),
+                pw.SizedBox(height: 6),
+                _buildSummaryRow(
+                  'GST (${customGSTPercentage.toStringAsFixed(1)}%):',
+                  'Rs. ${tax.toStringAsFixed(2)}',
+                  false,
+                ),
+                pw.SizedBox(height: 10),
+                pw.Container(height: 1, color: PdfColor.fromHex('#1976D2')),
+                pw.SizedBox(height: 10),
+                _buildSummaryRow(
+                  'Total Amount:',
+                  'Rs. ${total.toStringAsFixed(2)}',
+                  true,
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -338,23 +467,17 @@ class PDFService {
         pw.Text(
           label,
           style: pw.TextStyle(
-            fontSize: isTotal ? 14 : 12,
+            fontSize: isTotal ? 11 : 9,
             fontWeight: isTotal ? pw.FontWeight.bold : pw.FontWeight.normal,
-            color:
-                isTotal
-                    ? PdfColor.fromHex('#1976D2')
-                    : PdfColor.fromHex('#666666'),
+            color: PdfColor.fromHex(isTotal ? '#1976D2' : '#666666'),
           ),
         ),
         pw.Text(
           value,
           style: pw.TextStyle(
-            fontSize: isTotal ? 16 : 12,
+            fontSize: isTotal ? 13 : 10,
             fontWeight: pw.FontWeight.bold,
-            color:
-                isTotal
-                    ? PdfColor.fromHex('#4CAF50')
-                    : PdfColor.fromHex('#333333'),
+            color: PdfColor.fromHex(isTotal ? '#4CAF50' : '#333333'),
           ),
         ),
       ],
@@ -364,30 +487,74 @@ class PDFService {
   pw.Widget _buildFooter() {
     return pw.Column(
       children: [
+        pw.SizedBox(height: 30),
+        // Signature Section
+        pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [
+            // Customer Signature
+            pw.Container(
+              width: 200,
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Container(
+                    height: 50,
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border(
+                        bottom: pw.BorderSide(
+                          color: PdfColor.fromHex('#000000'),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  pw.SizedBox(height: 5),
+                  pw.Text(
+                    'Customer Signature',
+                    style: pw.TextStyle(
+                      fontSize: 9,
+                      color: PdfColor.fromHex('#666666'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Authorized Signature
+            pw.Container(
+              width: 200,
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  pw.Container(
+                    height: 50,
+                    decoration: pw.BoxDecoration(
+                      border: pw.Border(
+                        bottom: pw.BorderSide(
+                          color: PdfColor.fromHex('#000000'),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  pw.SizedBox(height: 5),
+                  pw.Text(
+                    'Authorized Signature',
+                    style: pw.TextStyle(
+                      fontSize: 9,
+                      color: PdfColor.fromHex('#666666'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        pw.SizedBox(height: 25),
+        // Thank you message
         pw.Container(
           width: double.infinity,
-          height: 1,
-          color: PdfColor.fromHex('#E0E0E0'),
-        ),
-        pw.SizedBox(height: 20),
-        pw.Text(
-          'Thank you for your business!',
-          style: pw.TextStyle(
-            fontSize: 16,
-            fontWeight: pw.FontWeight.bold,
-            color: PdfColor.fromHex('#1976D2'),
-          ),
-          textAlign: pw.TextAlign.center,
-        ),
-        pw.SizedBox(height: 10),
-        pw.Text(
-          'This is a computer-generated invoice.',
-          style: pw.TextStyle(fontSize: 10, color: PdfColor.fromHex('#999999')),
-          textAlign: pw.TextAlign.center,
-        ),
-        pw.SizedBox(height: 20),
-        pw.Container(
-          padding: pw.EdgeInsets.all(15),
+          padding: const pw.EdgeInsets.all(12),
           decoration: pw.BoxDecoration(
             color: PdfColor.fromHex('#E3F2FD'),
             borderRadius: pw.BorderRadius.circular(8),
@@ -395,23 +562,22 @@ class PDFService {
           child: pw.Column(
             children: [
               pw.Text(
-                'Payment Terms & Conditions',
+                'Thank You for Your Business!',
                 style: pw.TextStyle(
-                  fontSize: 12,
+                  fontSize: 14,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColor.fromHex('#1976D2'),
                 ),
+                textAlign: pw.TextAlign.center,
               ),
-              pw.SizedBox(height: 8),
+              pw.SizedBox(height: 4),
               pw.Text(
-                '• All payments should be made within 30 days of invoice date\n'
-                '• Late payments may be subject to a 1.5% monthly service charge\n'
-                '• Please include invoice number with payment\n'
-                '• For questions about this invoice, please contact us',
+                'This is a computer-generated invoice and does not require a physical signature.',
                 style: pw.TextStyle(
-                  fontSize: 9,
+                  fontSize: 8,
                   color: PdfColor.fromHex('#666666'),
                 ),
+                textAlign: pw.TextAlign.center,
               ),
             ],
           ),
