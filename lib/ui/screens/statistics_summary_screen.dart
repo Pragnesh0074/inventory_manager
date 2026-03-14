@@ -5,7 +5,8 @@ import 'package:inventory_manager/models/inventory_item.dart';
 import 'package:inventory_manager/models/item_statistics.dart';
 import 'package:inventory_manager/models/purchase.dart';
 import 'package:inventory_manager/models/sale_order.dart';
-import 'package:inventory_manager/database/database_helper.dart';
+import 'package:provider/provider.dart';
+import 'package:inventory_manager/providers/shop_provider.dart';
 import 'package:inventory_manager/models/sale_record.dart';
 import 'package:inventory_manager/theme/color.dart';
 import 'package:inventory_manager/theme/style.dart';
@@ -28,7 +29,7 @@ class StatisticsSummaryScreen extends StatefulWidget {
 class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  final DatabaseHelper _databaseHelper = DatabaseHelper();
+  late ShopProvider _shopProvider;
 
   List<InventoryItem> _items = [];
   List<Purchase> _purchases = [];
@@ -47,6 +48,7 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _shopProvider = Provider.of<ShopProvider>(context, listen: false);
     _loadData();
   }
 
@@ -61,13 +63,13 @@ class _StatisticsSummaryScreenState extends State<StatisticsSummaryScreen>
 
     try {
       // Load all data
-      final items = await _databaseHelper.getInventoryItems(widget.shopId);
-      final purchases = await _databaseHelper.getPurchases(widget.shopId);
-      final sales = await _databaseHelper.getSaleOrders(widget.shopId);
+      final items = await _shopProvider.getInventoryItems(widget.shopId);
+      final purchases = await _shopProvider.getPurchases(widget.shopId);
+      final sales = await _shopProvider.getSaleOrdersFromDb(widget.shopId);
 
       // Load sale items for each sale order
       for (var sale in sales) {
-        final saleItems = await _databaseHelper.getSaleOrderItems(sale.id);
+        final saleItems = await _shopProvider.getSaleOrderItems(widget.shopId, sale.id);
         // Convert to SaleItem objects and create a new sale order with items
         final saleWithItems = SaleOrder(
           id: sale.id,

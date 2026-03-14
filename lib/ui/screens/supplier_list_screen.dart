@@ -6,7 +6,7 @@ import '../../models/shop.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
-import '../../database/database_helper.dart';
+
 
 class SupplierListScreen extends StatefulWidget {
   final Shop shop;
@@ -33,8 +33,8 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
     });
 
     try {
-      final dbHelper = DatabaseHelper();
-      final supplierList = await dbHelper.getSuppliers(widget.shop.id);
+      final shopProvider = Provider.of<ShopProvider>(context, listen: false);
+      final supplierList = await shopProvider.getSuppliers(widget.shop.id);
       setState(() {
         suppliers = supplierList;
         isLoading = false;
@@ -472,8 +472,8 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
 
   Future<void> _deleteSupplier(Supplier supplier) async {
     try {
-      final dbHelper = DatabaseHelper();
-      await dbHelper.deleteSupplier(supplier.id);
+      final shopProvider = Provider.of<ShopProvider>(context, listen: false);
+      await shopProvider.deleteSupplier(widget.shop.id, supplier.id);
 
       // Refresh the supplier list
       await _loadSuppliers();

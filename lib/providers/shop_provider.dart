@@ -4,15 +4,17 @@ import '../models/inventory_item.dart';
 import '../models/stock_entry.dart';
 import '../models/transaction.dart';
 import '../models/sale_order.dart';
-import '../database/database_helper.dart';
 import '../models/purchase.dart';
+import '../models/customer.dart';
+import '../models/supplier.dart';
+import '../services/firebase_service.dart';
 
 class ShopProvider with ChangeNotifier {
   List<Shop> _shops = [];
   Shop? _currentShop;
-  final DatabaseHelper _databaseHelper = DatabaseHelper();
+  final FirebaseService _db = FirebaseService();
   bool _isLoading = false;
-  int _idCounter = 0; // Add counter for unique IDs
+  int _idCounter = 0;
 
   List<Shop> get shops => _shops;
   Shop? get currentShop => _currentShop;
@@ -24,15 +26,15 @@ class ShopProvider with ChangeNotifier {
     return '${DateTime.now().millisecondsSinceEpoch}_$_idCounter';
   }
 
-  // Initialize and load data from database
+  // Initialize and load data from Firestore
   Future<void> initializeData() async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      _shops = await _databaseHelper.getAllShops();
+      _shops = await _db.getAllShops();
     } catch (e) {
-      print('Error loading shops: $e');
+      debugPrint('Error loading shops: $e');
     }
 
     _isLoading = false;
@@ -44,59 +46,55 @@ class ShopProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // ─── SHOP CRUD ─────────────────────────────────────────────────────────────
+
   Future<void> addShop(Shop shop) async {
     try {
-      await _databaseHelper.insertShop(shop);
+      await _db.insertShop(shop);
       _shops.add(shop);
       notifyListeners();
     } catch (e) {
-      print('Error adding shop: $e');
-      throw e;
+      debugPrint('Error adding shop: $e');
+      rethrow;
     }
   }
 
   Future<void> updateShop(Shop updatedShop) async {
     try {
-      await _databaseHelper.updateShop(updatedShop);
-      final index = _shops.indexWhere((shop) => shop.id == updatedShop.id);
+      await _db.updateShop(updatedShop);
+      final index = _shops.indexWhere((s) => s.id == updatedShop.id);
       if (index != -1) {
         _shops[index] = updatedShop;
-        if (_currentShop?.id == updatedShop.id) {
-          _currentShop = updatedShop;
-        }
+        if (_currentShop?.id == updatedShop.id) _currentShop = updatedShop;
         notifyListeners();
       }
     } catch (e) {
-      print('Error updating shop: $e');
-      throw e;
+      debugPrint('Error updating shop: $e');
+      rethrow;
     }
   }
 
   Future<void> deleteShop(String shopId) async {
     try {
-      await _databaseHelper.deleteShop(shopId);
-      _shops.removeWhere((shop) => shop.id == shopId);
-      if (_currentShop?.id == shopId) {
-        _currentShop = null;
-      }
+      await _db.deleteShop(shopId);
+      _shops.removeWhere((s) => s.id == shopId);
+      if (_currentShop?.id == shopId) _currentShop = null;
       notifyListeners();
     } catch (e) {
-      print('Error deleting shop: $e');
-      throw e;
+      debugPrint('Error deleting shop: $e');
+      rethrow;
     }
   }
+
+  // ─── INVENTORY ITEMS ───────────────────────────────────────────────────────
 
   Future<void> addInventoryItem(String shopId, InventoryItem item) async {
     try {
       final shop = _shops.firstWhere((s) => s.id == shopId);
-
-      // Check if item already exists
-      final existingIndex = shop.inventory.indexWhere(
-        (i) => i.name.toLowerCase() == item.name.toLowerCase(),
-      );
+      final existingIndex = shop.inventory
+          .indexWhere((i) => i.name.toLowerCase() == item.name.toLowerCase());
 
       if (existingIndex != -1) {
-        // Add to existing item
         final existingItem = shop.inventory[existingIndex];
         existingItem.quantity += item.quantity;
         existingItem.lastUpdated = DateTime.now();
@@ -108,13 +106,11 @@ class ShopProvider with ChangeNotifier {
           dateTime: DateTime.now(),
           note: 'Stock addition',
         );
-
         existingItem.stockEntries.add(stockEntry);
 
-        await _databaseHelper.updateInventoryItem(existingItem);
-        await _databaseHelper.insertStockEntry(existingItem.id, stockEntry);
+        await _db.updateInventoryItem(shopId, existingItem);
+        await _db.insertStockEntry(shopId, existingItem.id, stockEntry);
       } else {
-        // Add new item
         final stockEntry = StockEntry(
           id: _generateUniqueId(),
           quantity: item.quantity,
@@ -122,52 +118,47 @@ class ShopProvider with ChangeNotifier {
           dateTime: DateTime.now(),
           note: 'Initial stock',
         );
-
         item.stockEntries.add(stockEntry);
         shop.inventory.add(item);
 
-        await _databaseHelper.insertInventoryItem(shopId, item);
-        await _databaseHelper.insertStockEntry(item.id, stockEntry);
+        await _db.insertInventoryItem(shopId, item);
+        await _db.insertStockEntry(shopId, item.id, stockEntry);
       }
-
       notifyListeners();
     } catch (e) {
-      print('Error adding inventory item: $e');
-      throw e;
+      debugPrint('Error adding inventory item: $e');
+      rethrow;
     }
   }
 
-  Future<void> updateInventoryItem(
-    String shopId,
-    InventoryItem updatedItem,
-  ) async {
+  Future<void> updateInventoryItem(String shopId, InventoryItem updatedItem) async {
     try {
-      await _databaseHelper.updateInventoryItem(updatedItem);
+      await _db.updateInventoryItem(shopId, updatedItem);
       final shop = _shops.firstWhere((s) => s.id == shopId);
-      final index = shop.inventory.indexWhere(
-        (item) => item.id == updatedItem.id,
-      );
+      final index = shop.inventory.indexWhere((i) => i.id == updatedItem.id);
       if (index != -1) {
         shop.inventory[index] = updatedItem;
         notifyListeners();
       }
     } catch (e) {
-      print('Error updating inventory item: $e');
-      throw e;
+      debugPrint('Error updating inventory item: $e');
+      rethrow;
     }
   }
 
   Future<void> deleteInventoryItem(String shopId, String itemId) async {
     try {
-      await _databaseHelper.deleteInventoryItem(itemId);
+      await _db.deleteInventoryItem(shopId, itemId);
       final shop = _shops.firstWhere((s) => s.id == shopId);
-      shop.inventory.removeWhere((item) => item.id == itemId);
+      shop.inventory.removeWhere((i) => i.id == itemId);
       notifyListeners();
     } catch (e) {
-      print('Error deleting inventory item: $e');
-      throw e;
+      debugPrint('Error deleting inventory item: $e');
+      rethrow;
     }
   }
+
+  // ─── SELL / STOCK ──────────────────────────────────────────────────────────
 
   Future<void> sellItem(String shopId, String itemId, int quantity) async {
     try {
@@ -178,7 +169,6 @@ class ShopProvider with ChangeNotifier {
         item.quantity -= quantity;
         item.lastUpdated = DateTime.now();
 
-        // Add stock entry
         final stockEntry = StockEntry(
           id: _generateUniqueId(),
           quantity: quantity,
@@ -186,10 +176,8 @@ class ShopProvider with ChangeNotifier {
           dateTime: DateTime.now(),
           note: 'Item sold',
         );
-
         item.stockEntries.add(stockEntry);
 
-        // Add transaction
         final transaction = Transaction(
           id: _generateUniqueId(),
           itemId: itemId,
@@ -200,19 +188,17 @@ class ShopProvider with ChangeNotifier {
           dateTime: DateTime.now(),
           type: 'sale',
         );
-
         shop.transactions.add(transaction);
 
-        // Update database
-        await _databaseHelper.updateInventoryItem(item);
-        await _databaseHelper.insertStockEntry(item.id, stockEntry);
-        await _databaseHelper.insertTransaction(shopId, transaction);
+        await _db.updateInventoryItem(shopId, item);
+        await _db.insertStockEntry(shopId, item.id, stockEntry);
+        await _db.insertTransaction(shopId, transaction);
 
         notifyListeners();
       }
     } catch (e) {
-      print('Error selling item: $e');
-      throw e;
+      debugPrint('Error selling item: $e');
+      rethrow;
     }
   }
 
@@ -224,7 +210,6 @@ class ShopProvider with ChangeNotifier {
       item.quantity += quantity;
       item.lastUpdated = DateTime.now();
 
-      // Add stock entry
       final stockEntry = StockEntry(
         id: _generateUniqueId(),
         quantity: quantity,
@@ -232,21 +217,20 @@ class ShopProvider with ChangeNotifier {
         dateTime: DateTime.now(),
         note: 'Stock addition',
       );
-
       item.stockEntries.add(stockEntry);
 
-      // Update database
-      await _databaseHelper.updateInventoryItem(item);
-      await _databaseHelper.insertStockEntry(item.id, stockEntry);
+      await _db.updateInventoryItem(shopId, item);
+      await _db.insertStockEntry(shopId, item.id, stockEntry);
 
       notifyListeners();
     } catch (e) {
-      print('Error adding stock: $e');
-      throw e;
+      debugPrint('Error adding stock: $e');
+      rethrow;
     }
   }
 
-  // Record a purchase and add stock accordingly
+  // ─── PURCHASES ─────────────────────────────────────────────────────────────
+
   Future<void> recordPurchase({
     required String shopId,
     required InventoryItem item,
@@ -259,14 +243,10 @@ class ShopProvider with ChangeNotifier {
     String? note,
   }) async {
     try {
-      // Increase stock for the item
       final shop = _shops.firstWhere((s) => s.id == shopId);
-      final existingItemIndex = shop.inventory.indexWhere(
-        (i) => i.id == item.id,
-      );
-      if (existingItemIndex == -1) {
-        throw Exception('Item not found in shop inventory');
-      }
+      final existingItemIndex =
+          shop.inventory.indexWhere((i) => i.id == item.id);
+      if (existingItemIndex == -1) throw Exception('Item not found in shop inventory');
 
       final stockEntry = StockEntry(
         id: _generateUniqueId(),
@@ -280,12 +260,9 @@ class ShopProvider with ChangeNotifier {
       shop.inventory[existingItemIndex].lastUpdated = DateTime.now();
       shop.inventory[existingItemIndex].stockEntries.add(stockEntry);
 
-      await _databaseHelper.updateInventoryItem(
-        shop.inventory[existingItemIndex],
-      );
-      await _databaseHelper.insertStockEntry(item.id, stockEntry);
+      await _db.updateInventoryItem(shopId, shop.inventory[existingItemIndex]);
+      await _db.insertStockEntry(shopId, item.id, stockEntry);
 
-      // Create purchase record
       final purchase = Purchase(
         id: _generateUniqueId(),
         shopId: shopId,
@@ -301,93 +278,47 @@ class ShopProvider with ChangeNotifier {
         dateTime: DateTime.now(),
         note: note,
       );
-
-      await _databaseHelper.insertPurchase(purchase);
+      await _db.insertPurchase(purchase);
 
       notifyListeners();
     } catch (e) {
-      print('Error recording purchase: $e');
+      debugPrint('Error recording purchase: $e');
       rethrow;
     }
   }
 
   Future<List<Purchase>> getPurchases(String shopId) async {
     try {
-      return await _databaseHelper.getPurchases(shopId);
+      return await _db.getPurchases(shopId);
     } catch (e) {
-      print('Error getting purchases: $e');
+      debugPrint('Error getting purchases: $e');
       return [];
     }
   }
 
   Future<void> updatePurchasePayment({
+    required String shopId,
     required String purchaseId,
     required double paidAmount,
   }) async {
     try {
-      await _databaseHelper.updatePurchasePayment(
-        purchaseId: purchaseId,
-        paidAmount: paidAmount,
-      );
+      await _db.updatePurchasePayment(
+          shopId: shopId, purchaseId: purchaseId, paidAmount: paidAmount);
       notifyListeners();
     } catch (e) {
-      print('Error updating purchase payment: $e');
+      debugPrint('Error updating purchase payment: $e');
       rethrow;
     }
   }
 
-  Future<void> updateSaleOrderPayment({
-    required String orderId,
-    required double paidAmount,
-  }) async {
-    try {
-      await _databaseHelper.updateSaleOrderPayment(
-        orderId: orderId,
-        paidAmount: paidAmount,
-      );
+  // ─── SALE ORDERS ───────────────────────────────────────────────────────────
 
-      // Update local shop state
-      for (final shop in _shops) {
-        final orderIndex = shop.saleOrders.indexWhere(
-          (order) => order.id == orderId,
-        );
-        if (orderIndex != -1) {
-          shop.saleOrders[orderIndex] = shop.saleOrders[orderIndex].copyWith(
-            paidAmount: paidAmount,
-          );
-          break;
-        }
-      }
-
-      notifyListeners();
-    } catch (e) {
-      print('Error updating sale order payment: $e');
-      rethrow;
-    }
-  }
-
-  Future<List<Transaction>> getMonthlyTransactions(
-    String shopId,
-    DateTime month,
-  ) async {
-    try {
-      return await _databaseHelper.getMonthlyTransactions(shopId, month);
-    } catch (e) {
-      print('Error getting monthly transactions: $e');
-      return [];
-    }
-  }
-
-  // Create a sale order with multiple items
   Future<void> createSaleOrder(String shopId, SaleOrder saleOrder) async {
     try {
       final shop = _shops.firstWhere((s) => s.id == shopId);
 
-      // Process each sale item and update inventory
       for (final saleItem in saleOrder.items) {
         if (saleItem.isTemporaryItem) {
-          // Handle temporary items - no inventory update needed
-          // Add transaction for tracking
           final transaction = Transaction(
             id: _generateUniqueId(),
             itemId: 'temp_${DateTime.now().millisecondsSinceEpoch}',
@@ -399,20 +330,15 @@ class ShopProvider with ChangeNotifier {
             type: 'sale',
             orderId: saleOrder.id,
           );
-
           shop.transactions.add(transaction);
-          await _databaseHelper.insertTransaction(shopId, transaction);
+          await _db.insertTransaction(shopId, transaction);
         } else {
-          // Handle inventory items
-          final item = shop.inventory.firstWhere(
-            (i) => i.id == saleItem.item!.id,
-          );
-
+          final item =
+              shop.inventory.firstWhere((i) => i.id == saleItem.item!.id);
           if (item.quantity >= saleItem.quantity) {
             item.quantity -= saleItem.quantity;
             item.lastUpdated = DateTime.now();
 
-            // Add stock entry
             final stockEntry = StockEntry(
               id: _generateUniqueId(),
               quantity: saleItem.quantity,
@@ -420,10 +346,8 @@ class ShopProvider with ChangeNotifier {
               dateTime: DateTime.now(),
               note: 'Item sold in order ${saleOrder.billNumber}',
             );
-
             item.stockEntries.add(stockEntry);
 
-            // Add individual transaction for tracking
             final transaction = Transaction(
               id: _generateUniqueId(),
               itemId: saleItem.item!.id,
@@ -435,69 +359,157 @@ class ShopProvider with ChangeNotifier {
               type: 'sale',
               orderId: saleOrder.id,
             );
-
             shop.transactions.add(transaction);
 
-            // Update database
-            await _databaseHelper.updateInventoryItem(item);
-            await _databaseHelper.insertStockEntry(item.id, stockEntry);
-            await _databaseHelper.insertTransaction(shopId, transaction);
+            await _db.updateInventoryItem(shopId, item);
+            await _db.insertStockEntry(shopId, item.id, stockEntry);
+            await _db.insertTransaction(shopId, transaction);
           } else {
             throw Exception('Insufficient stock for ${item.name}');
           }
         }
       }
 
-      // Add sale order to shop and persist
       shop.saleOrders.add(saleOrder);
-      await _databaseHelper.insertSaleOrder(saleOrder);
-
+      await _db.insertSaleOrder(saleOrder);
       notifyListeners();
     } catch (e) {
-      print('Error creating sale order: $e');
-      throw e;
+      debugPrint('Error creating sale order: $e');
+      rethrow;
     }
   }
 
-  // Get all sale orders for a shop
+  Future<void> updateSaleOrderPayment({
+    required String shopId,
+    required String orderId,
+    required double paidAmount,
+  }) async {
+    try {
+      await _db.updateSaleOrderPayment(
+          shopId: shopId, orderId: orderId, paidAmount: paidAmount);
+
+      for (final shop in _shops) {
+        final orderIndex =
+            shop.saleOrders.indexWhere((o) => o.id == orderId);
+        if (orderIndex != -1) {
+          shop.saleOrders[orderIndex] =
+              shop.saleOrders[orderIndex].copyWith(paidAmount: paidAmount);
+          break;
+        }
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error updating sale order payment: $e');
+      rethrow;
+    }
+  }
+
   List<SaleOrder> getSaleOrders(String shopId) {
     try {
-      final shop = _shops.firstWhere((s) => s.id == shopId);
-      return shop.saleOrders;
+      return _shops.firstWhere((s) => s.id == shopId).saleOrders;
     } catch (e) {
-      print('Error getting sale orders: $e');
       return [];
     }
   }
 
-  // Get sale orders for a specific month
   List<SaleOrder> getMonthlySaleOrders(String shopId, DateTime month) {
     try {
-      final shop = _shops.firstWhere((s) => s.id == shopId);
-      return shop.saleOrders.where((order) {
-        return order.dateTime.year == month.year &&
-            order.dateTime.month == month.month;
-      }).toList();
+      return _shops
+          .firstWhere((s) => s.id == shopId)
+          .saleOrders
+          .where((o) =>
+              o.dateTime.year == month.year &&
+              o.dateTime.month == month.month)
+          .toList();
     } catch (e) {
-      print('Error getting monthly sale orders: $e');
       return [];
     }
   }
 
   Future<List<SaleOrder>> getSaleOrdersFromDb(String shopId) async {
     try {
-      return await _databaseHelper.getSaleOrders(shopId);
+      return await _db.getSaleOrders(shopId);
     } catch (e) {
-      print('Error getting sale orders: $e');
       return [];
     }
   }
 
-  Future<List<Map<String, dynamic>>> getSaleOrderItems(String orderId) async {
+  Future<List<Map<String, dynamic>>> getSaleOrderItems(
+      String shopId, String orderId) async {
     try {
-      return await _databaseHelper.getSaleOrderItems(orderId);
+      return await _db.getSaleOrderItems(shopId, orderId);
     } catch (e) {
-      print('Error getting sale order items: $e');
+      return [];
+    }
+  }
+
+  Future<List<Transaction>> getMonthlyTransactions(
+      String shopId, DateTime month) async {
+    try {
+      return await _db.getMonthlyTransactions(shopId, month);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // ─── CUSTOMERS ─────────────────────────────────────────────────────────────
+
+  Future<void> insertCustomer(String shopId, Customer customer) async {
+    await _db.insertCustomer(shopId, customer);
+  }
+
+  Future<List<Customer>> getCustomers(String shopId) async {
+    try {
+      return await _db.getCustomers(shopId);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<Customer?> getCustomerByPhone(String shopId, String phone) async {
+    try {
+      return await _db.getCustomerByPhone(shopId, phone);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> deleteCustomer(String shopId, String customerId) async {
+    await _db.deleteCustomer(shopId, customerId);
+  }
+
+  // ─── SUPPLIERS ─────────────────────────────────────────────────────────────
+
+  Future<void> insertSupplier(String shopId, Supplier supplier) async {
+    await _db.insertSupplier(shopId, supplier);
+  }
+
+  Future<List<Supplier>> getSuppliers(String shopId) async {
+    try {
+      return await _db.getSuppliers(shopId);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<Supplier?> getSupplierByName(String shopId, String name) async {
+    try {
+      return await _db.getSupplierByName(shopId, name);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<void> deleteSupplier(String shopId, String supplierId) async {
+    await _db.deleteSupplier(shopId, supplierId);
+  }
+
+  // ─── STATISTICS (direct Firestore for stats screen) ────────────────────────
+
+  Future<List<InventoryItem>> getInventoryItems(String shopId) async {
+    try {
+      return await _db.getInventoryItems(shopId);
+    } catch (e) {
       return [];
     }
   }

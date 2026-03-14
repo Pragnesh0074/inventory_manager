@@ -852,7 +852,7 @@ class _PurchasesListScreenState extends State<PurchasesListScreen> {
                   await Provider.of<ShopProvider>(
                     context,
                     listen: false,
-                  ).updatePurchasePayment(purchaseId: p.id, paidAmount: v);
+                  ).updatePurchasePayment(shopId: widget.shop.id, purchaseId: p.id, paidAmount: v);
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

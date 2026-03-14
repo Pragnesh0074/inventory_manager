@@ -9,7 +9,7 @@ import '../../models/customer.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
-import '../../database/database_helper.dart';
+
 import 'sale_summary_screen.dart';
 
 class SaleItem {
@@ -84,8 +84,8 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
 
   Future<void> _loadCustomerSuggestions() async {
     try {
-      final dbHelper = DatabaseHelper();
-      final customers = await dbHelper.getCustomers(widget.shop.id);
+      final shopProvider = Provider.of<ShopProvider>(context, listen: false);
+      final customers = await shopProvider.getCustomers(widget.shop.id);
       setState(() {
         customerSuggestions = customers;
       });
@@ -130,10 +130,10 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
 
     if (customerName.isNotEmpty && customerPhone.isNotEmpty) {
       try {
-        final dbHelper = DatabaseHelper();
+        final shopProvider = Provider.of<ShopProvider>(context, listen: false);
 
         // Check if customer already exists
-        var existingCustomer = await dbHelper.getCustomerByPhone(
+        var existingCustomer = await shopProvider.getCustomerByPhone(
           widget.shop.id,
           customerPhone,
         );
@@ -149,7 +149,7 @@ class _MultiItemSaleScreenState extends State<MultiItemSaleScreen> {
             lastUpdated: DateTime.now(),
           );
 
-          await dbHelper.insertCustomer(newCustomer);
+          await shopProvider.insertCustomer(widget.shop.id, newCustomer);
 
           // Refresh customer suggestions
           await _loadCustomerSuggestions();

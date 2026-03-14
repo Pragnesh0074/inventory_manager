@@ -6,7 +6,7 @@ import '../../models/shop.dart';
 import '../../providers/shop_provider.dart';
 import '../../theme/color.dart';
 import '../../theme/style.dart';
-import '../../database/database_helper.dart';
+
 
 class CustomerListScreen extends StatefulWidget {
   final Shop shop;
@@ -33,8 +33,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
     });
 
     try {
-      final dbHelper = DatabaseHelper();
-      final customerList = await dbHelper.getCustomers(widget.shop.id);
+      final shopProvider = Provider.of<ShopProvider>(context, listen: false);
+      final customerList = await shopProvider.getCustomers(widget.shop.id);
       setState(() {
         customers = customerList;
         isLoading = false;
@@ -470,8 +470,8 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
 
   Future<void> _deleteCustomer(Customer customer) async {
     try {
-      final dbHelper = DatabaseHelper();
-      await dbHelper.deleteCustomer(customer.id);
+      final shopProvider = Provider.of<ShopProvider>(context, listen: false);
+      await shopProvider.deleteCustomer(widget.shop.id, customer.id);
 
       // Refresh the customer list
       await _loadCustomers();

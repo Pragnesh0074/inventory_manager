@@ -493,7 +493,7 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
               future: Provider.of<ShopProvider>(
                 context,
                 listen: false,
-              ).getSaleOrderItems(o.id),
+              ).getSaleOrderItems(widget.shop.id, o.id),
               builder: (context, snap) {
                 final items = snap.data ?? [];
                 if (items.isEmpty) {
@@ -764,7 +764,7 @@ class _SalesPaymentsListScreenState extends State<SalesPaymentsListScreen> {
                   await Provider.of<ShopProvider>(
                     context,
                     listen: false,
-                  ).updateSaleOrderPayment(orderId: o.id, paidAmount: v);
+                  ).updateSaleOrderPayment(shopId: widget.shop.id, orderId: o.id, paidAmount: v);
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

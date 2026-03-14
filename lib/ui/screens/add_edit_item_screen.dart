@@ -9,7 +9,7 @@ import '../../theme/color.dart';
 import '../../theme/style.dart';
 import '../../models/purchase.dart';
 import '../../models/supplier.dart';
-import '../../database/database_helper.dart';
+
 
 class AddEditItemScreen extends StatefulWidget {
   final Shop shop;
@@ -65,8 +65,8 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
 
   Future<void> _loadSupplierSuggestions() async {
     try {
-      final dbHelper = DatabaseHelper();
-      final suppliers = await dbHelper.getSuppliers(widget.shop.id);
+      final shopProvider = Provider.of<ShopProvider>(context, listen: false);
+      final suppliers = await shopProvider.getSuppliers(widget.shop.id);
       setState(() {
         supplierSuggestions = suppliers;
       });
@@ -160,10 +160,10 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
 
   Future<void> _saveSupplier(String name, String address) async {
     try {
-      final dbHelper = DatabaseHelper();
+      final shopProvider = Provider.of<ShopProvider>(context, listen: false);
 
       // Check if supplier already exists
-      var existingSupplier = await dbHelper.getSupplierByName(
+      var existingSupplier = await shopProvider.getSupplierByName(
         widget.shop.id,
         name,
       );
@@ -179,7 +179,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
           lastUpdated: DateTime.now(),
         );
 
-        await dbHelper.insertSupplier(newSupplier);
+        await shopProvider.insertSupplier(widget.shop.id, newSupplier);
 
         // Refresh supplier suggestions
         await _loadSupplierSuggestions();
@@ -195,10 +195,10 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
 
     if (partyName.isNotEmpty) {
       try {
-        final dbHelper = DatabaseHelper();
+        final shopProvider = Provider.of<ShopProvider>(context, listen: false);
 
         // Check if supplier already exists
-        var existingSupplier = await dbHelper.getSupplierByName(
+        var existingSupplier = await shopProvider.getSupplierByName(
           widget.shop.id,
           partyName,
         );
@@ -214,7 +214,7 @@ class _AddEditItemScreenState extends State<AddEditItemScreen> {
             lastUpdated: DateTime.now(),
           );
 
-          await dbHelper.insertSupplier(newSupplier);
+          await shopProvider.insertSupplier(widget.shop.id, newSupplier);
 
           // Refresh supplier suggestions
           await _loadSupplierSuggestions();
