@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:inventory_manager/models/inventory_item.dart';
-import 'package:inventory_manager/models/item_statistics.dart';
-import 'package:inventory_manager/models/purchase.dart';
-import 'package:inventory_manager/models/sale_order.dart';
-import 'package:inventory_manager/database/database_helper.dart';
-import 'package:inventory_manager/models/sale_record.dart';
-import 'package:inventory_manager/theme/color.dart';
-import 'package:inventory_manager/theme/style.dart';
+import 'package:stockly/models/inventory_item.dart';
+import 'package:stockly/models/item_statistics.dart';
+import 'package:stockly/models/purchase.dart';
+import 'package:stockly/models/sale_order.dart';
+import 'package:stockly/database/database_helper.dart';
+import 'package:stockly/models/sale_record.dart';
+import 'package:stockly/theme/color.dart';
+import 'package:stockly/theme/style.dart';
 
 class StatisticsSummaryScreen extends StatefulWidget {
   final String shopId;

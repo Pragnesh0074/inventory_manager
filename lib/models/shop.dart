@@ -1,5 +1,5 @@
-import 'package:inventory_manager/models/transaction.dart';
-import 'package:inventory_manager/models/sale_order.dart';
+import 'package:stockly/models/transaction.dart';
+import 'package:stockly/models/sale_order.dart';
 
 import 'inventory_item.dart';
 

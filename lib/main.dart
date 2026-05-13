@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:inventory_manager/providers/shop_provider.dart';
-import 'package:inventory_manager/ui/screens/shop_list_screen.dart';
+import 'package:stockly/providers/shop_provider.dart';
+import 'package:stockly/ui/screens/shop_list_screen.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         builder: (context, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: 'Inventory Management',
+            title: 'Stockly',
             home: child,
           );
         },

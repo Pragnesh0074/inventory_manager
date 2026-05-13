@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:inventory_manager/ui/screens/multi_item_sale_screen.dart';
-import 'package:inventory_manager/ui/screens/sale_summary_screen.dart';
+import 'package:stockly/ui/screens/multi_item_sale_screen.dart';
+import 'package:stockly/ui/screens/sale_summary_screen.dart';
 import 'package:provider/provider.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shop.dart';

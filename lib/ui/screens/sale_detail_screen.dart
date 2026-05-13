@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:inventory_manager/models/sale_order.dart';
-import 'package:inventory_manager/service/pdf_service.dart';
+import 'package:stockly/models/sale_order.dart';
+import 'package:stockly/service/pdf_service.dart';
 import '../../models/inventory_item.dart';
 import '../../models/shop.dart';
 import '../../models/sale_order.dart' as order_models;

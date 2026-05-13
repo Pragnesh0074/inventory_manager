@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:inventory_manager/theme/color.dart';
+import 'package:stockly/theme/color.dart';
+
 
 class AppTextStyles {
   // App Bar Styles

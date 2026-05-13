@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:inventory_manager/models/sale_order.dart' hide SaleItem;
-import 'package:inventory_manager/ui/screens/multi_item_sale_screen.dart';
+import 'package:stockly/models/sale_order.dart' hide SaleItem;
+import 'package:stockly/ui/screens/multi_item_sale_screen.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';

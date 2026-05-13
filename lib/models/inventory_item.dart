@@ -1,4 +1,4 @@
-import 'package:inventory_manager/models/stock_entry.dart';
+import 'package:stockly/models/stock_entry.dart';
 
 class InventoryItem {
   final String id;

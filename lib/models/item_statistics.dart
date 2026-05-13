@@ -1,5 +1,5 @@
-import 'package:inventory_manager/models/purchase.dart';
-import 'package:inventory_manager/models/sale_record.dart';
+import 'package:stockly/models/purchase.dart';
+import 'package:stockly/models/sale_record.dart';
 
 class ItemStatistics {
   final String itemId;

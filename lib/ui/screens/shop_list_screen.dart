@@ -18,7 +18,7 @@ class ShopListScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF5F6FA),
       appBar: AppBar(
         title: Text(
-          'INVENTORY MANAGEMENT',
+          'STOCKLY',
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.w600,
@@ -30,9 +30,7 @@ class ShopListScreen extends StatelessWidget {
         elevation: 0,
         centerTitle: true,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(24.r),
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(24.r)),
         ),
       ),
       body: Consumer<ShopProvider>(
@@ -497,9 +495,15 @@ class ShopListScreen extends StatelessWidget {
                                                 shop,
                                               );
                                             } else if (value == 'customers') {
-                                              _navigateToCustomers(context, shop);
+                                              _navigateToCustomers(
+                                                context,
+                                                shop,
+                                              );
                                             } else if (value == 'suppliers') {
-                                              _navigateToSuppliers(context, shop);
+                                              _navigateToSuppliers(
+                                                context,
+                                                shop,
+                                              );
                                             } else if (value == 'delete') {
                                               _showDeleteDialog(context, shop);
                                             }
